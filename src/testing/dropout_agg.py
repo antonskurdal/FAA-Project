@@ -328,7 +328,7 @@ def calc_dropouts(data, outfile, quantity):
 
 
 		#Percentage Dropouts Pie Charts - Average and Mode
-		if(True == True):
+		if(False == True):
 
 
 			fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(10, 6.5))
