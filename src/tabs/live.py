@@ -27,7 +27,17 @@ import util.login as login
 
 
 import os
+from pathlib import Path
+import sys
+import inspect
+#currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+#parentdir = os.path.dirname(currentdir)
 
+# parentdir = Path.resolve(Path.cwd())
+
+# sys.path.insert(0, parentdir)
+
+# print("PARENT DIR: " + str(parentdir))
 
 #Padding
 PADX_CONFIG = (2, 2)
