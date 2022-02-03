@@ -13,11 +13,11 @@ import seaborn as sns
 # sns.dark_palette("seagreen", as_cmap=True)
 
 
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', None)
-pd.set_option('display.max_colwidth', -1)
-np.set_printoptions(suppress=True)
+#pd.set_option('display.max_rows', None)
+#pd.set_option('display.max_columns', None)
+#pd.set_option('display.width', None)
+#pd.set_option('display.max_colwidth', -1)
+#np.set_printoptions(suppress=True)
 
 
 #Set working path
@@ -37,7 +37,7 @@ def calc_dropouts(data, outfile, quantity):
 	
 	print(quantity)
 
-	metadata = pd.DataFrame()
+	metadata = pd.DataFrame(columns = ['num_craft', 'num_points', 'avg', 'mode', 'std_dev', 'min', 'max'])
 
 	for q in quantity:
 		print("Q: " + str(q))
@@ -49,9 +49,9 @@ def calc_dropouts(data, outfile, quantity):
 		points_master = pd.DataFrame()
 
 		craft_list = data['icao24'].unique()
-		print("LENGTH OF CRAFT LIST: " + str(len(craft_list)))
+		print("Length of craft list: " + str(len(craft_list)))
 		craft_list = craft_list[:q]
-
+		print("LENGTH OF CRAFT LIST [Q]: " + str(len(craft_list)))
 
 		for craft in craft_list:
 			
@@ -181,8 +181,26 @@ def calc_dropouts(data, outfile, quantity):
 		####################################################################################################
 		#Reset master index - NOTE: ALL NAN POINTS, WHICH ARE THE FIRST POINTS OF EACH CRAFT DATA SUBSET, ARE DROPPED HERE
 		#print(points_master.shape)
-		points_master = points_master.dropna()
+		
+		#x = points_master.groupby('icao24')
+		num_craft = points_master['icao24'].unique().shape[0]
+
+
+
+		#print("\nX SIZE PRE-DROP: " + str(num_craft) + "\n" + str(x.size()))
+		print("Number of Aircraft [PRE]: " + str(num_craft))
+		# num_craft = points_master['icao24'].unique().shape[0]
+		# print("Number of Aircraft: " + str(num_craft))
+		#points_master = points_master.dropna()
+
+		#x = points_master.groupby('icao24')
+		#print("\nX SIZE POST-DROP: " + str(num_craft) + "\n" + str(x.size()))
+
+
 		#print(points_master.shape)
+		
+		
+		#print(points_master.head(5))
 		points_master.reset_index(inplace = True)
 		#print(points_master.head(5))
 
@@ -195,7 +213,9 @@ def calc_dropouts(data, outfile, quantity):
 		#print(points_master['points_mode'].unique())
 
 		#Number of unique aircraft
+		
 		num_craft = points_master['icao24'].unique().shape[0]
+		print("Number of Aircraft [POST]: " + str(num_craft))
 
 		#Calculate average of all averages
 		#Calculate mode of all modes
@@ -211,6 +231,7 @@ def calc_dropouts(data, outfile, quantity):
 		num_dropouts_mode = points_master[(points_master['dropout_length'] > points_master['points_mode'])].reset_index(drop = True).copy().shape[0]
 		pct_dropouts_mode = num_dropouts_mode/num_points * 100
 
+		'''
 		#Print calculated data
 		print("Points: " + str(num_points))
 		print(">Points Average: " + str(points_master['points_avg'][0]))
@@ -220,6 +241,7 @@ def calc_dropouts(data, outfile, quantity):
 
 		print("Dropouts [Points > Mode]: " + str(num_dropouts_mode))
 		print(">Percentage: {:.4f}%".format(pct_dropouts_mode))
+		'''
 
 
 		#one_dev = points_master[(points_master['dropout_length'] > points_master['dropout_avg'][0]) & (points_master['dropout_zscore'] > 0) & (points_master['dropout_zscore'] <= 1)].copy().shape[0]
@@ -238,6 +260,7 @@ def calc_dropouts(data, outfile, quantity):
 		three_dev = abv_avg[(abv_avg['points_zscore'] > 2) & (abv_avg['points_zscore'] <= 3)].reset_index(drop = True).copy().shape[0]
 		over_three_dev = abv_avg[(abv_avg['points_zscore'] > 3)].reset_index(drop = True).copy().shape[0]
 
+		'''
 		print("\nStandard Deviation Counts:")
 		print("[TOTAL]: " + str(one_dev + two_dev + three_dev + over_three_dev))
 		print("[<=  0]: " + str(below_zero_dev))
@@ -245,15 +268,55 @@ def calc_dropouts(data, outfile, quantity):
 		print("[<= +2]: " + str(two_dev))
 		print("[<= +3]: " + str(three_dev))
 		print("[>  +3]: " + str(over_three_dev))
+		'''
 
 
 		#Holistic Z-Score
 		#zscores = stats.zscore(list(points_master['dropout_length'].dropna()))
 		points_master['holistic_zscore'] = (points_master.dropout_length - points_master.dropout_length.mean())/points_master.dropout_length.std(ddof=0)
-		print(points_master['holistic_zscore'].head(5))
-		print(points_master.columns)
-		print(points_master['points_zscore'].describe().apply(lambda x: format(x, 'f')))
+		# print(points_master['holistic_zscore'].head(5))
+		# print(points_master.columns)
+		# print(points_master['points_zscore'].describe().apply(lambda x: format(x, 'f')))
 		
+		
+		#print(points_master['dropout_length'].describe())
+
+
+		# meta = pd.DataFrame()#columns = ['num_craft', 'num_points', 'avg', 'mode', 'std_dev', 'min', 'max'])
+		# meta['num_craft'] = q
+		# meta['num_points'] = points_master['dropout_length'].shape[0]
+		# meta['avg'] = points_master['dropout_length'].mean()
+		# meta['mode'] = points_master['dropout_length'].mode()
+		# meta['std_dev'] = points_master['dropout_length'].std()
+		# meta['min'] = points_master['dropout_length'].min()
+		# meta['max'] = points_master['dropout_length'].max()
+		# print(meta)
+		meta = dict({
+			'num_craft': q,
+			'num_points': points_master['dropout_length'].shape[0],
+			'avg': points_master['dropout_length'].mean(),
+			'mode': points_master['dropout_length'].mode(),
+			'std_dev': points_master['dropout_length'].std(),
+			'min': points_master['dropout_length'].min(),
+			'max': points_master['dropout_length'].max()
+			})
+		#print(meta)
+		meta = pd.DataFrame(meta)
+		metadata = metadata.append(meta, ignore_index = True)
+		#metadata = metadata.append(meta, ignore_index = True)
+		# metadata = metadata.append(
+		# 	{'num_craft': q,
+		# 	'num_points': [],
+		# 	'avg': [],
+		# 	'mode': [points_master['dropout_length'].mode()],
+		# 	'std_dev': [points_master['dropout_length'].std()],
+		# 	'min': [],
+		# 	'max': [points_master['dropout_length'].max()]
+		# 	}, ignore_index = True)
+
+
+
+
 		#zscores = np.insert(zscores, 0, np.NaN, axis = 0)
 		#points_master.insert(points_master.shape[1], 'holistic_zscore', zscores)
 
@@ -271,7 +334,17 @@ def calc_dropouts(data, outfile, quantity):
 			# 	"ytick.labelsize": 12,
 			# })
 
-		sns.set_style('darkgrid')
+
+
+
+
+
+
+
+
+
+		
+		#sns.set_style('darkgrid')
 
 		#Holistic Percentage Dropouts Pie Charts - Average and Mode
 		if(False == True):
@@ -677,7 +750,7 @@ def calc_dropouts(data, outfile, quantity):
 
 
 		#Holistic Z-Score Distribution Plot - Histogram (Log Scale)
-		if(True == True):
+		if(False == True):
 			
 			
 			sns.set(rc=
@@ -698,15 +771,20 @@ def calc_dropouts(data, outfile, quantity):
 			import matplotlib.colors as colors
 			pal = sns.diverging_palette(146.49, 0, as_cmap=True)
 			bounds = np.array([-5, 0, 5, 10, 15, 20, 25])
-			ax = sns.displot(points_master, x = "holistic_zscore", kind = "hist", bins = 50, log_scale=(False, True), hue = "holistic_zscore", palette='RdYlGn_r', alpha = 1, hue_norm=mpl.colors.CenteredNorm(), edgecolor='black')#hue_norm = colors.BoundaryNorm(boundaries=bounds, ncolors=666))# #, hue = "icao24", fill = True, legend = False)
-			handles, labels = ax.ax.get_legend_handles_labels()
-			new_labels = ["{:.3f}".format(label) for label in labels]
-			ax.ax.legend(handles, new_labels, title = 'hr', loc = 'best')
-			for text in ax.legend.texts:
-				text.set_text("{:0.3f}".format(float(text.get_text())))
+			if (q <= 10):
+				ax = sns.displot(points_master, x = "holistic_zscore", kind = "hist", bins = 50, log_scale=(False, True), hue = "holistic_zscore", palette='RdYlGn_r', alpha = 1, hue_norm=mpl.colors.CenteredNorm(), edgecolor='black')#hue_norm = colors.BoundaryNorm(boundaries=bounds, ncolors=666))# #, hue = "icao24", fill = True, legend = False)
+				handles, labels = ax.ax.get_legend_handles_labels()
+				new_labels = ["{:.3f}".format(label) for label in labels]
+				ax.ax.legend(handles, new_labels, title = 'hr', loc = 'best')
+				for text in ax.legend.texts:
+					text.set_text("{:0.3f}".format(float(text.get_text())))
+				
+				ax.legend.set(title="Z-Score", bbox_to_anchor = (0.98,0.5))#, fontproperties={'weight':'bold', 'size':10})
+				#plt.setp(ax.ax.legend().get_title(), fontsize='32') 
+			else:
+				ax = sns.displot(points_master, x = "holistic_zscore", kind = "hist", bins = 100, log_scale=(False, True), hue = "holistic_zscore", palette='RdYlGn_r', alpha = 1, hue_norm=mpl.colors.CenteredNorm(), edgecolor='black', legend = False)#hue_norm = colors.BoundaryNorm(boundaries=bounds, ncolors=666))# #, hue = "icao24", fill = True, legend = False)
+				
 			
-			ax.legend.set(title="Z-Score", bbox_to_anchor = (0.98,0.5))#, fontproperties={'weight':'bold', 'size':10})
-			#plt.setp(ax.ax.legend().get_title(), fontsize='32') 
 			
 
 			""" #WORKING HISTOGRAM BIN LABELS - NOT TO SCALE
@@ -736,7 +814,7 @@ def calc_dropouts(data, outfile, quantity):
 			desc = desc.apply(lambda x: format(x, '.4f'))
 			#desc['count'] = int(desc['count'].astype(int)
 			desc['count'] = int(pd.to_numeric(desc['count']))
-			print(desc)
+			#print(desc)
 			data1=[i for i in desc.index]
 			data2=[str(i) for i in desc]
 			text= ('\n'.join([ a +':'+ b for a,b in zip(data1,data2)]))
@@ -758,9 +836,9 @@ def calc_dropouts(data, outfile, quantity):
 			ax.fig.set_figwidth(12)
 			ax.fig.set_figheight(8)
 			ax.set_xlabels("Z-Score")
-			plt.suptitle("Holistic Z-Score Distribution (Log Scale)", weight = 'bold').set_fontsize('16')
-			title = ("Number of Aircraft: " + str(num_craft) + "\tData Points: " + str(num_points)).expandtabs()# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
-			plt.title(title)
+			plt.suptitle("Holistic Z-Score Distribution (Log Scale) for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
+			#title = ("Number of Aircraft: " + str(num_craft) + "\tData Points: " + str(num_points)).expandtabs()# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
+			#plt.title(title)
 			plt.tight_layout()
 			plt.show()
 			#pdf.savefig()
@@ -1104,6 +1182,30 @@ def calc_dropouts(data, outfile, quantity):
 
 		#Percentages
 		'''
+	#metadata.reset_index()
+	#metadata.update(metadata)
+	#print(metadata)
+
+	#Holistic Metadata Average & Mode vs Number of Aircraft
+	if(True == True):
+
+		fig, ax = plt.subplots()
+		ax.plot('num_craft', 'avg', data = metadata, marker ='s', markerfacecolor = '#009A44', label = 'Average', color = 'black')
+		ax.plot('num_craft', 'mode', data = metadata, marker ='s', markerfacecolor = 'orange', label = 'Mode', color = 'black')
+
+		#Axis labels
+		plt.xlabel('Number of Aircraft', weight = 'bold', fontsize = 12, color = '#009A44')
+		plt.ylabel('Value (seconds)', weight = 'bold', fontsize = 12, color = '#009A44')
+		plt.xticks(weight = 'bold', fontsize = 10)
+		plt.yticks(weight = 'bold', fontsize = 10)
+
+		plt.title("Holistic Point Info vs Number of Aircraft", weight = 'bold').set_fontsize('14')
+		plt.legend()
+		plt.tight_layout()
+		plt.show()
+		
+		pdf.savefig(fig)
+
 	return #JUST DO THE GROUPS OF THE PIE CHART WITH OPERATIONS INSTEAD OF CREATING VARIABLES. SHOW BOTH POSITIVE AND NEGATIVE DROPOUTS. THERE SHOULD BE 7 GROUPS IN THE PIE INCLUDING ZERO.
 
 
@@ -1131,7 +1233,7 @@ quantity = 1
 
 
 pdf = PdfPages(outfile)
-calc_dropouts(data, outfile, [10])
+calc_dropouts(data, outfile, list([5, 10, 15]))
 #calc_dropouts(data, pdf, quantity)
 #calc_dropouts(data, pdf, 5)
 #calc_dropouts(data, outfile, 10)
