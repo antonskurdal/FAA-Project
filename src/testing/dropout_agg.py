@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib import cm
 from matplotlib.backends.backend_pdf import PdfPages
+from pyparsing import alphas
 import scipy.stats as stats
 import numpy as np
 import seaborn as sns
@@ -35,6 +36,9 @@ def calc_dropouts(data, outfile, quantity):
 		quantity = list(quantity)
 	
 	print(quantity)
+
+	metadata = pd.DataFrame()
+
 	for q in quantity:
 		print("Q: " + str(q))
 
@@ -253,12 +257,24 @@ def calc_dropouts(data, outfile, quantity):
 		#zscores = np.insert(zscores, 0, np.NaN, axis = 0)
 		#points_master.insert(points_master.shape[1], 'holistic_zscore', zscores)
 
+		# sns.set(rc=
+			# {
+			# 	'axes.facecolor': 'white',
+			# 	'figure.facecolor':'gray',
+			# 	'grid.color': 'white',
+			# 	'xtick.color': 'white',
+			# 	'ytick.color': 'white',
+			# 	'axes.labelcolor': 'black',
+			# 	'text.color': 'black',
+			# 	'axes.edgecolor': 'white',
+			# 	"xtick.labelsize": 12,
+			# 	"ytick.labelsize": 12,
+			# })
 
-
-
+		sns.set_style('darkgrid')
 
 		#Holistic Percentage Dropouts Pie Charts - Average and Mode
-		if(True == True):
+		if(False == True):
 
 
 			fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(10, 6.5))
@@ -391,12 +407,62 @@ def calc_dropouts(data, outfile, quantity):
 			plt.tight_layout()
 			plt.show()
 
+		#Holistic Z-Score Distribution Plot - Kernel Density Estimates (Focused)
+		if(False == True):
 
+			ax = sns.displot(points_master, x = "holistic_zscore", kind = "kde", hue = "icao24", fill = True, legend = False, alpha=0.6)
+			
+			
+			#ax = sns.displot(points_master, x = "holistic_zscore", kde = True)#, hue = "icao24", fill = True, legend = False)
+			ax.set(xlim=(-1, 1))
+			#ax.set(xlim=(points_master['holistic_zscore'].min()-1, points_master['holistic_zscore'].max()+1))
+			#ax.set(yscale="log")
+			#ax.set(ylim=(0, 100))
+			#print(plt.ylim())
+
+			desc = points_master['holistic_zscore'].describe()
+			
+			desc = desc.apply(lambda x: format(x, '.4f'))
+			#desc['count'] = int(desc['count'].astype(int)
+			desc['count'] = int(pd.to_numeric(desc['count']))
+			print(desc)
+			data1=[i for i in desc.index]
+			data2=[str(i) for i in desc]
+			text= ('\n'.join([ a +':'+ b for a,b in zip(data1,data2)]))
+			#plt.text(40, 0.1, text , fontsize=12)
+			#from matplotlib import rc
+
+			# activate latex text rendering
+			#rc('text', usetex=True)
+			leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':12}, handlelength=0, handletextpad=0)
+			#leg = plt.legend(handlelength=0, handletextpad=0, fancybox=True)
+			for item in leg.legendHandles:
+				item.set_visible(False)
+			
+			for t in leg.get_texts():
+				t.set_ha('left')
+				#leg._legend_box.align = "left"
+			
+			#Figure size
+			ax.fig.set_figwidth(9)
+			ax.fig.set_figheight(5)
+			
+			#Labels
+			ax.set_xlabels("Z-Score")
+			
+			#Titles
+			plt.suptitle("Holistic Z-Score Kernel Density Estimates Distribution (Focused)", weight = 'bold').set_fontsize('16')
+			title = ("Number of Aircraft: " + str(num_craft) + "\tData Points: " + str(num_points)).expandtabs()# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
+			plt.title(title)
+			plt.tight_layout()
+			plt.show()
+			#pdf.savefig()
+			#plt.close("all")
 
 		#Holistic Z-Score Distribution Plot - Kernel Density Estimates
 		if(False == True):
 
-			ax = sns.displot(points_master, x = "holistic_zscore", kind = "kde", hue = "icao24", fill = True, legend = False)
+			ax = sns.displot(points_master, x = "holistic_zscore", kind = "kde", hue = "icao24", fill = True, legend = False, alpha=0.6)
 			
 			
 			#ax = sns.displot(points_master, x = "holistic_zscore", kde = True)#, hue = "icao24", fill = True, legend = False)
@@ -420,7 +486,7 @@ def calc_dropouts(data, outfile, quantity):
 
 			# activate latex text rendering
 			#rc('text', usetex=True)
-			leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, markerscale = 0)
+			leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, handlelength=0, handletextpad=0)
 			#leg = plt.legend(handlelength=0, handletextpad=0, fancybox=True)
 			for item in leg.legendHandles:
 				item.set_visible(False)
@@ -430,8 +496,8 @@ def calc_dropouts(data, outfile, quantity):
 				#leg._legend_box.align = "left"
 			
 
-			ax.fig.set_figwidth(12)
-			ax.fig.set_figheight(8)
+			ax.fig.set_figwidth(9)
+			ax.fig.set_figheight(5)
 			ax.set_xlabels("Z-Score")
 			plt.suptitle("Holistic Z-Score Kernel Density Estimates Distribution", weight = 'bold').set_fontsize('16')
 			title = ("Number of Aircraft: " + str(num_craft) + "\tData Points: " + str(num_points)).expandtabs()# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
@@ -440,7 +506,119 @@ def calc_dropouts(data, outfile, quantity):
 			plt.show()
 			#pdf.savefig()
 			#plt.close("all")
+		
 
+
+		#Holistic Z-Score Distribution Plot - Empirical Cumulative (Focused)
+		if(False == True):
+
+				ax = sns.displot(points_master, x = "holistic_zscore", kind = "ecdf")#, hue = "icao24", fill = True, legend = False)
+				
+				# Get the lines and xy data from the lines so that we can shade
+				x1 = ax.ax.get_lines()[0].get_xydata()[:,0]
+				y1 = ax.ax.get_lines()[0].get_xydata()[:,1]
+
+				
+				
+				#Shade areas - WORKING
+				#ax.ax.fill_between(x1,y1, color="red", alpha=0.3)
+				'''
+				plt.axvspan(-1, 0, color='#009A44', alpha=0.6, lw=0)
+				plt.axvspan(0, 1, color='r', alpha=0.6, lw=0)
+				ax.ax.fill_between(x1,y1, np.max(y1), color="white", alpha=1)
+				'''
+				'''
+				from matplotlib.collections import LineCollection
+				from matplotlib.colors import ListedColormap, BoundaryNorm
+
+				x = x1
+				dx = x[1]-x[0]
+				y = y1
+				dydx = np.gradient(y, dx)  # first derivative
+
+				# Create a set of line segments so that we can color them individually
+				# This creates the points as a N x 1 x 2 array so that we can stack points
+				# together easily to get the segments. The segments array for line collection
+				# needs to be (numlines) x (points per line) x 2 (for x and y)
+				points = np.array([x, y]).T.reshape(-1, 1, 2)
+				segments = np.concatenate([points[:-1], points[1:]], axis=1)
+				'''
+				'''
+				#Can't figure it out
+				# Create a continuous norm to map from data points to colors
+				norm = plt.Normalize(dydx.min(), dydx.max())
+				lc = LineCollection(segments, cmap='viridis', norm=norm)
+				# Set the values used for colormapping
+				lc.set_array(dydx)
+				lc.set_linewidth(2)
+				line = ax.ax.add_collection(lc)
+				#fig.colorbar(line, ax=ax.ax)
+				# Use a boundary norm instead
+				cmap = ListedColormap(['r', 'g', 'b'])
+				norm = BoundaryNorm([-1, -0.5, 0.5, 1], cmap.N, clip=True)
+				lc = LineCollection(segments, cmap=cmap, norm=norm)
+				lc.set_array(dydx)
+				lc.set_linewidth(2)
+				line = ax.ax.add_collection(lc)
+				'''
+
+				""" #WORKING Y-Gradient
+				xData = x1
+				yData = y1
+				NbData = len(xData)
+				MaxBL = [[MaxBL] * NbData for MaxBL in range(100)]
+				Max = [np.asarray(MaxBL[x]) for x in range(100)]
+
+				for x in range (50, 100):
+					ax.ax.fill_between(xData, Max[x], yData, where=yData >Max[x], facecolor='red', alpha=0.02)
+
+				for x in range (0, 50):
+					ax.ax.fill_between(xData, yData, Max[x], where=yData <Max[x], facecolor='green', alpha=0.02) """
+
+
+
+				ax.set(xlim=(-1, 1))
+				#ax.set(xlim=(points_master['holistic_zscore'].min()-1, points_master['holistic_zscore'].max()+1))
+				#ax.set(yscale="log")
+				#ax.set(ylim=(0, 100))
+				#print(plt.ylim())
+
+				desc = points_master['holistic_zscore'].describe()
+				
+				desc = desc.apply(lambda x: format(x, '.4f'))
+				#desc['count'] = int(desc['count'].astype(int)
+				desc['count'] = int(pd.to_numeric(desc['count']))
+				print(desc)
+				data1=[i for i in desc.index]
+				data2=[str(i) for i in desc]
+				text= ('\n'.join([ a +':'+ b for a,b in zip(data1,data2)]))
+				#plt.text(40, 0.1, text , fontsize=12)
+				#from matplotlib import rc
+
+				# activate latex text rendering
+				#rc('text', usetex=True)
+				leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, handlelength=0, handletextpad=0)
+				#leg = plt.legend(handlelength=0, handletextpad=0, fancybox=True)
+				for item in leg.legendHandles:
+					item.set_visible(False)
+				
+				for t in leg.get_texts():
+					t.set_ha('left')
+					#leg._legend_box.align = "left"
+				
+
+				ax.fig.set_figwidth(8)
+				ax.fig.set_figheight(6)
+				ax.set_xlabels("Z-Score")
+				ax.set_ylabels("% of Z-Scores")
+				plt.suptitle("Holistic Z-Score Empirical Cumulative Distribution (Focused)", weight = 'bold').set_fontsize('16')
+				title = ("Number of Aircraft: " + str(num_craft) + "\tData Points: " + str(num_points)).expandtabs()# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
+				plt.title(title)
+				plt.tight_layout()
+				plt.show()
+				#pdf.savefig()
+				#plt.close("all")
+		
 
 		#Holistic Z-Score Distribution Plot - Empirical Cumulative
 		if(False == True):
@@ -472,7 +650,7 @@ def calc_dropouts(data, outfile, quantity):
 
 				# activate latex text rendering
 				#rc('text', usetex=True)
-				leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, markerscale = 0)
+				leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, handlelength=0, handletextpad=0)
 				#leg = plt.legend(handlelength=0, handletextpad=0, fancybox=True)
 				for item in leg.legendHandles:
 					item.set_visible(False)
@@ -482,8 +660,8 @@ def calc_dropouts(data, outfile, quantity):
 					#leg._legend_box.align = "left"
 				
 
-				ax.fig.set_figwidth(12)
-				ax.fig.set_figheight(8)
+				ax.fig.set_figwidth(8)
+				ax.fig.set_figheight(6)
 				ax.set_xlabels("Z-Score")
 				plt.suptitle("Holistic Z-Score Empirical Cumulative Distribution", weight = 'bold').set_fontsize('16')
 				title = ("Number of Aircraft: " + str(num_craft) + "\tData Points: " + str(num_points)).expandtabs()# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
@@ -498,16 +676,53 @@ def calc_dropouts(data, outfile, quantity):
 
 
 
-		#Holistic Z-Score Distribution Plot - Histogram
-		if(False == True):
+		#Holistic Z-Score Distribution Plot - Histogram (Log Scale)
+		if(True == True):
 			
 			
-			ax = sns.displot(points_master, x = "holistic_zscore", kind = "hist", bins = 50, log_scale=(False, True))#, hue = "icao24", fill = True, legend = False)
-			'''
-			ax = sns.displot(points_master, x = "holistic_zscore", kind = "ecdf")#, hue = "icao24", fill = True, legend = False)
-			ax = sns.displot(points_master, x = "holistic_zscore", kind = "kde", hue = "icao24", fill = True, legend = False)
+			sns.set(rc=
+				{
+					'axes.facecolor': '#AEAEAE',
+					'figure.facecolor':'#AEAEAE',
+					'grid.color': 'gray',
+					'xtick.color': 'black',
+					'ytick.color': 'black',
+					'axes.labelcolor': 'black',
+					'text.color': 'black',
+					'axes.edgecolor': 'black',
+					'xtick.labelsize': 12,
+					'ytick.labelsize': 12,
+					'legend.title_fontsize': 12,
+				})
 			
-			'''
+			import matplotlib.colors as colors
+			pal = sns.diverging_palette(146.49, 0, as_cmap=True)
+			bounds = np.array([-5, 0, 5, 10, 15, 20, 25])
+			ax = sns.displot(points_master, x = "holistic_zscore", kind = "hist", bins = 50, log_scale=(False, True), hue = "holistic_zscore", palette='RdYlGn_r', alpha = 1, hue_norm=mpl.colors.CenteredNorm(), edgecolor='black')#hue_norm = colors.BoundaryNorm(boundaries=bounds, ncolors=666))# #, hue = "icao24", fill = True, legend = False)
+			handles, labels = ax.ax.get_legend_handles_labels()
+			new_labels = ["{:.3f}".format(label) for label in labels]
+			ax.ax.legend(handles, new_labels, title = 'hr', loc = 'best')
+			for text in ax.legend.texts:
+				text.set_text("{:0.3f}".format(float(text.get_text())))
+			
+			ax.legend.set(title="Z-Score", bbox_to_anchor = (0.98,0.5))#, fontproperties={'weight':'bold', 'size':10})
+			#plt.setp(ax.ax.legend().get_title(), fontsize='32') 
+			
+
+			""" #WORKING HISTOGRAM BIN LABELS - NOT TO SCALE
+			s = 0
+			for p in ax.ax.patches:
+				s+= p.get_height()
+
+			for p in ax.ax.patches: 
+				ax.ax.text(p.get_x() + p.get_width()/2.,
+						p.get_height(),
+						'{}'.format(int(p.get_height()*100/s)), 
+						fontsize=14,
+						color='red',
+						ha='center',
+						va='bottom')
+			 """
 			
 			#ax = sns.displot(points_master, x = "holistic_zscore", kde = True)#, hue = "icao24", fill = True, legend = False)
 			#ax.set(xlim=(-3.5, 3.5))
@@ -530,7 +745,7 @@ def calc_dropouts(data, outfile, quantity):
 
 			# activate latex text rendering
 			#rc('text', usetex=True)
-			leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, markerscale = 0)
+			leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, handlelength=0, handletextpad=0)
 			#leg = plt.legend(handlelength=0, handletextpad=0, fancybox=True)
 			for item in leg.legendHandles:
 				item.set_visible(False)
@@ -543,7 +758,7 @@ def calc_dropouts(data, outfile, quantity):
 			ax.fig.set_figwidth(12)
 			ax.fig.set_figheight(8)
 			ax.set_xlabels("Z-Score")
-			plt.suptitle("Holistic Z-Score Distribution", weight = 'bold').set_fontsize('16')
+			plt.suptitle("Holistic Z-Score Distribution (Log Scale)", weight = 'bold').set_fontsize('16')
 			title = ("Number of Aircraft: " + str(num_craft) + "\tData Points: " + str(num_points)).expandtabs()# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
 			plt.title(title)
 			plt.tight_layout()
