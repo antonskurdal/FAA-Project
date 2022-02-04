@@ -77,6 +77,21 @@ for x in range (50, 100):
 for x in range (0, 50):
 	ax.ax.fill_between(xData, yData, Max[x], where=yData <Max[x], facecolor='green', alpha=0.02) """
 
+
+""" #WORKING HISTOGRAM BIN LABELS - NOT TO SCALE
+			s = 0
+			for p in ax.ax.patches:
+				s+= p.get_height()
+
+			for p in ax.ax.patches: 
+				ax.ax.text(p.get_x() + p.get_width()/2.,
+						p.get_height(),
+						'{}'.format(int(p.get_height()*100/s)), 
+						fontsize=14,
+						color='red',
+						ha='center',
+						va='bottom')
+			 """
 #Set working path
 import sys
 base_dir = Path.resolve(Path.cwd())
@@ -233,7 +248,7 @@ def calc_dropouts(data, outfile, quantity):
 
 
 
-		####################################################################################################
+		######################################################################################################################################################
 		#Reset master index - NOTE: ALL NAN POINTS, WHICH ARE THE FIRST POINTS OF EACH CRAFT DATA SUBSET, ARE DROPPED HERE
 		#print(points_master.shape)
 		
@@ -353,6 +368,9 @@ def calc_dropouts(data, outfile, quantity):
 
 
 
+		######################################################################################################################################################
+		# DROPOUT PERCENTAGE PIE CHARTS																														 #
+		######################################################################################################################################################
 		#Holistic Percentage Dropouts Pie Charts - Average and Mode
 		#ADDED TO PDF
 		if(True == True):
@@ -550,9 +568,13 @@ def calc_dropouts(data, outfile, quantity):
 			plt.tight_layout()
 			plt.show()
 			'''
+		######################################################################################################################################################
+		
+		
 
-
-
+		######################################################################################################################################################
+		# KERNEL DENSITY ESTIMATE Z-SCORE DISTRIBUTION PLOTS																								 #
+		######################################################################################################################################################
 		#Holistic Z-Score Distribution Plot - Kernel Density Estimates
 		#ADDED TO PDF
 		if(True == True):
@@ -637,9 +659,13 @@ def calc_dropouts(data, outfile, quantity):
 			fig = ax.ax.get_figure()
 			pdf.savefig(fig)
 			plt.close("all")
-		
+		######################################################################################################################################################
 
 
+
+		######################################################################################################################################################
+		# EMPIRICAL CUMULATIVE Z-SCORE DISTRIBUTION PLOTS																									 #
+		######################################################################################################################################################
 		#Holistic Z-Score Distribution Plot - Empirical Cumulative (Focused)
 		#ADDED TO PDF
 		if(True == True):
@@ -787,21 +813,21 @@ def calc_dropouts(data, outfile, quantity):
 			pdf.savefig(fig)
 			plt.close("all")
 			sns.reset_orig()
+		######################################################################################################################################################
 
 
-
-
-
-
+		######################################################################################################################################################
+		# HISTOGRAM Z-SCORE DISTRIBUTION PLOT																												 # 
+		######################################################################################################################################################
 		#Holistic Z-Score Distribution Plot - Histogram (Log Scale)
 		if(True == True):
 			
-			
+			#Style
 			sns.set(rc=
 				{
-					'axes.facecolor': '#AEAEAE',
-					'figure.facecolor':'#AEAEAE',
-					'grid.color': 'gray',
+					'axes.facecolor': 'white',
+					'figure.facecolor':'white',
+					'grid.color': '#AEAEAE',
 					'xtick.color': 'black',
 					'ytick.color': 'black',
 					'axes.labelcolor': 'black',
@@ -811,84 +837,70 @@ def calc_dropouts(data, outfile, quantity):
 					'ytick.labelsize': 12,
 					'legend.title_fontsize': 12,
 				})
-			
 			import matplotlib.colors as colors
 			pal = sns.diverging_palette(146.49, 0, as_cmap=True)
 			bounds = np.array([-5, 0, 5, 10, 15, 20, 25])
-			if (q <= 15):
-				ax = sns.displot(points_master, x = "holistic_zscore", kind = "hist", bins = 50, log_scale=(False, True), hue = "holistic_zscore", palette='RdYlGn_r', alpha = 1, hue_norm=mpl.colors.CenteredNorm(), edgecolor='black')#hue_norm = colors.BoundaryNorm(boundaries=bounds, ncolors=666))# #, hue = "icao24", fill = True, legend = False)
+			
+			#Conditionally show Z-Score Color Legend
+			if (q <= 10):
+				ax = sns.displot(points_master, x = "holistic_zscore", kind = "hist", bins = 50, log_scale=(False, True), hue = "holistic_zscore", palette='RdYlGn_r', alpha = 1, hue_norm=mpl.colors.CenteredNorm(), edgecolor='black', legend = True)#hue_norm = colors.BoundaryNorm(boundaries=bounds, ncolors=666))# #, hue = "icao24", fill = True, legend = False)
+				
+				#Z-Score Color Legend
 				handles, labels = ax.ax.get_legend_handles_labels()
 				new_labels = ["{:.3f}".format(label) for label in labels]
 				ax.ax.legend(handles, new_labels, title = 'hr', loc = 'best')
 				for text in ax.legend.texts:
 					text.set_text("{:0.3f}".format(float(text.get_text())))
-				
-				ax.legend.set(title="Z-Score", bbox_to_anchor = (0.98,0.5))#, fontproperties={'weight':'bold', 'size':10})
-				#plt.setp(ax.ax.legend().get_title(), fontsize='32') 
+				ax.legend.set(title="Z-Score", bbox_to_anchor = (0.98,0.4))#, frameon = True)
 			else:
 				ax = sns.displot(points_master, x = "holistic_zscore", kind = "hist", bins = 50, log_scale=(False, True), hue = "holistic_zscore", palette='RdYlGn_r', alpha = 1, hue_norm=mpl.colors.CenteredNorm(), edgecolor='black', legend = False)#hue_norm = colors.BoundaryNorm(boundaries=bounds, ncolors=666))# #, hue = "icao24", fill = True, legend = False)
-				
 			
-			
-
-			""" #WORKING HISTOGRAM BIN LABELS - NOT TO SCALE
-			s = 0
-			for p in ax.ax.patches:
-				s+= p.get_height()
-
-			for p in ax.ax.patches: 
-				ax.ax.text(p.get_x() + p.get_width()/2.,
-						p.get_height(),
-						'{}'.format(int(p.get_height()*100/s)), 
-						fontsize=14,
-						color='red',
-						ha='center',
-						va='bottom')
-			 """
-			
-			#ax = sns.displot(points_master, x = "holistic_zscore", kde = True)#, hue = "icao24", fill = True, legend = False)
-			#ax.set(xlim=(-3.5, 3.5))
+			#Axis limits
 			ax.set(xlim=(points_master['holistic_zscore'].min()-1, points_master['holistic_zscore'].max()+1))
-			#ax.set(yscale="log")
-			#ax.set(ylim=(0, 100))
-			#print(plt.ylim())
+			#ax.set(xlim=(-3.5, 3.5))
 
+			#Point info
 			desc = points_master['holistic_zscore'].describe()
-			
 			desc = desc.apply(lambda x: format(x, '.4f'))
-			#desc['count'] = int(desc['count'].astype(int)
 			desc['count'] = int(pd.to_numeric(desc['count']))
 			#print(desc)
 			data1=[i for i in desc.index]
 			data2=[str(i) for i in desc]
 			text= ('\n'.join([ a +':'+ b for a,b in zip(data1,data2)]))
-			#plt.text(40, 0.1, text , fontsize=12)
-			#from matplotlib import rc
-
-			# activate latex text rendering
-			#rc('text', usetex=True)
-			leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, handlelength=0, handletextpad=0)
-			#leg = plt.legend(handlelength=0, handletextpad=0, fancybox=True)
+			leg = plt.legend(labels = [text], title = "Point Info", loc = 'best', bbox_to_anchor = (1,1), title_fontproperties={'weight':'bold', 'size':10}, handlelength=0, handletextpad=0, edgecolor = 'black')
 			for item in leg.legendHandles:
 				item.set_visible(False)
-			
 			for t in leg.get_texts():
 				t.set_ha('left')
-				#leg._legend_box.align = "left"
 			
+			#Figure size
+			ax.fig.set_figwidth(10)
+			ax.fig.set_figheight(6.5)
 
-			ax.fig.set_figwidth(12)
-			ax.fig.set_figheight(8)
-			ax.set_xlabels("Z-Score")
+			#Labels & Titles
+			ax.set_xlabels("Z-Score", weight = 'bold', fontsize = 12)
+			ax.set_ylabels("Count (Log Scale)", weight = 'bold', fontsize = 12)
 			plt.suptitle("Holistic Z-Score Distribution (Log Scale) for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
 			#title = ("Number of Aircraft: " + str(num_craft) + "\tData Points: " + str(num_points)).expandtabs()# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
 			#plt.title(title)
+			
+			#Display settings
 			plt.tight_layout()
-			plt.show()
-			#pdf.savefig()
-			#plt.close("all")
+			#plt.show()
+			fig = ax.ax.get_figure()
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
+		######################################################################################################################################################
 
 
+
+
+
+
+		######################################################################################################################################################
+		# SKLEARN KMEANS & DBSCAN CLUSTERING PLOTS																											 
+		######################################################################################################################################################
 		#Sklearn Clustering Plots
 		if(False == True):
 				
@@ -952,18 +964,58 @@ def calc_dropouts(data, outfile, quantity):
 			# #DBSCAN performance:
 			# print("ARI =", adjusted_rand_score(y, clusters).round(2))
 			# ARI = 0.99
+		######################################################################################################################################################
 
 
 
+		######################################################################################################################################################
+		# Z-SCORE AND VELOCITY DISTRIBUTION JOINT PLOTS - SCATTER
+		######################################################################################################################################################
+		#Z-Score vs Velocity Distribution Joint Plot (Focused)
+		if(True == True):
 
+			#Create Plot
+			g = sns.jointplot(data=points_master, x = "points_zscore", y = "velocity", legend = False, hue = "icao24", xlim=(-3.5, 3.5), ratio = 3)
 
+			#Figure size
+			g.fig.set_figwidth(10)
+			g.fig.set_figheight(6.5)
 
-
-
-		#Join plot with distribution at a specific range
-		if(False == True):
-			sns.jointplot(data=points_master, x = "points_zscore", y = "velocity", legend = False, hue = "icao24", xlim=(-3.5, 3.5), ratio = 3)
+			#Labels & Titles
+			g.ax_joint.set_xlabel("Z-Score", weight = 'bold', fontsize = 12)
+			g.ax_joint.set_ylabel("Velocity (meters/second)", weight = 'bold', fontsize = 12)
+			plt.suptitle("Z-Score & Velocity Distribution (Focused) for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
+			
+			#Display settings
+			plt.tight_layout()
 			plt.show()
+			fig = g.fig
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
+
+		#Z-Score vs Altitude (Geo/GPS) Distribution Joint Plot (Focused)
+		if(True == True):
+
+			#Create Plot
+			g = sns.jointplot(data=points_master, x = "points_zscore", y = "geoaltitude", legend = False, hue = "icao24", xlim=(-3.5, 3.5), ratio = 3)
+
+			#Figure size
+			g.fig.set_figwidth(10)
+			g.fig.set_figheight(6.5)
+
+			#Labels & Titles
+			g.ax_joint.set_xlabel("Z-Score", weight = 'bold', fontsize = 12)
+			g.ax_joint.set_ylabel("Geo/GPS Altitude (meters)", weight = 'bold', fontsize = 12)
+			plt.suptitle("Z-Score & Altitude (Geo/GPS) Distribution (Focused) for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
+			
+			#Display settings
+			plt.tight_layout()
+			plt.show()
+			fig = g.fig
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
 
 
 
