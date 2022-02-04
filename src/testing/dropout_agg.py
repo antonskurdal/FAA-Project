@@ -902,7 +902,7 @@ def calc_dropouts(data, outfile, quantity):
 		# SKLEARN KMEANS & DBSCAN CLUSTERING PLOTS																											 
 		######################################################################################################################################################
 		#Sklearn Clustering Plots
-		if(False == True):
+		if(True == True):
 				
 
 			from sklearn.cluster import DBSCAN
@@ -910,6 +910,7 @@ def calc_dropouts(data, outfile, quantity):
 			from sklearn.datasets import make_blobs
 			from sklearn.preprocessing import StandardScaler
 
+			fig, ax = plt.subplots()
 			#X = np.array(points_master.loc(axis=0)[:, :, 'points_zscore', 'velocity'].dropna())
 			X = points_master[['points_zscore', 'velocity']].dropna().to_numpy()
 
@@ -918,8 +919,8 @@ def calc_dropouts(data, outfile, quantity):
 			kmeans = KMeans(n_clusters=5)
 			kmeans.fit(X)
 			y_pred = kmeans.predict(X)# plot the cluster assignments and cluster centers
-			plt.scatter(X[:, 0], X[:, 1], c=y_pred, cmap="plasma")
-			plt.scatter(kmeans.cluster_centers_[:, 0],   
+			ax.scatter(X[:, 0], X[:, 1], c=y_pred, cmap="plasma")
+			ax.scatter(kmeans.cluster_centers_[:, 0],   
 						kmeans.cluster_centers_[:, 1],
 						marker='^', 
 						c=[0, 1, 2, 3, 4], 
@@ -930,8 +931,13 @@ def calc_dropouts(data, outfile, quantity):
 			plt.ylabel("Velocity (m/s)")
 			plt.suptitle("K-Means Clustering: Z-Score & Velocity", weight = 'bold').set_fontsize('16')
 			plt.title("Number of Aircraft: " + str(num_craft))
+			
+			#Display settings
 			plt.tight_layout()
-			plt.show()
+			#plt.show()
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
 
 
 
@@ -948,13 +954,19 @@ def calc_dropouts(data, outfile, quantity):
 			dbscan = DBSCAN(eps = 0.123, min_samples = 2)
 			clusters = dbscan.fit_predict(X_scaled)
 			# plot the cluster assignments
-			plt.scatter(X[:, 0], X[:, 1], c=clusters, cmap="plasma")
+			fig, ax = plt.subplots()
+			ax.scatter(X[:, 0], X[:, 1], c=clusters, cmap="plasma")
 			plt.xlabel("Point Z-Score")
 			plt.ylabel("Velocity (m/s)")
 			plt.suptitle("DBSCAN Clustering: Z-Score & Velocity", weight = 'bold').set_fontsize('16')
 			plt.title("Number of Aircraft: " + str(num_craft))
+			
+			#Display settings
 			plt.tight_layout()
-			plt.show()
+			#plt.show()
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
 			#clustering.labels_
 
 			# from sklearn.metrics.cluster import adjusted_rand_score#k-means performance:
@@ -969,7 +981,7 @@ def calc_dropouts(data, outfile, quantity):
 
 
 		######################################################################################################################################################
-		# Z-SCORE AND VELOCITY DISTRIBUTION JOINT PLOTS - SCATTER
+		# Z-SCORE AND VELOCITY/GEOALTITUDE DISTRIBUTION JOINT PLOTS - SCATTER																				 #
 		######################################################################################################################################################
 		#Z-Score vs Velocity Distribution Joint Plot (Focused)
 		if(True == True):
@@ -988,7 +1000,7 @@ def calc_dropouts(data, outfile, quantity):
 			
 			#Display settings
 			plt.tight_layout()
-			plt.show()
+			#plt.show()
 			fig = g.fig
 			pdf.savefig(fig)
 			plt.close("all")
@@ -1011,17 +1023,18 @@ def calc_dropouts(data, outfile, quantity):
 			
 			#Display settings
 			plt.tight_layout()
-			plt.show()
+			#plt.show()
 			fig = g.fig
 			pdf.savefig(fig)
 			plt.close("all")
 			sns.reset_orig()
+		######################################################################################################################################################
+
 
 
 
 		#AWESOME JOINT PLOTS
 		if(False == True):
-
 			sns.jointplot(x = points_master['dropout_length'], y=points_master['velocity'], kind='scatter')
 			sns.jointplot(x = points_master['dropout_length'], y=points_master['velocity'], kind='hex')
 			sns.jointplot(x = points_master['dropout_length'], y=points_master['velocity'], kind='kde')
@@ -1043,10 +1056,14 @@ def calc_dropouts(data, outfile, quantity):
 			# Add thresh parameter
 			sns.kdeplot(x = points_master['dropout_length'], y=points_master['velocity'], cmap="Greens", shade=True, thresh=0)
 			plt.show()
+		
 
-
+		
+		######################################################################################################################################################
+		# Z-SCORE VALUE PERCENTAGES																															 #
+		######################################################################################################################################################
 		#Z-Score Distribution Pie Chart - Improved
-		if(False == True):
+		if(True == True):
 			labels = [
 				"0 to 0.9",
 				"1 to 1.9",
@@ -1054,7 +1071,7 @@ def calc_dropouts(data, outfile, quantity):
 				"over 3"
 			]
 
-			data = [
+			pie_data = [
 				points_master[(points_master['points_zscore'] > 0) & (points_master['points_zscore'] < 1)].reset_index(drop = True).copy().shape[0],		# > 0
 				points_master[(points_master['points_zscore'] >= 1) & (points_master['points_zscore'] < 2)].reset_index(drop = True).copy().shape[0],		# >= 1
 				points_master[(points_master['points_zscore'] >= 2) & (points_master['points_zscore'] < 3)].reset_index(drop = True).copy().shape[0],		# >= 2
@@ -1064,14 +1081,26 @@ def calc_dropouts(data, outfile, quantity):
 
 
 			
-			fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
+			fig, ax = plt.subplots(figsize=(10, 6.5), subplot_kw=dict(aspect="equal"))
 
-			wedges, texts = ax.pie(data, explode = [0.05]*4, wedgeprops=dict(width=0.4), startangle=-40)
+
+			#Autopct
+			def make_autopct(values):
+				def my_autopct(pct):
+					total = sum(values)
+					val = int(round(pct*total/100.0))
+					return '{p: .2f}%\n({v:d})'.format(p=pct,v=val)
+				return my_autopct
+
+			wedges, texts, = ax.pie(pie_data, explode = [0.05]*4, wedgeprops=dict(width=0.4), startangle=-40)#, autopct = make_autopct(pie_data), pctdistance=0.35)
+
+			labels = [f'{l}, {s/sum(pie_data)*100:0.2f}%' for l, s in zip(labels, pie_data)]
+
 
 			bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="w", lw=0.72)
 			kw = dict(arrowprops=dict(arrowstyle="-"),
 					bbox=bbox_props, zorder=0, va="center")
-
+			
 			for i, p in enumerate(wedges):
 				ang = (p.theta2 - p.theta1)/2. + p.theta1
 				y = np.sin(np.deg2rad(ang))
@@ -1081,7 +1110,7 @@ def calc_dropouts(data, outfile, quantity):
 				kw["arrowprops"].update({"connectionstyle": connectionstyle})
 				ax.annotate(labels[i], xy=(x, y), xytext=(1.35*np.sign(x), 1.4*y), horizontalalignment=horizontalalignment, **kw)
 
-				
+			plt.legend(wedges, labels, loc="lower left", bbox_to_anchor=(-0.25, 0))
 
 			# # Change color of text
 			# plt.rcParams['text.color'] = 'black'
@@ -1094,14 +1123,19 @@ def calc_dropouts(data, outfile, quantity):
 			# p=plt.gcf()
 			# p.gca().add_artist(my_circle)
 			
-			# #plt.text(x = -1.5, y = 1, s = "Skewness: " + str(stats.skew(points_master['dropout_length'].dropna())))
+			plt.text(x = -2, y = 1.25, s = "Skewness: " + str(stats.skew(points_master['dropout_length'].dropna())), weight = 'bold')
 
-			plt.suptitle("Z-Score of Dropouts (Points > Average) for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
+			plt.suptitle("Z-Score Value Distribution of Dropouts (Points > Average) for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
 			title = ("Points: " + str(num_points))# + "\tAverage: " + str("N/A") + "\tDropouts: " + str(num_dropouts_avg) + "\tPercent Dropouts: {:0.2f}%".format(pct_dropouts_avg)).expandtabs()
 			#title += "\n[Ranges are inclusive of the outside value, ex. +2 would be is > 2 to 3"
 			plt.title(title)
+			
+			#Display settings
 			plt.tight_layout()
-			plt.show()
+			#plt.show()
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
 
 
 		#Z-Score Distribution Pie Chart
@@ -1185,37 +1219,53 @@ def calc_dropouts(data, outfile, quantity):
 		
 
 		#Z-Score Distribution Chart
-		if(False == True):
+		if(True == True):
 			ax = sns.displot(points_master, x = "points_zscore", kind = "kde", hue = "icao24", fill = True, legend = False)
 			ax.set(xlim=(-3.5, 3.5))
 			ax.set_xlabels("Points Z-Score")
-			plt.suptitle("Points Z-Score Distribution for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
+			plt.suptitle("Points Z-Score Distribution (Focused) for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
 			title = ("Points: " + str(num_points))# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
 			plt.title(title)
 			plt.tight_layout()
-			plt.show()
-			#pdf.savefig()
-			#plt.close("all")
+			
+			#Figure size
+			ax.fig.set_figwidth(10)
+			ax.fig.set_figheight(6.5)
 
-		#Dropout Length Distribution [Mix - Max]
-		if(False == True):
+			#Display settings
+			plt.tight_layout()
+			#plt.show()
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
+
+		#Dropout Length Distribution [Min - Max]
+		if(True == True):
 			ax = sns.displot(points_master, x = "dropout_length", kind = "kde", hue = "icao24", fill = True)
 			ax.set(xlim=(points_master['dropout_length'].min(), points_master['dropout_length'].max()))
 			#ax.set(yscale="exp")
 			#ax.set(xlim=(8, 12))
 			ax._legend.remove()
 			ax.set_xlabels("Dropout Length (seconds)")
-			plt.suptitle("Dropout Length Density for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
+			plt.suptitle("Dropout Length Distribution for " + str(num_craft) + " Aircraft", weight = 'bold').set_fontsize('16')
 			title = ("Points: " + str(num_points))# + "\tDropouts: " + str(num_points) + "\tPercent Dropouts: {:0.2f}%".format(pct_points)).expandtabs()
 			title += "    Scale: [Min - Max]"
 			title.expandtabs()
 			plt.title(title)
-			plt.tight_layout()
-			plt.show()
-			#pdf.savefig()
-			#plt.close("all")
 
-		if(False == True):
+			#Figure size
+			ax.fig.set_figwidth(10)
+			ax.fig.set_figheight(6.5)
+			
+			#Display settings
+			plt.tight_layout()
+			#plt.show()
+			fig = ax.ax.get_figure()
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
+
+		if(True == True):
 			#Dropout Length Distribution [8.5s to 11.5s]
 			ax = sns.displot(points_master, x = "dropout_length", kind = "kde", hue = "icao24", fill = True)
 			ax.set(xlim=(points_master['dropout_length'].min(), points_master['dropout_length'].max()))
@@ -1228,10 +1278,18 @@ def calc_dropouts(data, outfile, quantity):
 			title += "    Scale: [8.5s to 11.5s]"
 			title.expandtabs()
 			plt.title(title)
+			
+			#Figure size
+			ax.fig.set_figwidth(10)
+			ax.fig.set_figheight(6.5)
+			
+			#Display settings
 			plt.tight_layout()
-			plt.show()
-			#pdf.savefig()
-			#plt.close("all")
+			#plt.show()
+			fig = ax.ax.get_figure()
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
 
 	#Holistic Metadata Average & Mode vs Number of Aircraft
 	#ADDED TO PDF
@@ -1246,7 +1304,7 @@ def calc_dropouts(data, outfile, quantity):
 
 		#Axis labels
 		plt.xlabel('Number of Aircraft', weight = 'bold', fontsize = 12, color = '#009A44')
-		plt.ylabel('Value (seconds)', weight = 'bold', fontsize = 12, color = '#009A44')
+		plt.ylabel('Dropout Length (seconds)', weight = 'bold', fontsize = 12, color = '#009A44')
 		plt.xticks(weight = 'bold', fontsize = 10)
 		plt.yticks(weight = 'bold', fontsize = 10)
 		
