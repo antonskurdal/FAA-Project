@@ -1,3 +1,4 @@
+from matplotlib import docstring
 import pandas as pd
 import json
 from pathlib import Path
@@ -101,7 +102,6 @@ print("\nBASE DIR: " + str(base_dir))
 
 #Calculate Dropouts - organizes data, creates a pdf of plots, saves csv
 def calc_dropouts(data, outfile, quantity):
-
 	if(isinstance(quantity, list) == False):
 		quantity = str(quantity)
 		quantity = map(int, quantity)
@@ -1330,6 +1330,55 @@ def calc_dropouts(data, outfile, quantity):
 
 
 
+
+def icao_matching(data):
+	
+	print(data.head(5))
+	
+	database = pd.read_csv(Path(Path.cwd() / "data/databases/registration/MASTER.csv"))
+	data['found'] = False
+	print(database.head(5))
+	
+	
+	craftlist = data['icao24'].unique()
+	modeslist = database['MODE S CODE HEX'].unique()
+	#print(modeslist)
+	database['MODE S CODE HEX'] = database['MODE S CODE HEX'].str.rstrip()
+	data['icao24'] = data['icao24'].str.upper()
+	
+	
+	print(database['MODE S CODE HEX'])
+	
+	for count, craft in enumerate(craftlist[:25]):
+		print(craft)
+		print(craft.upper())
+		craft = craft.upper()
+		print("\n(" + str(count) + "/" + str(len(craftlist)) + ")" + " Checking ICAO24: " + str(craft))
+		x = database[database['MODE S CODE HEX'] == craft].copy()
+		if(x.empty == False):
+			print(x)
+			data.loc[(data.icao24 == craft), 'found'] = True
+			
+			
+			# def found_true(data):
+			# 	data['found'] = True
+			# data.groupby("icao24").get_group(craft).apply(found_true)
+		
+			
+	
+	print(data['found'].unique())
+	data.to_csv("data/OpenSky/output/states_2022-01-17-10_output_master.csv")
+			
+			
+			
+		
+
+
+
+
+
+
+
 #Print CWD
 print("\nCWD: " + str(Path.cwd()))
 
@@ -1346,10 +1395,13 @@ pdf = PdfPages(outfile)
 print("\nFILE DIR: " + str(outfile))
 
 #Number of aircraft to plot
-quantity = list([5, 10, 15])
+quantity = list([1, 10, 25, 50, 100])
 
 #Run method
-calc_dropouts(data, outfile, quantity)
+""" calc_dropouts(data, outfile, quantity) """
 
 #Close PDF
 pdf.close()
+
+
+icao_matching(data)
