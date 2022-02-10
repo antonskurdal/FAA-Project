@@ -1333,51 +1333,76 @@ def calc_dropouts(data, outfile, quantity):
 
 def icao_matching(data):
 	
+	#Create new columns
+	data['found'] = False
+	data['manufacturername'] = ""
+	data['model'] = ""
+	data['typecode'] = ""
+	data['icaoaircrafttype'] = ""
+	data['categoryDescription'] = ""
 	print(data.head(5))
 	
-	database = pd.read_csv(Path(Path.cwd() / "data/databases/registration/MASTER.csv"))
-	data['found'] = False
+	#Open database
+	database = pd.read_csv(Path(Path.cwd() / "data/databases/OpenSky/aircraftDatabase-2022-02.csv"))
 	print(database.head(5))
 	
 	
 	craftlist = data['icao24'].unique()
-	modeslist = database['MODE S CODE HEX'].unique()
+	modeslist = database['icao24'].unique()
 	#print(modeslist)
-	database['MODE S CODE HEX'] = database['MODE S CODE HEX'].str.rstrip()
+	database['icao24'] = database['icao24'].str.rstrip()
 	data['icao24'] = data['icao24'].str.upper()
 	
 	
-	print(database['MODE S CODE HEX'])
+	print(database['icao24'])
 	
 	for count, craft in enumerate(craftlist[:25]):
 		print(craft)
 		print(craft.upper())
 		craft = craft.upper()
 		print("\n(" + str(count) + "/" + str(len(craftlist)) + ")" + " Checking ICAO24: " + str(craft))
-		x = database[database['MODE S CODE HEX'] == craft].copy()
-		if(x.empty == False):
-			print(x)
-			data.loc[(data.icao24 == craft), 'found'] = True
-			
-			
-			# def found_true(data):
-			# 	data['found'] = True
-			# data.groupby("icao24").get_group(craft).apply(found_true)
+		db = database[database['icao24'] == craft].copy()
+		if(db.empty == False):
+			print(db)
+			data.loc[(data['icao24'] == craft), 'found'] = True
+			data.loc[(data['icao24'] == craft), 'manufacturername'] = db['manufacturername'].values[0]
+			data.loc[(data['icao24'] == craft), 'model'] = db['model'].values[0]
+			data.loc[(data['icao24'] == craft), 'typecode'] = db['typecode'].values[0]
+			data.loc[(data['icao24'] == craft), 'icaoaircrafttype'] = db['icaoaircrafttype'].values[0]
+			data.loc[(data['icao24'] == craft), 'categoryDescription'] = db['categoryDescription'].values[0]
 		
-			
-	
 	print(data['found'].unique())
-	data.to_csv("data/OpenSky/output/states_2022-01-17-10_output_master.csv")
+	#data = data.drop(data[data.found == False].index, inplace = True)
+	data = data.loc[(data['found'] == True)]
+	data = data.drop(columns = ['found'], axis = 1)
+	data.reset_index(drop = True, inplace = True)
+	
+	
+	data.to_csv("data/OpenSky/output/states_2022-01-17-10_output_master.csv", index = False)
 			
 			
-			
+def append_files(directory, filename):
+	
+	
+	pathslist = directory.glob('**/*.csv')
+	
+	data = pd.DataFrame()
+	
+	for path in pathslist:
+		df = pd.read_csv(path)
+		data = data.append(df)
+	
+	print(df.shape)
+	data.to_csv(Path( "output/" + filename), index = False)
+	return
+		
 		
 
 
 
+append_files(Path(Path.cwd() / "data/OpenSky/all_states 2022-01-17"), "states_2022-01-17-all.csv")
 
-
-
+exit(0)
 
 #Print CWD
 print("\nCWD: " + str(Path.cwd()))
