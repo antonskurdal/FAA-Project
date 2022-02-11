@@ -10,6 +10,7 @@ from pyparsing import alphas
 import scipy.stats as stats
 import numpy as np
 import seaborn as sns
+import time
 # sns.set_style('darkgrid', {"axes.facecolor": "lightgray"})
 # sns.dark_palette("seagreen", as_cmap=True)
 
@@ -19,6 +20,7 @@ import seaborn as sns
 #pd.set_option('display.width', None)
 #pd.set_option('display.max_colwidth', -1)
 #np.set_printoptions(suppress=True)
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 '''
@@ -97,7 +99,7 @@ for x in range (0, 50):
 import sys
 base_dir = Path.resolve(Path.cwd())
 sys.path.insert(0, base_dir)
-print("\nBASE DIR: " + str(base_dir))
+""" print("\nBASE DIR: " + str(base_dir)) """
 
 
 #Calculate Dropouts - organizes data, creates a pdf of plots, saves csv
@@ -1333,52 +1335,122 @@ def calc_dropouts(data, outfile, quantity):
 
 def icao_matching(data):
 	
+	#Format old columns
+	data['icao24'].astype(str)
+	data['icao24'] = data['icao24'].str.lower()
+	
 	#Create new columns
 	data['found'] = False
+	data['found'].astype(bool)
 	data['manufacturername'] = ""
+	data['manufacturername'].astype(str)
 	data['model'] = ""
+	data['model'].astype(str)
+	
 	data['typecode'] = ""
+	data['typecode'].astype(str)
 	data['icaoaircrafttype'] = ""
+	data['icaoaircrafttype'].astype(str)
 	data['categoryDescription'] = ""
-	print(data.head(5))
+	data['categoryDescription'].astype(str)
+	#print(data.head(5))
 	
 	#Open database
-	database = pd.read_csv(Path(Path.cwd() / "data/databases/OpenSky/aircraftDatabase-2022-02.csv"))
-	print(database.head(5))
+	focus_cols = ['icao24', 'manufacturername', 'model',  'typecode', 'icaoaircrafttype', 'categoryDescription']
+	database = pd.read_csv(Path(Path.cwd() / "data/databases/OpenSky/aircraftDatabase-2022-02.csv"), low_memory = False, usecols = focus_cols)
+	#print(database.head(5))
+	#print(database.dtypes)
+	
+	database['icao24'].astype(str)
+	database['icao24'] = database['icao24'].str.lower()
 	
 	
 	craftlist = data['icao24'].unique()
-	modeslist = database['icao24'].unique()
+	#modeslist = database['icao24'].unique()
 	#print(modeslist)
 	database['icao24'] = database['icao24'].str.rstrip()
-	data['icao24'] = data['icao24'].str.upper()
+	#data['icao24'] = data['icao24'].str.upper()
+	
+	#agg = pd.DataFrame()
+	
+	#print(database['icao24'])
 	
 	
-	print(database['icao24'])
 	
-	for count, craft in enumerate(craftlist[:25]):
-		print(craft)
-		print(craft.upper())
-		craft = craft.upper()
+	loopsize = 250
+	data = data[data['icao24'].isin(craftlist[:loopsize])]
+	
+	for count, craft in enumerate(craftlist[:loopsize]):
+	#for count, craft in enumerate(craftlist[:10]):
+		
+		#print(craft)
+		#print(craft.upper())
+		#craft = craft.upper()
+		
 		print("\n(" + str(count) + "/" + str(len(craftlist)) + ")" + " Checking ICAO24: " + str(craft))
-		db = database[database['icao24'] == craft].copy()
+		
+		start_time = time.time()
+		
+		#db = database[database['icao24'] == craft].copy()
+		db = database.loc[(database['icao24'] == craft)]
+		
+		#print(db)
+		
+		#Check
 		if(db.empty == False):
-			print(db)
-			data.loc[(data['icao24'] == craft), 'found'] = True
+			
+			#Print(db)
+			
+			#Works and is fast
+			data.loc[(data['icao24'] == craft), ['found', 'manufacturername', 'model', 'typecode', 'icaoaircrafttype', 'categoryDescription']] = [
+				True,
+				db['manufacturername'].values[0],
+				db['model'].values[0],
+				db['typecode'].values[0],
+				db['icaoaircrafttype'].values[0],
+				db['categoryDescription'].values[0],
+			]
+			
+			#Works, but slower
+			""" data.loc[(data['icao24'] == craft), 'found'] = True
 			data.loc[(data['icao24'] == craft), 'manufacturername'] = db['manufacturername'].values[0]
 			data.loc[(data['icao24'] == craft), 'model'] = db['model'].values[0]
 			data.loc[(data['icao24'] == craft), 'typecode'] = db['typecode'].values[0]
 			data.loc[(data['icao24'] == craft), 'icaoaircrafttype'] = db['icaoaircrafttype'].values[0]
-			data.loc[(data['icao24'] == craft), 'categoryDescription'] = db['categoryDescription'].values[0]
+			data.loc[(data['icao24'] == craft), 'categoryDescription'] = db['categoryDescription'].values[0] """
+			
+			
+			
+			print("[TRUE] Finished in {:.4f} seconds".format(time.time() - start_time))
+		else:
+			
+			#data = data.loc[(data['found'] == True)]
+			
+			
+			#Drop rows with column 'icao24' equal to craft (both work)
+			#print("pre: " + str(data.shape))
+			#data = data.drop(data[data.icao24 == craft].index).copy()
+			data = data.loc[(data['icao24'] != craft)]
+			data.reset_index(drop = True, inplace = True)
+			#print("post: " + str(data.shape))
+			
+			print("[FALSE] Finished in {:.4f} seconds".format(time.time() - start_time))
 		
-	print(data['found'].unique())
-	#data = data.drop(data[data.found == False].index, inplace = True)
-	data = data.loc[(data['found'] == True)]
+		
+	print("\n[FOUND] Uniques: " + str(data['found'].unique()))
+	
+	#data = data.loc[(data['found'] == True)]
 	data = data.drop(columns = ['found'], axis = 1)
+	data = data[data['categoryDescription'].notna()]
+	data.replace('', np.nan, inplace = True)
+	data.dropna()
 	data.reset_index(drop = True, inplace = True)
 	
 	
-	data.to_csv("data/OpenSky/output/states_2022-01-17-10_output_master.csv", index = False)
+	print("\n[CATEGORY DESCRIPTION] Uniques: " + str(data['categoryDescription'].unique()))
+	
+	
+	data.to_csv("data/OpenSky/output/states_2022-01-17-all_agg.csv", index = False)
 			
 			
 def append_files(directory, filename):
@@ -1396,28 +1468,23 @@ def append_files(directory, filename):
 	data.to_csv(Path( "output/" + filename), index = False)
 	return
 		
-		
-
-
-
-append_files(Path(Path.cwd() / "data/OpenSky/all_states 2022-01-17"), "states_2022-01-17-all.csv")
-
-exit(0)
+#append_files(Path(Path.cwd() / "data/OpenSky/all_states 2022-01-17"), "states_2022-01-17-all.csv")
+#exit(0)
 
 #Print CWD
-print("\nCWD: " + str(Path.cwd()))
+""" print("\nCWD: " + str(Path.cwd())) """
 
 #Input file
 infilename = "states_2022-01-17-10.csv"
 infile = Path(Path.cwd() / "data/OpenSky/" / str(infilename))
-print("\nFILE DIR: " + str(infile))
+""" print("\nFILE DIR: " + str(infile)) """
 data = pd.read_csv(infile)
 
 #Output file
 outfilename = "states_2022-01-17-10_out_plots.pdf"
 outfile = Path(Path.cwd() / "data/OpenSky/output/" / str(outfilename))
 pdf = PdfPages(outfile)
-print("\nFILE DIR: " + str(outfile))
+""" print("\nFILE DIR: " + str(outfile)) """
 
 #Number of aircraft to plot
 quantity = list([1, 10, 25, 50, 100])
@@ -1429,4 +1496,4 @@ quantity = list([1, 10, 25, 50, 100])
 pdf.close()
 
 
-icao_matching(data)
+icao_matching(pd.read_csv(Path(Path.cwd() / "data/OpenSky/states_2022-01-17-all.csv")))
