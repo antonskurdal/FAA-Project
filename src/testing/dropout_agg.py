@@ -124,7 +124,10 @@ def calc_dropouts(data, outfile, quantity):
 
 		#Get unique aircraft and truncate to input number
 		craft_list = data['icao24'].unique()
-		craft_list = craft_list[:q]
+		
+		if(q <= len(craft_list)):
+			craft_list = craft_list[:q]
+		
 		print("Length of craft list: " + str(len(craft_list)))
 		#print("LENGTH OF CRAFT LIST [Q]: " + str(len(craft_list)))
 
@@ -367,15 +370,191 @@ def calc_dropouts(data, outfile, quantity):
 			# 	"ytick.labelsize": 12,
 			# })
 		#sns.set_style('darkgrid')
+		
+		#Category Description Plots
+		hol_zscore_category_foc = True
+		hol_zscore_category = True
+		
+		#Uncategorized Plots
+		hol_pct_drop_pie = False
+		pct_drop_pie = False
+		hol_zscore_kde = False
+		hol_zscore_kde_foc = False
+		hol_zscore_ecdf_foc = False
+		hol_zscore_ecdf = False
+		hol_zscore_hist_log = False
+		
+		######################################################################################################################################################
+		# HOLISTIC Z-SCORE DISTRIBUTION BY CATEGORY DESCRIPTION	PLOTS																				 #
+		######################################################################################################################################################
+		#Holistic Z-Score Distribution by Category Description (Focused)
+		if(hol_zscore_category_foc == True):
+			
+			sns.set_theme(style="white", rc={"axes.facecolor": (0, 0, 0, 0), "figure.figsize":(10, 6.5)})
+			#sns.set(rc={"figure.figsize":(10, 6.5)})
+			category_names = list(points_master['categoryDescription'].unique())
+			# we generate a color palette with Seaborn.color_palette()
+			pal = sns.color_palette(palette='bright', n_colors=len(category_names))
+			
+			# sns.kdeplot(points_master['holistic_zscore'], hue = points_master['categoryDescription'])
+			# plt.show()
+			
+			
+			# in the sns.FacetGrid class, the 'hue' argument is the one that is the one that will be represented by colors with 'palette'
+			g = sns.FacetGrid(points_master, row = "categoryDescription", hue = 'categoryDescription', aspect=10, height=6.5/len(category_names), palette=pal)
+			
+			# then we add the densities kdeplots for each month
+			g.map(sns.kdeplot, 'holistic_zscore',
+				bw_adjust=1.2, clip_on=False,
+				fill=True, alpha=1, linewidth=1.5)
+				
+			# here we add a white line that represents the contour of each kdeplot
+			g.map(sns.kdeplot, 'holistic_zscore', 
+				bw_adjust=1.2, clip_on=False, 
+				color="w", lw=2)
+			
+			# here we add a horizontal line for each plot
+			g.map(plt.axhline, y=0,
+				lw=2, clip_on=False)
 
+			
+			# we loop over the FacetGrid figure axes (g.axes.flat) and add the month as text with the right color
+			# notice how ax.lines[-1].get_color() enables you to access the last line's color in each matplotlib.Axes
+			for i, ax in enumerate(g.axes.flat):
+				
+				ax.set_xlim(-1, 1)
+				ax.text(ax.get_xlim()[0], -0.35, category_names[i],
+						fontweight='bold', fontsize=10,
+						#color = 'black')
+						color=ax.lines[-1].get_color())
+				
+				ax.tick_params(color = 'white', pad = 10)
+				ax.set_ylabel(ax.get_ylabel(), color = 'white')
+			
+			# we use matplotlib.Figure.subplots_adjust() function to get the subplots to overlap
+			g.fig.subplots_adjust(hspace=-0.3)
+			
+			# eventually we remove axes titles, yticks and spines
+			g.set_titles("")
+			g.set(yticks=[])
+			g.despine(bottom=True, left=True)
 
+			plt.setp(ax.get_xticklabels(), fontsize=10, fontweight='bold')
+			plt.xlabel('Z-Score', fontweight='bold', fontsize=10)
+			g.fig.suptitle('Holistic Z-Score Distribution by Aircraft Category (Focused)\nNumber of Aircraft: {}'.format(num_craft),
+						fontsize=12,
+						fontweight='bold')
+			#plt.tight_layout()
+			
+			
+			plt.show()
+			fig = g.fig
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
+			
+			
+			
+			""" import joypy
+			fig, ax = joypy.joyplot(points_master, by = "categoryDescription", column = "holistic_zscore", linecolor = 'white', figsize = (10,6.5), x_range = (-1, 1), colormap = cm.autumn)
+			
+			
+			for i in range(len(points_master['categoryDescription'].unique())):
+				y_position = ax[i].get_ylim()[1] / 3.5  # adjust with ylim for each plot
+				ax[i].text(9, y_position, points_master['categoryDescription'].unique()[i], color = "red")
+			# for a in ax[:-1]:
+			# 	a.set_yticklabels("Helo")
+			# month_dict = list(points_master['categoryDescription'])
+			#  for i, ax in enumerate(ax[:-1]):
+			# 	ax.text(-15, 0.02, month_dict[i+1],
+			# 			fontweight='bold', fontsize=15,
+			# 			color=ax.lines[-1].get_color())
+			
+			
+			
+			# for a in ax[:-1]:
+			# 	a.set_xticklabels(get_xticklabels(), fontsize=15, fontweight='bold')
+			# 	# 	a.set_xlim([-3,3])
+			# 	# 	a.set_xticklabels('points_zscore')
+			
+			
+			#plt.show() """
+		
+		
+		#Holistic Z-Score Distribution by Category Description
+		if(hol_zscore_category == True):
+			
+			sns.set_theme(style="white", rc={"axes.facecolor": (0, 0, 0, 0), "figure.figsize":(10, 6.5)})
+			#sns.set(rc={"figure.figsize":(10, 6.5)})
+			category_names = list(points_master['categoryDescription'].unique())
+			# we generate a color palette with Seaborn.color_palette()
+			pal = sns.color_palette(palette='bright', n_colors=len(category_names))
+			
+			# sns.kdeplot(points_master['holistic_zscore'], hue = points_master['categoryDescription'])
+			# plt.show()
+			
+			
+			# in the sns.FacetGrid class, the 'hue' argument is the one that is the one that will be represented by colors with 'palette'
+			g = sns.FacetGrid(points_master, row = "categoryDescription", hue = 'categoryDescription', aspect=10, height=6.5/len(category_names), palette=pal)
+			
+			# then we add the densities kdeplots for each month
+			g.map(sns.kdeplot, 'holistic_zscore',
+				bw_adjust=1.2, clip_on=False,
+				fill=True, alpha=1, linewidth=1.5)
+				
+			# here we add a white line that represents the contour of each kdeplot
+			g.map(sns.kdeplot, 'holistic_zscore', 
+				bw_adjust=1.2, clip_on=False, 
+				color="w", lw=2)
+			
+			# here we add a horizontal line for each plot
+			g.map(plt.axhline, y=0,
+				lw=2, clip_on=False)
 
+			
+			# we loop over the FacetGrid figure axes (g.axes.flat) and add the month as text with the right color
+			# notice how ax.lines[-1].get_color() enables you to access the last line's color in each matplotlib.Axes
+			for i, ax in enumerate(g.axes.flat):
+				
+				#ax.set_xlim(-1, 1)
+				ax.text(ax.get_xlim()[0], -0.35, category_names[i],
+						fontweight='bold', fontsize=10,
+						#color = 'black')
+						color=ax.lines[-1].get_color())
+				
+				ax.tick_params(color = 'white', pad = 10)
+				ax.set_ylabel(ax.get_ylabel(), color = 'white')
+			
+			# we use matplotlib.Figure.subplots_adjust() function to get the subplots to overlap
+			g.fig.subplots_adjust(hspace=-0.3)
+			
+			# eventually we remove axes titles, yticks and spines
+			g.set_titles("")
+			g.set(yticks=[])
+			g.despine(bottom=True, left=True)
+
+			plt.setp(ax.get_xticklabels(), fontsize=10, fontweight='bold')
+			plt.xlabel('Z-Score', fontweight='bold', fontsize=10)
+			g.fig.suptitle('Holistic Z-Score Distribution by Aircraft Category (Focused)\nNumber of Aircraft: {}'.format(num_craft),
+						fontsize=12,
+						fontweight='bold')
+			#plt.tight_layout()
+			
+			
+			plt.show()
+			fig = g.fig
+			pdf.savefig(fig)
+			plt.close("all")
+			sns.reset_orig()
+		######################################################################################################################################################
+		
+		
+		
 		######################################################################################################################################################
 		# DROPOUT PERCENTAGE PIE CHARTS																														 #
 		######################################################################################################################################################
 		#Holistic Percentage Dropouts Pie Charts - Average and Mode
-		#ADDED TO PDF
-		if(True == True):
+		if(hol_pct_drop_pie == True):
 
 			#Create figure
 			fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(10, 6.5))
@@ -439,11 +618,9 @@ def calc_dropouts(data, outfile, quantity):
 			pdf.savefig(fig)
 			plt.close("all")
 		
-
-
+		
 		#Percentage Dropouts Pie Charts - Average and Mode
-		#ADDED TO PDF
-		if(True == True):
+		if(pct_drop_pie == True):
 
 			#Create figure
 			fig, (ax1, ax2) = plt.subplots(1, 2,figsize=(10, 6.5))
@@ -573,13 +750,12 @@ def calc_dropouts(data, outfile, quantity):
 		######################################################################################################################################################
 		
 		
-
+		
 		######################################################################################################################################################
 		# KERNEL DENSITY ESTIMATE Z-SCORE DISTRIBUTION PLOTS																								 #
 		######################################################################################################################################################
 		#Holistic Z-Score Distribution Plot - Kernel Density Estimates
-		#ADDED TO PDF
-		if(True == True):
+		if(hol_zscore_kde == True):
 
 			#Create plot
 			ax = sns.displot(points_master, x = "holistic_zscore", kind = "kde", hue = "icao24", fill = True, legend = False, alpha=0.6)
@@ -619,11 +795,9 @@ def calc_dropouts(data, outfile, quantity):
 			pdf.savefig(fig)
 			plt.close("all")
 		
-
-
+		
 		#Holistic Z-Score Distribution Plot - Kernel Density Estimates (Focused)
-		#ADDED TO PDF
-		if(True == True):
+		if(hol_zscore_kde_foc == True):
 			#Create plot
 			ax = sns.displot(points_master, x = "holistic_zscore", kind = "kde", hue = "icao24", fill = True, legend = False, alpha=0.6)
 			ax.set(xlim=(-1, 1))
@@ -662,15 +836,14 @@ def calc_dropouts(data, outfile, quantity):
 			pdf.savefig(fig)
 			plt.close("all")
 		######################################################################################################################################################
-
-
-
+		
+		
+		
 		######################################################################################################################################################
 		# EMPIRICAL CUMULATIVE Z-SCORE DISTRIBUTION PLOTS																									 #
 		######################################################################################################################################################
 		#Holistic Z-Score Distribution Plot - Empirical Cumulative (Focused)
-		#ADDED TO PDF
-		if(True == True):
+		if(hol_zscore_ecdf_foc == True):
 
 			#Style options
 			sns.set(rc=
@@ -743,8 +916,7 @@ def calc_dropouts(data, outfile, quantity):
 		
 
 		#Holistic Z-Score Distribution Plot - Empirical Cumulative
-		#ADDED TO PDF
-		if(True == True):
+		if(hol_zscore_ecdf == True):
 				
 				
 			#Style options
@@ -817,12 +989,12 @@ def calc_dropouts(data, outfile, quantity):
 			sns.reset_orig()
 		######################################################################################################################################################
 
-
+		
 		######################################################################################################################################################
 		# HISTOGRAM Z-SCORE DISTRIBUTION PLOT																												 # 
 		######################################################################################################################################################
 		#Holistic Z-Score Distribution Plot - Histogram (Log Scale)
-		if(True == True):
+		if(hol_zscore_hist_log == True):
 			
 			#Style
 			sns.set(rc=
@@ -899,12 +1071,12 @@ def calc_dropouts(data, outfile, quantity):
 
 
 
-
+		clustering_plots = False
 		######################################################################################################################################################
 		# SKLEARN KMEANS & DBSCAN CLUSTERING PLOTS																											 
 		######################################################################################################################################################
 		#Sklearn Clustering Plots
-		if(True == True):
+		if(clustering_plots == True):
 				
 
 			from sklearn.cluster import DBSCAN
@@ -979,9 +1151,9 @@ def calc_dropouts(data, outfile, quantity):
 			# print("ARI =", adjusted_rand_score(y, clusters).round(2))
 			# ARI = 0.99
 		######################################################################################################################################################
-
-
-
+		
+		
+		
 		######################################################################################################################################################
 		# Z-SCORE AND VELOCITY/GEOALTITUDE DISTRIBUTION JOINT PLOTS - SCATTER																				 #
 		######################################################################################################################################################
@@ -1007,7 +1179,8 @@ def calc_dropouts(data, outfile, quantity):
 			pdf.savefig(fig)
 			plt.close("all")
 			sns.reset_orig()
-
+		
+		
 		#Z-Score vs Altitude (Geo/GPS) Distribution Joint Plot (Focused)
 		if(True == True):
 
@@ -1467,7 +1640,12 @@ def append_files(directory, filename):
 	print(df.shape)
 	data.to_csv(Path( "output/" + filename), index = False)
 	return
-		
+
+
+
+
+
+
 #append_files(Path(Path.cwd() / "data/OpenSky/all_states 2022-01-17"), "states_2022-01-17-all.csv")
 #exit(0)
 
@@ -1487,13 +1665,18 @@ pdf = PdfPages(outfile)
 """ print("\nFILE DIR: " + str(outfile)) """
 
 #Number of aircraft to plot
-quantity = list([1, 10, 25, 50, 100])
+#quantity = list([1, 10, 25, 50, 100])
+quantity = list([1000])
 
 #Run method
 """ calc_dropouts(data, outfile, quantity) """
+calc_dropouts(pd.read_csv(Path(Path.cwd() / "data/OpenSky/states_2022-01-17-all_agg_100.csv")), outfile, quantity)
+
 
 #Close PDF
 pdf.close()
 
+#Aggregate data
+#icao_matching(pd.read_csv(Path(Path.cwd() / "data/OpenSky/states_2022-01-17-all.csv")))
 
-icao_matching(pd.read_csv(Path(Path.cwd() / "data/OpenSky/states_2022-01-17-all.csv")))
+
