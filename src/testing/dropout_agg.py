@@ -15,11 +15,11 @@ import time
 # sns.dark_palette("seagreen", as_cmap=True)
 
 
-#pd.set_option('display.max_rows', None)
-#pd.set_option('display.max_columns', None)
-#pd.set_option('display.width', None)
-#pd.set_option('display.max_colwidth', -1)
-#np.set_printoptions(suppress=True)
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+pd.set_option('display.max_colwidth', -1)
+np.set_printoptions(suppress=True)
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
@@ -277,7 +277,7 @@ def calc_dropouts(data, outfile, quantity):
 		
 		#print(points_master.head(5))
 		points_master.reset_index(inplace = True)
-		#print(points_master.head(5))
+		print(points_master.head(5))
 
 
 		'''
@@ -344,7 +344,7 @@ def calc_dropouts(data, outfile, quantity):
 
 		#Add information to metadata
 		meta = dict({
-			'num_craft': q,
+			'num_craft': points_master['icao24'].unique().shape[0],
 			'num_points': points_master['dropout_length'].shape[0],
 			'avg': points_master['dropout_length'].mean(),
 			'mode': points_master['dropout_length'].mode(),
@@ -371,9 +371,21 @@ def calc_dropouts(data, outfile, quantity):
 			# })
 		#sns.set_style('darkgrid')
 		
+		
+		
+		######################################################################################################################################################
+		# PLOT CONTROLS																																		 #
+		######################################################################################################################################################
 		#Category Description Plots
-		hol_zscore_category_foc = True
-		hol_zscore_category = True
+		
+		group_mean_vs_mode_loli = False
+		dropout_length_grouped_barh = False
+		hol_zscore_violin_category = False
+		hol_zscore_category_foc = False
+		hol_zscore_category = False
+		
+		
+		
 		
 		#Uncategorized Plots
 		hol_pct_drop_pie = False
@@ -383,9 +395,167 @@ def calc_dropouts(data, outfile, quantity):
 		hol_zscore_ecdf_foc = False
 		hol_zscore_ecdf = False
 		hol_zscore_hist_log = False
+		clustering_plots = False
+		z_score_joint_velocity_foc = False
+		z_score_joint_geoaltitude_foc = False
+		z_score_distribution_pie = False
+		z_score_dist_kde = False
+		dropout_length_dist_minmax = False
+		dropout_length_dist_focused = False
+		######################################################################################################################################################
+		
+		
+		
+		#Create group data and add mode column
+		groups = points_master.groupby(by = "categoryDescription")['dropout_length'].describe().reset_index()
+		temp = points_master.groupby(by = "categoryDescription")['dropout_length'].agg(lambda x:x.value_counts().index[0])
+		print(temp)
+		groups.insert(groups.shape[1], 'mode', temp.values)
+		print(groups)
+		
+		
+		#DO BAR OF PIE NEXT: https://matplotlib.org/stable/gallery/pie_and_polar_charts/bar_of_pie.html#sphx-glr-gallery-pie-and-polar-charts-bar-of-pie-py
+		
+		
+		
+	
+		if(group_mean_vs_mode_loli == True):
+			
+			fig, ax = plt.subplots(figsize = (10, 6.5))
+			
+			#Create group data and add mode column
+			groups = points_master.groupby(by = "categoryDescription")['dropout_length'].describe().reset_index()
+			temp = points_master.groupby(by = "categoryDescription")['dropout_length'].agg(lambda x:x.value_counts().index[0])
+			print(temp)
+			groups.insert(groups.shape[1], 'mode', temp.values)
+			print(groups)
+
+			
+			# Reorder it following the values of the first value:
+			ordered_df = groups.sort_values(by='mean')
+			my_range=range(1,len(groups.index)+1)
+			
+			# The horizontal plot is made using the hline function
+			plt.hlines(y=my_range, xmin=ordered_df['mode'], xmax=ordered_df['mean'], color='#AEAEAE', alpha=1, zorder = 1)
+			#plt.hlines(y=my_range, xmin=ordered_df['mean'], xmax=ordered_df['mode'], color='grey', alpha=0.4)
+			
+			plt.scatter(ordered_df['mean'], my_range, color='#FF671F', alpha=1, label='mean', zorder = 2)
+			plt.scatter(ordered_df['mode'], my_range, color='#009A44', alpha=1 , label='mode', zorder = 3)
+			plt.legend()
+			
+			# Add title and axis names
+			plt.yticks(my_range, ordered_df['categoryDescription'])
+			plt.suptitle("Why Mean is a bad detection metric", weight = 'bold', fontsize = 14)
+			plt.title("Comparison of the Mean and the Mode for each Group")
+			plt.xlabel('Value of the variables')
+			plt.ylabel('Group')
+
+			# Show the graph
+			plt.tight_layout()
+			plt.show()
+
+
+		
+		
+		
+		if(dropout_length_grouped_barh == True):
+			height = list(groups['mean'])
+			#print(height)
+			bars = list(groups['categoryDescription'])
+			#print(bars)
+			y_pos = np.arange(len(bars))
+			print(y_pos)
+			
+			# Create bars
+			plt.barh(y_pos, height)
+
+			# Create names on the x-axis
+			plt.yticks(y_pos, bars)
+
+			# Show graphic
+			plt.tight_layout()
+			plt.show()
+			
+			#ax = points_master.groupby(by = "categoryDescription")['dropout_length'].mean().plot(kind = "bar")
+			#plt.show()
+		
+		
+		if (hol_zscore_violin_category == True):
+			sns.violinplot(data = points_master, x = 'points_zscore', y = 'categoryDescription')
+			plt.show()
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		######################################################################################################################################################
-		# HOLISTIC Z-SCORE DISTRIBUTION BY CATEGORY DESCRIPTION	PLOTS																				 #
+		# HOLISTIC Z-SCORE DISTRIBUTION BY CATEGORY DESCRIPTION	PLOTS																						 #
 		######################################################################################################################################################
 		#Holistic Z-Score Distribution by Category Description (Focused)
 		if(hol_zscore_category_foc == True):
@@ -1066,12 +1236,9 @@ def calc_dropouts(data, outfile, quantity):
 			plt.close("all")
 			sns.reset_orig()
 		######################################################################################################################################################
-
-
-
-
-
-		clustering_plots = False
+		
+		
+		
 		######################################################################################################################################################
 		# SKLEARN KMEANS & DBSCAN CLUSTERING PLOTS																											 
 		######################################################################################################################################################
@@ -1158,7 +1325,7 @@ def calc_dropouts(data, outfile, quantity):
 		# Z-SCORE AND VELOCITY/GEOALTITUDE DISTRIBUTION JOINT PLOTS - SCATTER																				 #
 		######################################################################################################################################################
 		#Z-Score vs Velocity Distribution Joint Plot (Focused)
-		if(True == True):
+		if(z_score_joint_velocity_foc == True):
 
 			#Create Plot
 			g = sns.jointplot(data=points_master, x = "points_zscore", y = "velocity", legend = False, hue = "icao24", xlim=(-3.5, 3.5), ratio = 3)
@@ -1182,7 +1349,7 @@ def calc_dropouts(data, outfile, quantity):
 		
 		
 		#Z-Score vs Altitude (Geo/GPS) Distribution Joint Plot (Focused)
-		if(True == True):
+		if(z_score_joint_geoaltitude_foc == True):
 
 			#Create Plot
 			g = sns.jointplot(data=points_master, x = "points_zscore", y = "geoaltitude", legend = False, hue = "icao24", xlim=(-3.5, 3.5), ratio = 3)
@@ -1207,7 +1374,7 @@ def calc_dropouts(data, outfile, quantity):
 
 
 
-
+		######################################################################################################################################################
 		#AWESOME JOINT PLOTS
 		if(False == True):
 			sns.jointplot(x = points_master['dropout_length'], y=points_master['velocity'], kind='scatter')
@@ -1231,14 +1398,15 @@ def calc_dropouts(data, outfile, quantity):
 			# Add thresh parameter
 			sns.kdeplot(x = points_master['dropout_length'], y=points_master['velocity'], cmap="Greens", shade=True, thresh=0)
 			plt.show()
-		
+		######################################################################################################################################################
 
+		
 		
 		######################################################################################################################################################
 		# Z-SCORE VALUE PERCENTAGES																															 #
 		######################################################################################################################################################
 		#Z-Score Distribution Pie Chart - Improved
-		if(True == True):
+		if(z_score_distribution_pie == True):
 			labels = [
 				"0 to 0.9",
 				"1 to 1.9",
@@ -1313,7 +1481,7 @@ def calc_dropouts(data, outfile, quantity):
 			sns.reset_orig()
 
 
-		#Z-Score Distribution Pie Chart
+		#Z-Score Distribution Pie Chart - OLD
 		if(False == True):
 			# Data
 			#names = ["0 to 1", "1 to 2", "2 to 3", "above 3"]
@@ -1388,13 +1556,14 @@ def calc_dropouts(data, outfile, quantity):
 			plt.title(title)
 			plt.tight_layout()
 			plt.show()
-
+		######################################################################################################################################################
 
 
 		
-
-		#Z-Score Distribution Chart
-		if(True == True):
+		######################################################################################################################################################
+		#Z-SCORE DISTRIBUTION CHART
+		######################################################################################################################################################
+		if(z_score_dist_kde == True):
 			ax = sns.displot(points_master, x = "points_zscore", kind = "kde", hue = "icao24", fill = True, legend = False)
 			ax.set(xlim=(-3.5, 3.5))
 			ax.set_xlabels("Points Z-Score")
@@ -1413,9 +1582,15 @@ def calc_dropouts(data, outfile, quantity):
 			pdf.savefig(fig)
 			plt.close("all")
 			sns.reset_orig()
-
+		######################################################################################################################################################
+		
+		
+		
+		######################################################################################################################################################
+		#DROPOUT LENGTH DISTRIBUTION CHARTS
+		######################################################################################################################################################
 		#Dropout Length Distribution [Min - Max]
-		if(True == True):
+		if(dropout_length_dist_minmax == True):
 			ax = sns.displot(points_master, x = "dropout_length", kind = "kde", hue = "icao24", fill = True)
 			ax.set(xlim=(points_master['dropout_length'].min(), points_master['dropout_length'].max()))
 			#ax.set(yscale="exp")
@@ -1439,9 +1614,11 @@ def calc_dropouts(data, outfile, quantity):
 			pdf.savefig(fig)
 			plt.close("all")
 			sns.reset_orig()
-
-		if(True == True):
-			#Dropout Length Distribution [8.5s to 11.5s]
+		
+		
+		#Dropout Length Distribution [8.5s to 11.5s]
+		if(dropout_length_dist_focused == True):
+			
 			ax = sns.displot(points_master, x = "dropout_length", kind = "kde", hue = "icao24", fill = True)
 			ax.set(xlim=(points_master['dropout_length'].min(), points_master['dropout_length'].max()))
 			#ax.set(yscale="exp")
@@ -1465,7 +1642,8 @@ def calc_dropouts(data, outfile, quantity):
 			pdf.savefig(fig)
 			plt.close("all")
 			sns.reset_orig()
-
+		######################################################################################################################################################
+		
 	#Holistic Metadata Average & Mode vs Number of Aircraft
 	#ADDED TO PDF
 	if(True == True):
@@ -1474,8 +1652,8 @@ def calc_dropouts(data, outfile, quantity):
 		fig, ax = plt.subplots(figsize=(10, 6.5))
 
 		#Plot data
-		ax.plot('num_craft', 'avg', data = metadata, marker ='s', markerfacecolor = '#009A44', label = 'Average', color = 'black')
-		ax.plot('num_craft', 'mode', data = metadata, marker ='s', markerfacecolor = 'orange', label = 'Mode', color = 'black')
+		ax.plot('num_craft', 'avg', data = metadata, marker ='s', markerfacecolor = '#FF671F', label = 'Average', color = 'black')
+		ax.plot('num_craft', 'mode', data = metadata, marker ='s', markerfacecolor = '#009A44', label = 'Mode', color = 'black')
 
 		#Axis labels
 		plt.xlabel('Number of Aircraft', weight = 'bold', fontsize = 12, color = '#009A44')
@@ -1670,7 +1848,7 @@ quantity = list([1000])
 
 #Run method
 """ calc_dropouts(data, outfile, quantity) """
-calc_dropouts(pd.read_csv(Path(Path.cwd() / "data/OpenSky/states_2022-01-17-all_agg_100.csv")), outfile, quantity)
+calc_dropouts(pd.read_csv(Path(Path.cwd() / "data/OpenSky/states_2022-01-17-all_agg_250.csv")), outfile, quantity)
 
 
 #Close PDF
