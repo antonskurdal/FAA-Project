@@ -18,7 +18,7 @@ import time
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
-pd.set_option('display.max_colwidth', -1)
+pd.set_option('display.max_colwidth', None)
 np.set_printoptions(suppress=True)
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -377,7 +377,8 @@ def calc_dropouts(data, outfile, quantity):
 		# PLOT CONTROLS																																		 #
 		######################################################################################################################################################
 		#Category Description Plots
-		
+		group_hol_z_score_dist_subs_foc = True
+		group_z_score_dist_subs = True
 		group_mean_vs_mode_loli = False
 		dropout_length_grouped_barh = False
 		hol_zscore_violin_category = False
@@ -409,12 +410,107 @@ def calc_dropouts(data, outfile, quantity):
 		#Create group data and add mode column
 		groups = points_master.groupby(by = "categoryDescription")['dropout_length'].describe().reset_index()
 		temp = points_master.groupby(by = "categoryDescription")['dropout_length'].agg(lambda x:x.value_counts().index[0])
-		print(temp)
+		#print(temp)
 		groups.insert(groups.shape[1], 'mode', temp.values)
 		print(groups)
 		
 		
+		
+		#LOLIPOP PLOT FOR ZSCORE MIN AND MAX
 		#DO BAR OF PIE NEXT: https://matplotlib.org/stable/gallery/pie_and_polar_charts/bar_of_pie.html#sphx-glr-gallery-pie-and-polar-charts-bar-of-pie-py
+		#light = groups.get_group("Light (< 15500 lbs)")
+		categories = points_master.groupby(by = "categoryDescription")
+		print(categories['icao24'].nunique())
+		print(categories.groups.keys())
+		light = categories.get_group("Light (< 15500 lbs)")
+		print(light.head(5))
+		print("\n # Unique Aircraft: " + str(light['icao24'].unique().shape[0]))
+		#sns.displot(data = light, x = 'points_zscore', kind = "kde")
+		#plt.show()
+		
+		
+		# Z-SCORE DISTRIBUTION BY GROUP - SUBPLOTS AND TABLE
+		
+		#Holistic Z-Score Distribution by Group - Focused
+		if(group_hol_z_score_dist_subs_foc == True):
+			#Z-Score Distribution by Group
+			import itertools
+			pal = sns.color_palette(palette='bright', n_colors=len(categories.groups))
+			palette = itertools.cycle(pal)
+			
+			fig, axes = plt.subplots(4,2, figsize=(10, 8))
+			for c, group in enumerate(categories.groups.keys()):
+				
+				i = int(c/2)
+				j = c % 2
+				print("["+str(i)+", "+str(j)+"]")
+				g = sns.kdeplot(data = categories.get_group(group), x = 'holistic_zscore', ax=axes[i, j], color = next(palette), fill = True)
+				g.set_xlabel("Z-Score")
+				g.set_title(group)
+				g.set_xlim(-3, 3)
+			
+			#fig.delaxes(axes[3, 1])
+			#axes[3, 1].set_frame_on(False)
+			
+			for key, spine in axes[3, 1].spines.items():
+				spine.set_visible(False)
+			axes[3, 1].set_xticks([])
+			axes[3, 1].set_yticks([])
+			
+			""" axes[3, 1].spines['top'].set_visible(False)
+			axes[3, 1].spines['bottom'].set_visible(False)
+			axes[3, 1].spines['left'].set_visible(False)
+			axes[3, 1].spines['right'].set_visible(False) """
+			
+			
+			
+			tab = pd.plotting.table(ax = axes[3, 1], data = categories['icao24'].nunique(), cellLoc = "left", colWidths = [0.175, 0.05], loc="center right")
+			axes[3, 1].set_title("Aircraft (icao24) Counts by Category              ", ha = "center")
+			tab.scale(1, 1.5)
+			
+			fig.suptitle("Holistic Z-Score Distribution for each Aircraft Category (Focused)", weight = "bold", fontsize = "14")
+			plt.tight_layout()
+			plt.show()
+		
+		#Z-Score Distribution by Group
+		if(group_z_score_dist_subs == True):
+			
+			import itertools
+			pal = sns.color_palette(palette='bright', n_colors=len(categories.groups))
+			palette = itertools.cycle(pal)
+			
+			fig, axes = plt.subplots(4,2, figsize=(10, 8))
+			for c, group in enumerate(categories.groups.keys()):
+				
+				i = int(c/2)
+				j = c % 2
+				print("["+str(i)+", "+str(j)+"]")
+				g = sns.kdeplot(data = categories.get_group(group), x = 'points_zscore', ax=axes[i, j], color = next(palette), fill = True)
+				g.set_xlabel("Z-Score")
+				g.set_title(group)
+			
+			#fig.delaxes(axes[3, 1])
+			#axes[3, 1].set_frame_on(False)
+			
+			for key, spine in axes[3, 1].spines.items():
+				spine.set_visible(False)
+			axes[3, 1].set_xticks([])
+			axes[3, 1].set_yticks([])
+			
+			""" axes[3, 1].spines['top'].set_visible(False)
+			axes[3, 1].spines['bottom'].set_visible(False)
+			axes[3, 1].spines['left'].set_visible(False)
+			axes[3, 1].spines['right'].set_visible(False) """
+			
+			
+			
+			tab = pd.plotting.table(ax = axes[3, 1], data = categories['icao24'].nunique(), cellLoc = "left", colWidths = [0.175, 0.05], loc="center right")
+			axes[3, 1].set_title("Aircraft (icao24) Counts by Category              ", ha = "center")
+			tab.scale(1, 1.5)
+			
+			fig.suptitle("Z-Score Distribution for each Aircraft Category", weight = "bold", fontsize = "14")
+			plt.tight_layout()
+			plt.show()
 		
 		
 		
@@ -445,10 +541,10 @@ def calc_dropouts(data, outfile, quantity):
 			
 			# Add title and axis names
 			plt.yticks(my_range, ordered_df['categoryDescription'])
-			plt.suptitle("Why Mean is a bad detection metric", weight = 'bold', fontsize = 14)
+			plt.suptitle("Dropout Mean vs Mode by Aircraft Type", weight = 'bold', fontsize = 14)
 			plt.title("Comparison of the Mean and the Mode for each Group")
-			plt.xlabel('Value of the variables')
-			plt.ylabel('Group')
+			plt.xlabel('Dropout Length')
+			plt.ylabel('Category Description', weight = "bold")
 
 			# Show the graph
 			plt.tight_layout()
