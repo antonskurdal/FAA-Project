@@ -277,7 +277,7 @@ def calc_dropouts(data, outfile, quantity):
 		
 		#print(points_master.head(5))
 		points_master.reset_index(inplace = True)
-		print(points_master.head(5))
+		#print(points_master.head(5))
 
 
 		'''
@@ -377,10 +377,10 @@ def calc_dropouts(data, outfile, quantity):
 		# PLOT CONTROLS																																		 #
 		######################################################################################################################################################
 		#Category Description Plots
-		group_hol_z_score_dist_subs_foc = True
-		group_z_score_dist_subs = True
-		group_mean_vs_mode_loli = False
-		dropout_length_grouped_barh = False
+		group_hol_z_score_dist_subs_foc = False	#
+		group_z_score_dist_subs = False			#
+		group_mean_vs_mode_loli = False			#
+		mean_dropout_length_grouped_barh = False
 		hol_zscore_violin_category = False
 		hol_zscore_category_foc = False
 		hol_zscore_category = False
@@ -412,7 +412,7 @@ def calc_dropouts(data, outfile, quantity):
 		temp = points_master.groupby(by = "categoryDescription")['dropout_length'].agg(lambda x:x.value_counts().index[0])
 		#print(temp)
 		groups.insert(groups.shape[1], 'mode', temp.values)
-		print(groups)
+		#print(groups)
 		
 		
 		
@@ -420,23 +420,234 @@ def calc_dropouts(data, outfile, quantity):
 		#DO BAR OF PIE NEXT: https://matplotlib.org/stable/gallery/pie_and_polar_charts/bar_of_pie.html#sphx-glr-gallery-pie-and-polar-charts-bar-of-pie-py
 		#light = groups.get_group("Light (< 15500 lbs)")
 		categories = points_master.groupby(by = "categoryDescription")
-		print(categories['icao24'].nunique())
+		#print(categories['icao24'].nunique())
 		print(categories.groups.keys())
 		light = categories.get_group("Light (< 15500 lbs)")
-		print(light.head(5))
+		#print(light.head(5))
 		print("\n # Unique Aircraft: " + str(light['icao24'].unique().shape[0]))
 		#sns.displot(data = light, x = 'points_zscore', kind = "kde")
 		#plt.show()
 		
 		
-		# Z-SCORE DISTRIBUTION BY GROUP - SUBPLOTS AND TABLE
+		#Get sizes of each category
+		categories_size = categories.size()
+		categories_size_pct = categories_size / categories_size.sum() * 100
+		categories_size_pct = categories_size_pct.to_dict()
+		print(categories_size_pct)
 		
+		
+		
+		
+		
+		
+		#Filter by Mode
+		light = light[light['dropout_length'] > light['points_mode']]#.reset_index()
+		#print(light.head(5))
+		
+		
+		
+		
+		
+		
+		from matplotlib.patches import ConnectionPatch
+		import itertools
+		
+		
+		
+		#Set up group stuff
+		#GROUPS
+		# 'Heavy (> 300000 lbs)',
+		# 'High Vortex Large (aircraft such as B-757)',
+		# 'Large (75000 to 300000 lbs)',
+		# 'Light (< 15500 lbs)',
+		# 'No ADS-B Emitter Category Information',
+		# 'Point Obstacle (includes tethered balloons)',
+		# 'Small (15500 to 75000 lbs)'])
+		group_name = 'Small (15500 to 75000 lbs)'
+		wedge_num = list(categories_size_pct.keys()).index(group_name)
+		
+		group_df = categories.get_group(group_name)
+		group_df = group_df[group_df['dropout_length'] > group_df['points_mode']]
+		
+		#WORK ON GETTING GROUP_DF TO REPLACE 'LIGHT' SO THIS CAN BE LOOPED
+		
+		#Create figure and axes
+		fig, (ax1, ax2) = plt.subplots(1, 2, figsize = (10, 6.5))
+		fig.subplots_adjust(wspace = 0)
+		
+		#Pie chart parameters
+		overall_ratios = list(categories_size_pct.values())
+		labels = list(categories_size_pct.keys())
+		
+		overall_ratios.insert(0, overall_ratios.pop(wedge_num))
+		labels.insert(0, labels.pop(wedge_num))
+		
+		pal = sns.color_palette(palette='bright', n_colors=len(categories.groups))
+		pal.insert(0, pal.pop(wedge_num))
+		palette = itertools.cycle(pal)
+		
+		
+		wedge_num = 0
+		
+		
+		
+		
+		
+		
+		
+		explode = [0, 0, 0, 0, 0, 0, 0]
+		explode[wedge_num] = 0.1
+		
+		#Rotate so that first wedge is split by the x-axis
+		angle = 0#90 * overall_ratios[0]
+		wedges, *_ = ax1.pie(overall_ratios, autopct='%1.2f%%', startangle=angle, explode=explode, colors = pal)
+		
+		
+		#Pie Legend
+		ax1.legend(labels = labels, bbox_to_anchor = (1, 0.1))
+		
+		
+		#Bar chart parameters
+		zscore_ratios = [
+			light[(light['points_zscore'] > 0) & (light['points_zscore'] < 1)].reset_index(drop = True).copy().shape[0],		# > 0
+			light[(light['points_zscore'] >= 1) & (light['points_zscore'] < 2)].reset_index(drop = True).copy().shape[0],		# >= 1
+			light[(light['points_zscore'] >= 2) & (light['points_zscore'] < 3)].reset_index(drop = True).copy().shape[0],		# >= 2
+			light[(light['points_zscore'] > 3)].reset_index(drop = True).copy().shape[0]										# > 3
+		]
+		zscore_ratios = list(map(lambda x: x / sum(zscore_ratios), zscore_ratios))
+		#print(zscore_ratios)
+		zscore_labels = [
+			"0 to 0.9",
+			"1 to 1.9",
+			"2 to 2.9",
+			"over 3"
+		]
+		bottom = 1
+		width = .2
+		
+		#Adding from the top matches the legend
+		for j, (height, label) in enumerate([*zip(zscore_ratios, zscore_labels)]):
+			bottom -= height
+			bc = ax2.bar(0, height, width, bottom=bottom, color='red', label=label,
+						alpha=0.1 + 0.25 * j)
+			ax2.bar_label(bc, labels=[f"{height:.2%}"], label_type='center')
+		
+		ax2.set_title('Z-Score')
+		ax2.legend()
+		ax2.axis('off')
+		ax2.set_xlim(- 2.5 * width, 2.5 * width)
+		
+		# use ConnectionPatch to draw lines between the two plots
+		print("WEDGE NUM: " + str(wedge_num))
+		theta1, theta2 = wedges[wedge_num].theta1, wedges[wedge_num].theta2
+		center, r = wedges[wedge_num].center, wedges[wedge_num].r
+		bar_height = sum(zscore_ratios)
+		
+		# draw top connecting line
+		x = r * np.cos(np.pi / 180 * theta2) + center[0]
+		y = r * np.sin(np.pi / 180 * theta2) + center[1]
+		con = ConnectionPatch(xyA=(-width / 2, bar_height), coordsA=ax2.transData,
+							xyB=(x, y), coordsB=ax1.transData)
+		con.set_color([0, 0, 0])
+		con.set_linewidth(1)
+		ax2.add_artist(con)
+
+		# draw bottom connecting line
+		x = r * np.cos(np.pi / 180 * theta1) + center[0]
+		y = r * np.sin(np.pi / 180 * theta1) + center[1]
+		con = ConnectionPatch(xyA=(-width / 2, 0), coordsA=ax2.transData,
+							xyB=(x, y), coordsB=ax1.transData)
+		con.set_color([0, 0, 0])
+		ax2.add_artist(con)
+		con.set_linewidth(1)
+		
+		
+		plt.suptitle("Z-Score Breakdown for Aircraft Group: " + group_name)
+		plt.show()
+		
+		
+		
+		return
+		
+		
+		
+		
+		
+		
+		
+		
+		# make figure and assign axis objects
+		fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 5))
+		fig.subplots_adjust(wspace=0)
+
+		# pie chart parameters
+		overall_ratios = [.27, .56, .17]
+		labels = ['Approve', 'Disapprove', 'Undecided']
+		explode = [0.1, 0, 0]
+		# rotate so that first wedge is split by the x-axis
+		angle = -180 * overall_ratios[0]
+		wedges, *_ = ax1.pie(overall_ratios, autopct='%1.1f%%', startangle=angle,
+							labels=labels, explode=explode)
+
+		# bar chart parameters
+		age_ratios = [.33, .54, .07, .06]
+		age_labels = ['Under 35', '35-49', '50-65', 'Over 65']
+		bottom = 1
+		width = .2
+
+		# Adding from the top matches the legend.
+		for j, (height, label) in enumerate(reversed([*zip(age_ratios, age_labels)])):
+			bottom -= height
+			bc = ax2.bar(0, height, width, bottom=bottom, color='C0', label=label,
+						alpha=0.1 + 0.25 * j)
+			ax2.bar_label(bc, labels=[f"{height:.0%}"], label_type='center')
+
+		ax2.set_title('Age of approvers')
+		ax2.legend()
+		ax2.axis('off')
+		ax2.set_xlim(- 2.5 * width, 2.5 * width)
+
+		# use ConnectionPatch to draw lines between the two plots
+		theta1, theta2 = wedges[0].theta1, wedges[0].theta2
+		center, r = wedges[0].center, wedges[0].r
+		bar_height = sum(age_ratios)
+
+		# draw top connecting line
+		x = r * np.cos(np.pi / 180 * theta2) + center[0]
+		y = r * np.sin(np.pi / 180 * theta2) + center[1]
+		con = ConnectionPatch(xyA=(-width / 2, bar_height), coordsA=ax2.transData,
+							xyB=(x, y), coordsB=ax1.transData)
+		con.set_color([0, 0, 0])
+		con.set_linewidth(4)
+		ax2.add_artist(con)
+
+		# draw bottom connecting line
+		x = r * np.cos(np.pi / 180 * theta1) + center[0]
+		y = r * np.sin(np.pi / 180 * theta1) + center[1]
+		con = ConnectionPatch(xyA=(-width / 2, 0), coordsA=ax2.transData,
+							xyB=(x, y), coordsB=ax1.transData)
+		con.set_color([0, 0, 0])
+		ax2.add_artist(con)
+		con.set_linewidth(4)
+
+		plt.show()
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		######################################################################################################################################################
+		# Z-SCORE DISTRIBUTION BY GROUP - SUBPLOTS AND TABLE
+		######################################################################################################################################################
 		#Holistic Z-Score Distribution by Group - Focused
 		if(group_hol_z_score_dist_subs_foc == True):
 			#Z-Score Distribution by Group
-			import itertools
-			pal = sns.color_palette(palette='bright', n_colors=len(categories.groups))
-			palette = itertools.cycle(pal)
+			
 			
 			fig, axes = plt.subplots(4,2, figsize=(10, 8))
 			for c, group in enumerate(categories.groups.keys()):
@@ -471,6 +682,7 @@ def calc_dropouts(data, outfile, quantity):
 			fig.suptitle("Holistic Z-Score Distribution for each Aircraft Category (Focused)", weight = "bold", fontsize = "14")
 			plt.tight_layout()
 			plt.show()
+		
 		
 		#Z-Score Distribution by Group
 		if(group_z_score_dist_subs == True):
@@ -511,10 +723,13 @@ def calc_dropouts(data, outfile, quantity):
 			fig.suptitle("Z-Score Distribution for each Aircraft Category", weight = "bold", fontsize = "14")
 			plt.tight_layout()
 			plt.show()
+		######################################################################################################################################################
 		
 		
 		
-	
+		######################################################################################################################################################
+		# GROUP MEAN VS MODE LOLIPOP CHART
+		######################################################################################################################################################
 		if(group_mean_vs_mode_loli == True):
 			
 			fig, ax = plt.subplots(figsize = (10, 6.5))
@@ -549,12 +764,12 @@ def calc_dropouts(data, outfile, quantity):
 			# Show the graph
 			plt.tight_layout()
 			plt.show()
+		######################################################################################################################################################
 
-
 		
 		
-		
-		if(dropout_length_grouped_barh == True):
+		#Mean Dropout Length
+		if(mean_dropout_length_grouped_barh == True):
 			height = list(groups['mean'])
 			#print(height)
 			bars = list(groups['categoryDescription'])
@@ -567,7 +782,10 @@ def calc_dropouts(data, outfile, quantity):
 
 			# Create names on the x-axis
 			plt.yticks(y_pos, bars)
-
+			plt.xlabel("Mean Dropout Length (seconds)")
+			plt.ylabel("Aircraft Group")
+			plt.title("Mean Dropout Length by Group")
+			
 			# Show graphic
 			plt.tight_layout()
 			plt.show()
