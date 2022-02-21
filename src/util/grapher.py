@@ -219,10 +219,25 @@ class PolygonInteractor:
 
 def plotInteractivePolygon(master, obj):
 	
-	#print(obj.xs_colname)
-	#print(obj.ys_colname)
+	print(obj.xs_colname)
+	print(obj.ys_colname)
+	print(obj.current.index.tolist())
 	
-	poly = Polygon(np.column_stack([obj.current[obj.xs_colname], obj.current[obj.ys_colname]]), animated=True, alpha = 0.1)
+	#Set xs and ys, make sure index works
+	if(obj.xs_colname == "index"):
+		xs = obj.current.index.tolist()
+	else:
+		xs = obj.current[obj.xs_colname]
+	
+	if(obj.ys_colname == "index"):
+		ys = obj.current.index.tolist()
+	else:
+		ys =  obj.current[obj.ys_colname]
+	
+	
+	
+	poly = Polygon(np.column_stack([xs, ys]), animated=True, alpha = 0.1)
+	#poly = Polygon(np.column_stack([obj.current[obj.xs_colname], obj.current[obj.ys_colname]]), animated=True, alpha = 0.1)
 	
 	fig = Figure()
 	ax = fig.add_subplot(111)

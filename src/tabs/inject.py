@@ -149,7 +149,9 @@ class Inject(tk.Frame):
 					pass
 				else:
 					listbox.insert(tk.END, col)
-
+			
+			listbox.insert(tk.END, "index")
+			
 			if(listbox.size() > sel):
 				listbox.selection_clear(0, tk.END)
 				listbox.select_set(sel)
@@ -160,6 +162,9 @@ class Inject(tk.Frame):
 				listbox.select_set(0)
 				listbox.activate(0)
 				listbox.update()
+		
+		
+		
 		'''
 		def flash_color(self, color, zone):
 			def change_color(color, zone):
@@ -247,20 +252,40 @@ class Inject(tk.Frame):
 		def sel_changed(event):
 			# print(listbox_xs.get(listbox_xs.curselection()))
 			# print(listbox_xs.get(listbox_ys.curselection()))
-
+			
+			#Set object parameters
 			obj.current = obj.base.copy(deep=True)
 			obj.xs_colname = listbox_xs.get(listbox_xs.curselection())
 			obj.ys_colname = listbox_ys.get(listbox_ys.curselection())
-
+			
+			#Disable buttons if index is plotted
+			if(obj.xs_colname == "index" or obj.ys_colname == "index"):
+				button_fit.child['state'] = 'disabled'
+				button_drop.child['state'] = 'disabled'
+				button_noise.child['state'] = 'disabled'
+				button_percent.child['state'] = 'disabled'
+				button_num.child['state'] = 'disabled'
+			else:
+				button_fit.child['state'] = 'normal'
+				button_drop.child['state'] = 'normal'
+				button_noise.child['state'] = 'normal'
+				button_percent.child['state'] = 'normal'
+				button_num.child['state'] = 'normal'
+				
+			#Create slider
 			self.slider = sku.LiSlider(labelframe_slider, width=500, height=60, min_val=min(obj.current[obj.xs_colname]), max_val=max(
 				obj.current[obj.xs_colname]), init_lis=[min(obj.current[obj.xs_colname]), max(obj.current[obj.xs_colname])], show_value=True)
-			self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,
-							 sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+			
+			self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 			self.slider.canv['bg'] = sku.SCALE_BACKGROUND
 			self.slider.canv.master['bg'] = sku.SCALE_BACKGROUND
 			self.slider.canv['highlightthickness'] = 0
 			self.slider.canv.master['highlightthickness'] = 2
 			self.slider.canv.master['highlightbackground'] = sku.SCALE_HIGHLIGHTBACKGROUND
+			
+			
+			
+			
 		
 		def drop_data(master, bounds):
 			
@@ -508,7 +533,7 @@ class Inject(tk.Frame):
 		labelframe_slider.grid_rowconfigure(0, weight=1)
 		for col in range(3):
 			labelframe_slider.grid_columnconfigure(col, weight=1)
-		sel_changed('<<ListboxSelect>>')
+		
 
 		#############
 		# Section 3 #
@@ -581,8 +606,10 @@ class Inject(tk.Frame):
 		self.off = PhotoImage(file=os.path.join(os.getcwd() + "/src/assets/off_und.png"))
 		self.on.zoom(58, 24)
 		self.off.zoom(58, 24)
-
+		
+		
 		switch()
+		sel_changed('<<ListboxSelect>>')
 
 		# Banner Image
 		img = Image.open(os.getcwd()+"/src/assets/und_banner.png")

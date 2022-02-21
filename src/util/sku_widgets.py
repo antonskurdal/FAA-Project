@@ -537,13 +537,13 @@ class LiSlider(tk.Frame):
 	#Copyright (c) 2020, Mengxun Li
 	#All rights reserved.
 	
-	LINE_COLOR = "#476b6b"
-	LABEL_COLOR = 'black'
+	LINE_COLOR = "#009A44"
+	LABEL_COLOR = 'white'
 	LINE_WIDTH = 3
-	BAR_COLOR_INNER = "#5c8a8a"
-	BAR_COLOR_OUTTER = "#c2d6d6"
+	BAR_COLOR_INNER = "#009A44"
+	BAR_COLOR_OUTTER = "white"
 	BAR_RADIUS = 10
-	BAR_RADIUS_INNER = BAR_RADIUS-5
+	BAR_RADIUS_INNER = BAR_RADIUS-4
 	DIGIT_PRECISION = '.1f' # for showing in the canvas
 	def __init__(self, master, width = 400, height = 80, min_val = 0, max_val = 1, init_lis = None, show_value = True):
 		tk.Frame.__init__(self, master, height = height, width = width)

@@ -2100,29 +2100,7 @@ def icao_matching(data):
 	
 	data.to_csv("data/OpenSky/output/states_2022-01-17-all_agg.csv", index = False)
 			
-			
-def append_files(directory, filename):
-	
-	
-	pathslist = directory.glob('**/*.csv')
-	
-	data = pd.DataFrame()
-	
-	for path in pathslist:
-		df = pd.read_csv(path)
-		data = data.append(df)
-	
-	print(df.shape)
-	data.to_csv(Path( "output/" + filename), index = False)
-	return
 
-
-
-
-
-
-#append_files(Path(Path.cwd() / "data/OpenSky/all_states 2022-01-17"), "states_2022-01-17-all.csv")
-#exit(0)
 
 #Print CWD
 """ print("\nCWD: " + str(Path.cwd())) """
