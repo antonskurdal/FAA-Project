@@ -309,8 +309,8 @@ def remove_na_groups(infile, outfile):
 	print(type(groups))
 	
 	#Save to file
-	groups.to_csv(outfile)
-	return
+	#groups.to_csv(outfile)
+	#return
 
 
 
@@ -321,7 +321,7 @@ exit(0)
 infile = Path(Path.cwd() / "data/OpenSky/" / "states_2022-01-17-10.csv")
 outfile = Path(Path.cwd() / "output/alt_agg" / "states_2022-01-17-10_LT400ft.csv")
 
-#Altitude, 400 meters = 121.92 feet
+#Altitude, 400 feet = 121.92 meters
 altitude = 122
 
 #Call method
