@@ -25,6 +25,7 @@ def calc_dropouts(infile, outfile, focus_col):
 	df = pd.read_csv(infile)
 	pdf = PdfPages(outfile)
 	
+	print(df.columns)
 	
 	
 	
@@ -59,15 +60,17 @@ def calc_dropouts(infile, outfile, focus_col):
 		zscores = np.insert(zscores, 0, np.NaN, axis = 0)
 		data.insert(data.shape[1], 'flight_zscores', zscores)
 		
-		print("Appending {} (Shape: {}".format(f, data.shape))
+		#print("Appending {} (Shape: {}".format(f, data.shape))
 		#print("\tnew_df Shape Before: {}".format(new_df.shape))
 		new_df = new_df.append(data)
 		#print("\tnew_df Shape After: {}".format(new_df.shape))
 	######################################################################################################################################################
 	
 	
-	
-	
+	######################################################################################################################################################
+	#NOTE: ALL MESSED UP FLIGHTS ARE DROPPED HERE
+	new_df = new_df[new_df['flight'] != 278]
+	new_df = new_df[new_df['flight'] != 279]
 	
 	######################################################################################################################################################
 	#Reset master index - NOTE: ALL NAN POINTS, WHICH ARE THE FIRST POINTS OF EACH CRAFT DATA SUBSET, ARE DROPPED HERE
@@ -126,9 +129,248 @@ def calc_dropouts(infile, outfile, focus_col):
 	#print(describe(new_df, ['skew', 'mad', 'kurt']))
 	meta = pd.DataFrame()
 	meta = describe(new_df, ['var', 'skew', 'kurt'])
-	#print(meta)
 	
-	#print(new_df.describe())
+	
+	
+	
+	
+	correlation = True
+	######################################################################################################################################################
+	# CORRELATION CHARTS - SPEED
+	######################################################################################################################################################
+	if (correlation == True):
+		
+		#sns.regplot(data = new_df, x = "dropout_length", y = "speed", line_kws={"color":"r","alpha":0.7,"lw":5})
+		#plt.show()
+		
+		#sns.kdeplot(data = new_df, x = "dropout_length", y = "speed")
+		#plt.show()
+		
+		#Set up figure
+		#fig, ax = plt.subplots(figsize = (10, 6.5))
+		
+		
+		
+		
+		#Jointplot - speed
+		xname = "dropout_length"
+		yname = "speed"
+		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g.fig.set_size_inches(10,6.5)
+		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
+		#Display figure
+		plt.tight_layout()
+		#plt.show()
+		fig = g.fig
+		pdf.savefig(fig)
+		plt.close("all")
+		
+		
+		
+		
+		#Jointplot - altitude
+		xname = "dropout_length"
+		yname = "altitude"
+		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g.fig.set_size_inches(10,6.5)
+		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
+		#Display figure
+		plt.tight_layout()
+		#plt.show()
+		fig = g.fig
+		pdf.savefig(fig)
+		plt.close("all")
+		
+		
+		
+		#Jointplot - payload
+		xname = "dropout_length"
+		yname = "payload"
+		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g.fig.set_size_inches(10,6.5)
+		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
+		#Display figure
+		plt.tight_layout()
+		#plt.show()
+		fig = g.fig
+		pdf.savefig(fig)
+		plt.close("all")
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		#Jointplot - wind_speed
+		xname = "dropout_length"
+		yname = "wind_speed"
+		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g.fig.set_size_inches(10,6.5)
+		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
+		#Display figure
+		plt.tight_layout()
+		#plt.show()
+		fig = g.fig
+		pdf.savefig(fig)
+		plt.close("all")
+		
+		
+		
+		#Jointplot - wind_angle
+		xname = "dropout_length"
+		yname = "wind_angle"
+		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g.fig.set_size_inches(10,6.5)
+		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
+		#Display figure
+		plt.tight_layout()
+		#plt.show()
+		fig = g.fig
+		pdf.savefig(fig)
+		plt.close("all")
+		
+		
+		
+		#Jointplot - battery_voltage
+		xname = "dropout_length"
+		yname = "battery_voltage"
+		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g.fig.set_size_inches(10,6.5)
+		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
+		#Display figure
+		plt.tight_layout()
+		#plt.show()
+		fig = g.fig
+		pdf.savefig(fig)
+		plt.close("all")
+		
+		
+		
+		#Jointplot - battery_current
+		xname = "dropout_length"
+		yname = "battery_current"
+		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g.fig.set_size_inches(10,6.5)
+		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
+		#Display figure
+		plt.tight_layout()
+		#plt.show()
+		fig = g.fig
+		pdf.savefig(fig)
+		plt.close("all")
+		
+		
+		
+	
+	
+	group_mean_vs_mode_loli = True
+	######################################################################################################################################################
+	# GROUP MEAN VS MODE LOLIPOP CHART
+	######################################################################################################################################################
+	if(group_mean_vs_mode_loli == True):
+		
+		fig, ax = plt.subplots(figsize = (10, 6.5))
+		
+		
+		# plt.scatter(new_df['flight_mean'], new_df['flight'])
+		# plt.scatter(new_df['flight_mode'], new_df['flight'])
+		
+		# plt.show()
+		# return
+		
+		#Create group data and add mode column
+		groups = new_df.groupby(by = "flight")['dropout_length'].describe().reset_index()
+		temp = new_df.groupby(by = "flight")['dropout_length'].agg(lambda x:x.value_counts().index[0])
+		print(temp)
+		groups.insert(groups.shape[1], 'mode', temp.values)
+		print(groups)
+
+		
+		# Reorder it following the values of the first value:
+		#ordered_df = groups.sort_values(by='mean')
+		ordered_df = groups
+		my_range=range(1,len(groups.index)+1)
+		
+		my_domain=range(1,len(groups.index)+1)
+		
+		# The horizontal plot is made using the hline function
+		#plt.hlines(y=my_range, xmin=ordered_df['mode'], xmax=ordered_df['mean'], color='#AEAEAE', alpha=1, zorder = 1)
+		
+		# The vertical plot is made using the hline function
+		plt.vlines(x=my_domain, ymin=ordered_df['mode'], ymax=ordered_df['mean'], color='#AEAEAE', alpha=1, zorder = 1)
+		
+		ax.scatter(my_domain, ordered_df['mean'], color='#FF671F', alpha=1, label='mean', zorder = 2)
+		ax.scatter(my_domain, ordered_df['mode'], color='#009A44', alpha=1 , label='mode', zorder = 3)
+		plt.legend()
+		
+		# Add title and axis names
+		plt.xticks(my_range, ordered_df['flight'], rotation = 45, fontsize = 8)
+		import matplotlib.ticker as ticker
+		for i, label in enumerate(ax.xaxis.get_ticklabels()):
+			if(i % 4 == 0 or label == ax.xaxis.get_ticklabels()[0] or label == ax.xaxis.get_ticklabels()[-1]):
+				label.set_visible(True)
+			else:
+				label.set_visible(False)
+		
+		
+		plt.suptitle("Dropout Mean vs Mode by Flight", weight = 'bold', fontsize = 14)
+		plt.title("Comparison of the Mean and the Mode for each Flight")
+		plt.xlabel('Flight Number', weight = "bold")
+		plt.ylabel('Dropout Length (seconds)', weight = "bold")
+		
+
+		#Display figure
+		plt.tight_layout()
+		#plt.show()
+		pdf.savefig(fig)
+		plt.close("all")
+		
+		""" #Horizontal Version
+		fig, ax = plt.subplots(figsize = (8.27, 11.69))
+		
+		
+		#Create group data and add mode column
+		groups = new_df.groupby(by = "flight")['dropout_length'].describe().reset_index()
+		temp = new_df.groupby(by = "flight")['dropout_length'].agg(lambda x:x.value_counts().index[0])
+		print(temp)
+		groups.insert(groups.shape[1], 'mode', temp.values)
+		print(groups)
+
+		
+		# Reorder it following the values of the first value:
+		#ordered_df = groups.sort_values(by='mean')
+		ordered_df = groups
+		my_range=range(1,len(groups.index)+1)
+		
+		# The horizontal plot is made using the hline function
+		plt.hlines(y=my_range, xmin=ordered_df['mode'], xmax=ordered_df['mean'], color='#AEAEAE', alpha=1, zorder = 1)
+		#plt.hlines(y=my_range, xmin=ordered_df['mean'], xmax=ordered_df['mode'], color='grey', alpha=0.4)
+		
+		plt.scatter(ordered_df['mean'], my_range, color='#FF671F', alpha=1, label='mean', zorder = 2)
+		plt.scatter(ordered_df['mode'], my_range, color='#009A44', alpha=1 , label='mode', zorder = 3)
+		plt.legend()
+		
+		# Add title and axis names
+		plt.yticks(my_range, ordered_df['flight'])
+		plt.suptitle("Dropout Mean vs Mode by Flight", weight = 'bold', fontsize = 14)
+		plt.title("Comparison of the Mean and the Mode for each Flight")
+		plt.xlabel('Dropout Length')
+		plt.ylabel('Category Description', weight = "bold")
+
+		#Display figure
+		plt.tight_layout()
+		plt.show()
+		pdf.savefig(fig)
+		plt.close("all") """
+	######################################################################################################################################################
+	
+	
+	
+	
+	
 	
 	#Create distribution plot
 	g = sns.displot(new_df, x = "flight_zscores", kind = "kde", hue = "flight", fill = True, legend = False)
@@ -156,7 +398,7 @@ def calc_dropouts(infile, outfile, focus_col):
 	pdf.close()
 	
 	#Save CSVs
-	new_df.to_csv(Path(Path.cwd() / "output/DeliveryQuadcopter" / "flights_all_calc.csv"))
+	new_df.to_csv(Path(Path.cwd() / "output/DeliveryQuadcopter" / "flights_all_calc.csv"), index = False)
 	meta.to_csv(Path(Path.cwd() / "output/DeliveryQuadcopter" / "flights_all_calc_meta.csv"))
 	
 	
