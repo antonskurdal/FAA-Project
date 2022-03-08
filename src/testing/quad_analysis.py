@@ -22,7 +22,7 @@ def calc_dropouts(infile, outfile, focus_col):
 	"""
 	
 	#Prepare data files
-	df = pd.read_csv(infile)
+	df = pd.read_csv(infile, low_memory=False)
 	pdf = PdfPages(outfile)
 	
 	print(df.columns)
@@ -111,7 +111,7 @@ def calc_dropouts(infile, outfile, focus_col):
 	
 	
 	
-	
+	#Create metadata
 	def describe(df, stats):
 		d = df.describe()
 		
@@ -131,7 +131,18 @@ def calc_dropouts(infile, outfile, focus_col):
 	meta = describe(new_df, ['var', 'skew', 'kurt'])
 	
 	
+	#Convert columns to numeric
+	for col in new_df.columns:
+		if(col in ["date", "time_day", "route"]):
+			continue
+		else:
+			new_df[col] = pd.to_numeric(new_df[col])
 	
+	print(new_df['holistic_mean'][0])
+	num_points = new_df.shape[0]
+	num_drops_avg = new_df[new_df['dropout_length'] > new_df['holistic_mean'][0]].shape[0]
+	
+	print("Points: {}    Dropouts (points > avg): {}    % Dropouts: {:.2f}".format(num_points, num_drops_avg, num_drops_avg/num_points * 100))
 	
 	
 	correlation = True
@@ -150,17 +161,50 @@ def calc_dropouts(infile, outfile, focus_col):
 		#fig, ax = plt.subplots(figsize = (10, 6.5))
 		
 		
+		for i, col in enumerate(new_df.columns):
+			
+			
+			if(col in ["date", "time_day", "route", "dropout_length", "position_x", "position_y", "position_z"]):
+				print("({}/{}) Skipping '{}'".format(i+1, len(new_df.columns), col))
+				continue
+			else:
+				print("({}/{}) Plotting '{}'".format(i+1, len(new_df.columns), col))
+				#Jointplot - speed
+				xname = "dropout_length"
+				yname = col
+				g = sns.jointplot(data = new_df, x = xname, y = yname, kind = "reg")
+				g.fig.set_size_inches(10,6.5)
+				
+				title = "Joint Scatter-Distribution: {} vs {}".format(xname, yname)
+				title += "\nPoints: {}\t\tDropouts (points > avg): {}\t\t% Dropouts: {:.2f}".format(num_points, num_drops_avg, num_drops_avg/num_points * 100)
+				title = title.expandtabs()
+				plt.suptitle(title, weight = 'bold')
+				
+				
+				
+				#Display figure
+				plt.tight_layout()
+				#plt.show()
+				fig = g.fig
+				
+				plt.savefig(Path(Path.cwd() / "output/DeliveryQuadcopter/jointplots" / Path("joint_" + col + ".png")))
+				#pdf.savefig(fig)
+				plt.close("all")
+			
+			if(col == "altitude"):
+				break
 		
 		
-		#Jointplot - speed
+		
+		""" #Jointplot - speed
 		xname = "dropout_length"
 		yname = "speed"
-		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g = sns.jointplot(data = new_df, x = xname, y = yname, kind = "hex")
 		g.fig.set_size_inches(10,6.5)
 		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
 		#Display figure
 		plt.tight_layout()
-		#plt.show()
+		plt.show()
 		fig = g.fig
 		pdf.savefig(fig)
 		plt.close("all")
@@ -168,15 +212,16 @@ def calc_dropouts(infile, outfile, focus_col):
 		
 		
 		
+		
 		#Jointplot - altitude
 		xname = "dropout_length"
 		yname = "altitude"
-		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g = sns.jointplot(data = new_df, x = xname, y = yname, kind = "hex")
 		g.fig.set_size_inches(10,6.5)
 		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
 		#Display figure
 		plt.tight_layout()
-		#plt.show()
+		plt.show()
 		fig = g.fig
 		pdf.savefig(fig)
 		plt.close("all")
@@ -186,12 +231,12 @@ def calc_dropouts(infile, outfile, focus_col):
 		#Jointplot - payload
 		xname = "dropout_length"
 		yname = "payload"
-		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g = sns.jointplot(data = new_df, x = xname, y = yname, kind = "hex")
 		g.fig.set_size_inches(10,6.5)
 		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
 		#Display figure
 		plt.tight_layout()
-		#plt.show()
+		plt.show()
 		fig = g.fig
 		pdf.savefig(fig)
 		plt.close("all")
@@ -207,12 +252,12 @@ def calc_dropouts(infile, outfile, focus_col):
 		#Jointplot - wind_speed
 		xname = "dropout_length"
 		yname = "wind_speed"
-		g = sns.jointplot(data = new_df, x = xname, y = yname)
+		g = sns.jointplot(data = new_df, x = xname, y = yname, kind = "hex")
 		g.fig.set_size_inches(10,6.5)
 		plt.suptitle("Joint Scatter-Distribution: {} vs {}".format(xname, yname), weight = 'bold')
 		#Display figure
 		plt.tight_layout()
-		#plt.show()
+		plt.show()
 		fig = g.fig
 		pdf.savefig(fig)
 		plt.close("all")
@@ -260,7 +305,7 @@ def calc_dropouts(infile, outfile, focus_col):
 		#plt.show()
 		fig = g.fig
 		pdf.savefig(fig)
-		plt.close("all")
+		plt.close("all") """
 		
 		
 		
