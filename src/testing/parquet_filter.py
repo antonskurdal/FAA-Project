@@ -1,6 +1,8 @@
+import multiprocessing
 import pandas as pd
 from pathlib import Path
-
+import sys
+import time
 #Get all unique aircraft
 def get_aircraft(directory):
 	
@@ -134,6 +136,7 @@ def agg_filter_aircraft(directory, outfile, aircraft):
 	#Get list of file paths
 	pathslist = directory.glob('**/*.parquet')
 	
+	
 	#Initialize counter and loop through paths
 	counter = 1
 	file_count = len(list(directory.glob('**/*.parquet')))
@@ -160,10 +163,195 @@ def agg_filter_aircraft(directory, outfile, aircraft):
 
 
 
+
+
+
+###################################################################################################
+#Gets flights from a text file and generates CSV files for each
+def gen_flights(directory, output_directory, aircraft_list):
+	import sys
+	import time
+	#Open aircraft list
+	try:
+		aircraft_list = set(line.strip() for line in open(Path(aircraft_list)))
+		print("Aircraft List Length: " + str(len(aircraft_list)))
+		#print(list(aircraft_list))
+	except FileNotFoundError:
+		print("ERROR: 'aircraft_list' not found. Please run the method to create it.")
+		return
+	
+	
+	
+	_aircraft_list_len = len(list(aircraft_list))
+	for i, craft in enumerate(list(aircraft_list)[:5]):
+		#print(craft)
+		
+		#Get list of file paths
+		pathslist = directory.glob('**/*.parquet')
+		
+		""" #Remove old files
+		dir = Path("D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft")
+		for f in dir.glob("**/*"):
+			if(f.name in aircraft_list):
+				print("Leaving '{}'".format(f.name))
+				continue
+			else:
+				print("Deleting '{}'".format(f.name))
+				f.unlink() """
+		
+		
+		#Initialize dataframe
+		craft_data = pd.DataFrame()
+		
+		#Loop through paths
+		_file_count = len(list(directory.glob('**/*.parquet')))
+		for j, path in enumerate(list(directory.glob('**/*.parquet'))):
+			#print("Craft: [{}]({}/{}) - Parquat ({}/{}) '{}'".format(craft, i+1, _aircraft_list_len, j+1, _file_count, path.name))
+			x = "Craft: [{}]({}/{}) - Parquat ({}/{}) '{}'".format(craft, i+1, _aircraft_list_len, j+1, _file_count, path.name)
+			sys.stdout.write(x + "\n")
+			#sys.stdout.flush()
+			#time.sleep(0.2)
+			
+			
+			df = pd.read_parquet(path)
+			if(craft not in df['icao24'].unique()):
+				continue
+			
+			
+			craft_data = craft_data.append(df[df['icao24'] == craft])
+			#craft_data.append()
+			
+			
+			
+			with open(Path(Path("D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft") / str(craft + ".csv")), 'a') as f:
+				craft_data.to_csv(f, mode='a', header=f.tell()==0, line_terminator="\n")
+			
+	return
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def start_gen_flights_threaded(directory, output_directory, aircraft_list, num_threads):
+	from multiprocessing import Pool
+	
+	if __name__ == '__main__':
+		with Pool(processes=num_threads) as pool:
+			nargs = [(directory, output_directory, aircraft_list, num_threads, n) for n in range(num_threads)]
+			pool.starmap(gen_flights_threaded, nargs)
+	
+	
+#def printstuff(directory, num_threads, threadnum):
+		#print("Thread Number: {} - Craft Index: {}".format(threadnum, craftindex))
+		
+
+###################################################################################################
+#THREADED - Gets flights from a text file and generates CSV files for each
+def gen_flights_threaded(directory, output_directory, aircraft_list, num_threads, interval):
+	
+	#Open aircraft list
+	try:
+		aircraft_list = set(line.strip() for line in open(Path(aircraft_list)))
+		print("Aircraft List Length: " + str(len(aircraft_list)))
+		#print(list(aircraft_list))
+	except FileNotFoundError:
+		print("ERROR: 'aircraft_list' not found. Please run the method to create it.")
+		return
+	
+	
+	#aircraft_list = list(aircraft_list)
+	aircraft_sublist = list(aircraft_list)[interval::num_threads]
+	#print("\nThread Number: {}, Aircraft List Length: {}/{},\n\tList: {}".format(interval, before, after, aircraft_list))
+	print("\nThread Number: {}, Aircraft List Length: ({}/{})".format(interval, len(aircraft_sublist), len(aircraft_list)))
+	
+	_aircraft_sublist_len = len(aircraft_sublist)
+	for i, craft in enumerate(aircraft_sublist[:5]):
+	
+		#Check for existing files
+		dir = Path("D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft")
+		for f in dir.glob("**/*"):
+			if(f.stem in aircraft_list):
+				#print("Skipping '{}'".format(f.stem))
+				continue
+			# else:
+			# 	print("Running '{}'".format(f.stem))
+		
+		#Get list of file paths
+		pathslist = directory.glob('**/*.parquet')
+		
+		#Initialize dataframe
+		craft_data = pd.DataFrame()
+		
+		#Loop through paths
+		_file_count = len(list(directory.glob('**/*.parquet')))
+		for j, path in enumerate(list(directory.glob('**/*.parquet'))):
+			#print("Craft: [{}]({}/{}) - Parquat ({}/{}) '{}'".format(craft, i+1, _aircraft_list_len, j+1, _file_count, path.name))
+			x = "[Thread {}] Craft: [{}]({}/{}) - Parquat ({}/{}) '{}'".format(interval, craft, i+1, _aircraft_sublist_len, j+1, _file_count, path.name)
+			sys.stdout.write(x + "\n")
+			sys.stdout.flush()
+			time.sleep(0.2)
+			
+			
+			df = pd.read_parquet(path)
+			if(craft not in df['icao24'].unique()):
+				continue
+			
+			
+			craft_data = craft_data.append(df[df['icao24'] == craft])
+			#craft_data.append()
+			
+			
+			
+			with open(Path(Path("D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft") / str(craft + ".csv")), 'a') as f:
+				craft_data.to_csv(f, mode='a', header=f.tell()==0, line_terminator="\n")
+			
+			
+	
+	return
+###################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Prepare arguments
 input_directory = Path("D:\#FAA UAS Project\OpenSky WEEK\open_sky_data\data_parquets")
 outfile = "states_2022-01-17-all.csv"
-
+threads = int(multiprocessing.cpu_count()/2)
+print("Threads: ({}/{})".format(threads, multiprocessing.cpu_count()))
 #Append files
 #append_files(input_directory, outfile)
 
@@ -174,4 +362,12 @@ outfile = "states_2022-01-17-all.csv"
 #filter_aircraft(input_directory)
 
 #Aggregate filtered aircraft
-agg_filter_aircraft(input_directory, "states_2022-01-17-all_geofiltered.csv", "open_sky_dataaircraft_list_geofiltered_400to1000ft.txt")
+#agg_filter_aircraft(input_directory, "states_2022-01-17-all_geofiltered.csv", "open_sky_dataaircraft_list_geofiltered_400to1000ft.txt")
+
+#Get flight CSVs
+#gen_flights(input_directory, "D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft", "D:\#FAA UAS Project\OpenSky WEEK\opensky_week_aircraft_list.txt")
+
+#THREADED - Get flight CSVs
+start_gen_flights_threaded(input_directory, "D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft", "D:\#FAA UAS Project\OpenSky WEEK\opensky_week_aircraft_list.txt", threads)
+
+#gen_flights_threaded(input_directory, "D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft", "D:\#FAA UAS Project\OpenSky WEEK\opensky_week_aircraft_list.txt", threads)
