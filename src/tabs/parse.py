@@ -1,3 +1,8 @@
+#Make sure code runs as a module
+if(__name__ == '__main__'):
+	print("This code is meant to be run as a module.")
+	exit(0)
+
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -14,10 +19,7 @@ PADX_CONFIG = (2, 2)
 PADY_CONFIG = (2, 2)
 
 
-#Make sure code runs as a module
-if(__name__ == '__main__'):
-	print("This code is meant to be run as a module.")
-	exit(0)
+
 
 class Parse(tk.Frame):
 
@@ -71,7 +73,7 @@ class Parse(tk.Frame):
 		#Load defaults
         folder = "data\\test\\"
         directory = os.path.join(os.getcwd(), folder)
-        print(filecontroller_main.label.child_text.get())
+        #print(filecontroller_main.label.child_text.get())
         if(os.path.isfile(directory + filecontroller_main.label.child_text.get())):
             path = file_load(directory + filecontroller_main.label.child_text.get())
         else:

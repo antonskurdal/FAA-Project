@@ -285,13 +285,13 @@ def gen_flights_threaded(directory, output_directory, aircraft_list, num_threads
 	print("\nThread Number: {}, Aircraft List Length: ({}/{})".format(interval, len(aircraft_sublist), len(aircraft_list)))
 	
 	_aircraft_sublist_len = len(aircraft_sublist)
-	for i, craft in enumerate(aircraft_sublist[:5]):
+	for i, craft in enumerate(aircraft_sublist[:2]):
 	
 		#Check for existing files
 		dir = Path("D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft")
-		for f in dir.glob("**/*"):
+		for f in dir.glob('**/*.parquet'):
 			if(f.stem in aircraft_list):
-				#print("Skipping '{}'".format(f.stem))
+				print("Skipping '{}'".format(f.stem))
 				continue
 			# else:
 			# 	print("Running '{}'".format(f.stem))
@@ -306,7 +306,7 @@ def gen_flights_threaded(directory, output_directory, aircraft_list, num_threads
 		_file_count = len(list(directory.glob('**/*.parquet')))
 		for j, path in enumerate(list(directory.glob('**/*.parquet'))):
 			#print("Craft: [{}]({}/{}) - Parquat ({}/{}) '{}'".format(craft, i+1, _aircraft_list_len, j+1, _file_count, path.name))
-			x = "[Thread {}] Craft: [{}]({}/{}) - Parquat ({}/{}) '{}'".format(interval, craft, i+1, _aircraft_sublist_len, j+1, _file_count, path.name)
+			x = "[Thread {2:f}] Craft: [{}]({}/{}) - Parquat ({}/{}) '{}'".format(interval, craft, i+1, _aircraft_sublist_len, j+1, _file_count, path.name)
 			sys.stdout.write(x + "\n")
 			sys.stdout.flush()
 			time.sleep(0.2)
@@ -321,9 +321,9 @@ def gen_flights_threaded(directory, output_directory, aircraft_list, num_threads
 			#craft_data.append()
 			
 			
-			
-			with open(Path(Path("D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft") / str(craft + ".csv")), 'a') as f:
-				craft_data.to_csv(f, mode='a', header=f.tell()==0, line_terminator="\n")
+			#Append to file
+			fpath = "D:\#FAA UAS Project\OpenSky WEEK\Individual Aircraft\\" + craft + ".parquet"
+			craft_data.to_parquet(fpath)
 			
 			
 	
@@ -350,7 +350,8 @@ def gen_flights_threaded(directory, output_directory, aircraft_list, num_threads
 #Prepare arguments
 input_directory = Path("D:\#FAA UAS Project\OpenSky WEEK\open_sky_data\data_parquets")
 outfile = "states_2022-01-17-all.csv"
-threads = int(multiprocessing.cpu_count()/2)
+#threads = int(multiprocessing.cpu_count()/2)
+threads = 16
 print("Threads: ({}/{})".format(threads, multiprocessing.cpu_count()))
 #Append files
 #append_files(input_directory, outfile)

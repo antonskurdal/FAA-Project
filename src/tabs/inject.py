@@ -1,3 +1,10 @@
+# Make sure code runs as a module
+if(__name__ == '__main__'):
+	print("This code is meant to be run as a module.")
+	exit(0)
+
+
+
 import tkinter as tk
 from tkinter import *
 from pathlib import Path
@@ -17,11 +24,10 @@ import inspect
 #currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 #parentdir = os.path.dirname(currentdir)
 
-parentdir = Path.resolve(Path.cwd()).parent
-
+parentdir = Path.resolve(Path.cwd())
 sys.path.insert(0, parentdir)
 
-print("PARENT DIR: " + str(parentdir))
+print("[INJECT] BASE DIR: " + str(parentdir))
 
 import util.sku_widgets as sku
 import util.grapher as grapher
@@ -31,10 +37,7 @@ import util.grapher as grapher
 PADX_CONFIG = (2, 2)
 PADY_CONFIG = (2, 2)
 
-# Make sure code runs as a module
-if(__name__ == '__main__'):
-	print("This code is meant to be run as a module.")
-	exit(0)
+
 
 # Methods
 
@@ -129,26 +132,58 @@ class Inject(tk.Frame):
 
 
 
-			###########
-			# Methods #
-			###########
+		###########
+		# Methods #
+		###########
+
+
+
+
+
+
+
+
 
 		def populate_listbox(listbox, df, sel=None):
-			listbox.delete(0, tk.END)
-
+			
+			print("[INJECT][POPULATE_LISTBOX] LISTBOX SIZE: {}".format(listbox.size()))
+			if(listbox.size() > 0):
+				listbox.delete(0, tk.END)
+				
+				
+			
 			# print(df.dtypes)
 
 			# Allow rows with one or less unique value to appear in the selection listboxes
 			allow_generic = False
-
-
+			
+			
+			print("[INJECT][POPULATE_LISTBOX] DF COLUMNS: {}".format(df.columns))
+			
 			for col in df.columns:
-				if(type(df[col][0]) == str):
+				print("[INJECT][POPULATE_LISTBOX] COL: {}".format(col))
+				print(df.dtypes[col])
+				if(df.dtypes[col] == 'object'):
+					print("OBJECT\n")
+					pass
+				elif(len(df.dtypes[col]) > 1):
+					print("MORE THAN 1 DTYPE\n")
 					pass
 				elif(len(df[col].unique()) <= 1 and allow_generic == False):
 					pass
 				else:
 					listbox.insert(tk.END, col)
+			""" 
+			
+			for col in df.columns:
+				
+				
+				if(type(df[col][0]) == str):
+					pass
+				elif(len(df[col].unique()) <= 1 and allow_generic == False):
+					pass
+				else:
+					listbox.insert(tk.END, col) """
 			
 			listbox.insert(tk.END, "index")
 			
@@ -164,46 +199,78 @@ class Inject(tk.Frame):
 				listbox.update()
 		
 		
-		
-		'''
-		def flash_color(self, color, zone):
-			def change_color(color, zone):
-				self[zone] = color
-
-			current_color = self[zone]
-			next_color = color
-			self[zone] = next_color
-			self.after(500, lambda: change_color(current_color, zone))
-			self.after(1000, lambda: change_color(next_color, zone))
-			self.after(1500, lambda: change_color(current_color, zone))
-		'''
-		def file_browse(var):
-			print(var)
+		def file_browse(directory, var):
+			#print(var)
 			# folder = "data\\test\\"
 			# directory = os.path.join(os.getcwd(), folder)
-			folder = Path(Path.cwd() / "data" / "test")
-			print(folder)
-
-			file = filedialog.askopenfilename(filetypes = [(
-				'CSV files', '.csv')], title = "Dataset Selection", initialdir = str(folder))
-			if file is None: #askopenfilename return `None` if dialog closed with "cancel".
-				return
-			var.set(os.path.split(file)[1])
-
-			file_load(file)
 			
+			print("[INJECT][FILE_BROWSE] DIRECTORY: {}".format(directory))
+			
+			
+			
+			#folder = Path(Path.cwd() / "data" / "test")
+			#print(folder)
+
+			file = Path(filedialog.askopenfilename(
+				filetypes = [('All files', '.*'), ('CSV or Parquet files', '.csv'), ('Apache Parquet files', '.parquet')], 
+				title = "Dataset Selection", 
+				initialdir = directory))
+			
+			
+			#print(file)
+			#print(type(file))
+			
+			print("[INJECT][FILE_BROWSE] FILE NAME: {} (type = {})".format(file.name, type(file)))
+			
+			#if file is None: #askopenfilename return `None` if dialog closed with "cancel".
+			if(file.name == ""): #askopenfilename return `None` if dialog closed with "cancel".
+				messagebox.showwarning(title="Warning", message="No file selected")
+				return
+			else:
+				var.set(str(file.name))
+				file_load(file)
+		
+		
+		
 		def file_load(file):
-			base_data = pd.read_csv(file)
+			print("[INJECT][FILE_LOAD] FILE: {} (type = {})".format(file.name, type(file)))
+			
+			#Check file name and load 
+			if(file.suffix == ".csv"):
+				base_data = pd.read_csv(file)
+			elif(file.suffix == ".parquet"):
+				base_data = pd.read_parquet(file)
+			elif(file.name == ""):
+				messagebox.showwarning(title="Warning", message="No file selected")
+				return
+			else:
+				messagebox.showerror(title="Error", message="Invalid file extension. Must be '.csv' or '.parquet'")
+				return
+			
+			#Check if label column exists (normal, dropout, noise, etc.)
 			if 'taxonomy' not in base_data.columns:
 				base_data.insert(1, 'taxonomy', 'normal')
-
+			
+			
 			populate_listbox(listbox_xs, base_data, 0)
 			populate_listbox(listbox_ys, base_data, 2)
-
+			
+			
+			
 			global obj
 			obj = CurrentGraph(base_data.copy(deep=True), base_data.copy(deep=True), listbox_xs.get(
 				listbox_xs.curselection()), listbox_ys.get(listbox_ys.curselection()))
 			
+			self.DATA_DIR = file.parent
+			print("[INJECT][FILE_LOAD] DATA_DIR: {} (type = {})".format(self.DATA_DIR, type(self.DATA_DIR)))
+			self.FILE = file
+			print("[INJECT][FILE_LOAD] FILE: {} (type = {})".format(self.FILE.stem, type(self.FILE)))
+			
+			sel_changed('<<ListboxSelect>>')
+
+
+
+
 		def reset_plot():
 			obj.current = obj.base.copy(deep = True)
 
@@ -459,42 +526,62 @@ class Inject(tk.Frame):
 		#############
 
 		# Main File Loader
-		filecontroller_main = sku.FileController(self, text="Load CSV File", label_text="a2fcf2_test_lite.csv", button_text="Browse", button_command=lambda: [file_browse(filecontroller_main.label.child_text), sku.flash_zone(
-			filecontroller_main.label, 'bg', 'green'), filecontroller_save_current.label.child_text.set(str(filecontroller_main.label.child_text.get()[:-4]) + "_injected.csv"), sku.flash_zone(filecontroller_save_current.label, 'bg', 'green')])
-		filecontroller_main.grid(row=0, column=0, rowspan=1, columnspan=6,
-								 sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-
+		# self.filecontroller_main = sku.FileController(self, text="Load CSV File", label_text="a2fcf2_test_lite.csv", button_text="Browse", button_command=lambda: [file_browse(self.filecontroller_main.label.child_text), sku.flash_zone(
+		# 	self.filecontroller_main.label, 'bg', 'green'), filecontroller_save_current.label.child_text.set(str(self.filecontroller_main.label.child_text.get()[:-4]) + "_injected.csv"), sku.flash_zone(filecontroller_save_current.label, 'bg', 'green')])
+		# self.filecontroller_main.grid(row=0, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		self.filecontroller_main = sku.FileController(self, text="Load CSV/Parquet File", label_text="", button_text="Browse", button_command=
+		lambda: [
+			file_browse(self.DATA_DIR, self.filecontroller_main.label.child_text), 
+			sku.flash_zone(self.filecontroller_main.label, 'bg', 'green'), 
+			filecontroller_save_current.label.child_text.set(self.FILE.stem + "_injected" + self.FILE.suffix), 
+			sku.flash_zone(filecontroller_save_current.label, 'bg', 'green')
+			])
+		self.filecontroller_main.grid(row=0, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
 		# X-Axis Selection
-		listbox_xs = sku.CustomListbox(self, selectmode='SINGLE', exportselection=0)
-		listbox_xs.grid(row=1, column=0, rowspan=3, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_listbox_xs = sku.CustomLabelFrame(self, text="X-Axis")
+		labelframe_listbox_xs.grid(row=1, column=0, rowspan=3, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_listbox_xs.grid_rowconfigure(0, weight=1)
+		labelframe_listbox_xs.grid_columnconfigure(0, weight=1)
+		listbox_xs = sku.CustomListbox(labelframe_listbox_xs, selectmode='SINGLE', exportselection=0)
+		listbox_xs.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		listbox_xs.bind("<<ListboxSelect>>", sel_changed)
 
 		# Y-Axis Selection
-		listbox_ys = sku.CustomListbox(self, selectmode='SINGLE', exportselection=0)
-		listbox_ys.grid(row=1, column=3, rowspan=3, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_listbox_ys = sku.CustomLabelFrame(self, text="Y-Axis")
+		labelframe_listbox_ys.grid(row=1, column=3, rowspan=3, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_listbox_ys.grid_rowconfigure(0, weight=1)
+		labelframe_listbox_ys.grid_columnconfigure(0, weight=1)
+		listbox_ys = sku.CustomListbox(labelframe_listbox_ys, selectmode='SINGLE', exportselection=0)
+		listbox_ys.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		listbox_ys.bind("<<ListboxSelect>>", sel_changed)
 
-		p = Path.cwd()
-		p = Path(p / "data/test")
-		print(p)
-
-		# Load defaults
-		folder = "data\\test\\"
-
-		directory = p
-		#directory = os.path.join(os.getcwd(), folder)
-
-		print(filecontroller_main.label.child_text.get())
-
-		file = Path(directory / filecontroller_main.label.child_text.get())
-		print(file)
-		if(file.is_file()):
-			# if(os.path.isfile(directory + filecontroller_main.label.child_text.get())):
-			file_load(directory / filecontroller_main.label.child_text.get())
+		
+		# Set directory
+		self.DATA_DIR = Path.cwd() / Path("data")
+		self.FILE = ""
+		print("[INJECT] DATA_DIR: {}".format(self.DATA_DIR))
+		
+		# Load sample file
+		load_sample = False
+		if(load_sample == True):
+			file = self.DATA_DIR / Path("sample/sample_a2fcf2_lite.csv")
+			if(file.is_file()):
+				file_load(self.DATA_DIR / Path("sample/sample_a2fcf2_lite.csv"))
+			else:
+				messagebox.showerror(
+				title="Error", message="Default file not found. No file will be loaded.")
+			#quit()
 		else:
-			messagebox.showerror(
-				title="Error", message="Default file not found.")
-			quit()
+			self.filecontroller_main.label.child_text.set("No file loaded")
+		# 	for child in self.winfo_children():
+		# 		child['bg'] = 'red'
+		
+		
+		
+		
+		
 		
 		# Plot
 		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plotInteractivePolygon(frame_plot.nametowidget('child'), obj)])
@@ -513,7 +600,7 @@ class Inject(tk.Frame):
 		button_print_current.grid(row=5, column=3, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
 		# Save Modified
-		filecontroller_save_current = sku.FileController(self, text="Save Modified CSV File", label_text=filecontroller_main.label.child_text.get()[:-4] + "_modified.csv", button_text="Save", button_command=lambda: [tag_attacks(), file_save(filecontroller_save_current.label.child_text, obj.current), sku.flash_zone(filecontroller_save_current.label, 'bg', 'green')])
+		filecontroller_save_current = sku.FileController(self, text="Save Modified CSV File", label_text=self.filecontroller_main.label.child_text.get()[:-4] + "_modified.csv", button_text="Save", button_command=lambda: [tag_attacks(), file_save(filecontroller_save_current.label.child_text, obj.current), sku.flash_zone(filecontroller_save_current.label, 'bg', 'green')])
 		filecontroller_save_current.grid(row=6, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
 		#############
@@ -533,6 +620,22 @@ class Inject(tk.Frame):
 		labelframe_slider.grid_rowconfigure(0, weight=1)
 		for col in range(3):
 			labelframe_slider.grid_columnconfigure(col, weight=1)
+		
+		
+		#Create slider
+		self.slider = sku.LiSlider(labelframe_slider, width=500, height=60, min_val=0, max_val=100, init_lis=[0, 100], show_value=True)	
+		self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.slider.canv['bg'] = sku.SCALE_BACKGROUND
+		self.slider.canv.master['bg'] = sku.SCALE_BACKGROUND
+		self.slider.canv['highlightthickness'] = 0
+		self.slider.canv.master['highlightthickness'] = 2
+		self.slider.canv.master['highlightbackground'] = sku.SCALE_HIGHLIGHTBACKGROUND
+		
+		
+		
+		
+		
+		
 		
 
 		#############
@@ -609,7 +712,7 @@ class Inject(tk.Frame):
 		
 		
 		switch()
-		sel_changed('<<ListboxSelect>>')
+		#sel_changed('<<ListboxSelect>>')
 
 		# Banner Image
 		img = Image.open(os.getcwd()+"/src/assets/und_banner.png")
