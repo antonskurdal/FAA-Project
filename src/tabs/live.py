@@ -106,29 +106,33 @@ class LiveData(tk.Frame):
 			# Determine if switch is on or off
 			if self.is_on:
 				
-				labelframe_num_switch = sku.CustomLabelFrame(master, text = "Rolling", labelanchor = 'n')
-				labelframe_num_switch.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
-				labelframe_num_switch.grid_anchor('center')
+				labelframe_live_switch = sku.CustomLabelFrame(master, text = "Rolling", labelanchor = 'n')
+				labelframe_live_switch.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+				labelframe_live_switch.grid_anchor('center')
 				
-				switch_num = sku.BorderButton(labelframe_num_switch, button_image = self.off, button_command = lambda: [switch(master)], button_activebackground = '#404040')
-				switch_num.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+				switch_live = sku.BorderButton(labelframe_live_switch, button_image = self.off, button_command = lambda: [switch(master)], button_activebackground = '#404040')
+				switch_live.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 				
-				# label_num.config(label_num.child_text.set("The Switch is Off"), bg = "red")
+				# label_live.config(label_live.child_text.set("The Switch is Off"), bg = "red")
 				self.is_on = False
-				labelframe_num_switch['text'] = str(self.is_on)
+				labelframe_live_switch['text'] = "Off"
+				#labelframe_live_switch['text'] = str(self.is_on)
 				self.button_track.child['state'] = 'normal'
 			else:
 				
-				labelframe_num_switch = sku.CustomLabelFrame(master, text = "Rolling", labelanchor = 'n')
-				labelframe_num_switch.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
-				labelframe_num_switch.grid_anchor('center')
+				labelframe_live_switch = sku.CustomLabelFrame(master, text = "Rolling", labelanchor = 'n')
+				labelframe_live_switch.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+				labelframe_live_switch.grid_anchor('center')
 				
-				switch_num = sku.BorderButton(labelframe_num_switch, button_image = self.on, button_command = lambda: [switch(master)], button_activebackground = '#404040')
-				switch_num.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+				switch_live = sku.BorderButton(labelframe_live_switch, button_image = self.on, button_command = lambda: [switch(master)], button_activebackground = '#404040')
+				switch_live.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 				
-				# label_num.config(label_num.child_text.set("The Switch is On"), bg = "green")
+				# label_live.config(label_live.child_text.set("The Switch is On"), bg = "green")
 				self.is_on = True
-				labelframe_num_switch['text'] = str(self.is_on)
+				labelframe_live_switch['text'] = "On"
+				#labelframe_live_switch['text'] = str(self.is_on)
+				self.button_track.child['state'] = 'disabled'
+				
 
 
 		
@@ -138,75 +142,6 @@ class LiveData(tk.Frame):
 		global lat
 		global lon
 		
-		
-		""" # OpenSky Network Login Management
-		self.username = tk.StringVar()
-		self.password = tk.StringVar()
-		try:
-			import util.login.login as login
-			self.username.set(login.username)
-			#self.username.set(login.username)
-			
-			self.password.set(login.password)
-		except ImportError:
-			#raise ImportError("[LIVE] Login not found.")
-			print("\n[LIVE] Login not found.")
-			print("Please add your login information by following these steps:")
-			print("\t1. Navigate to src/util/login")
-			print("\t2. Create a file called 'login.py' inside the login folder")
-			print("\t3. Define string variables with login information as follows:")
-			print("\t\ta)username = <username>")
-			print("\t\tb)password = <password>")
-			print("\t4. Relaunch the program.")
-			print("\nYour username and password will be automatically used as the default OpenSky Network login.")
-			
-			self.username = tk.StringVar()
-			self.username.set("N/A")
-			
-			self.password = tk.StringVar().set("N/A")
-		
-		
-		###########
-		# WIDGETS #
-		###########
-		
-		# Login Container
-		self.login_labelframe = sku.CustomLabelFrame(self, text="OpenSky Network Login")
-		self.login_labelframe.grid(row=0, column=0, rowspan=1, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.login_labelframe.grid_rowconfigure(0, weight=1)
-		self.login_labelframe.grid_columnconfigure(0, weight=1)
-		self.login_labelframe.grid_columnconfigure(1, weight=1)
-		
-		# Username
-		self.username_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Username: ", labelanchor = "w")
-		self.username_labelframe.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.username_labelframe.grid_rowconfigure(0, weight=1)
-		self.username_labelframe.grid_columnconfigure(0, weight=1)
-		self.username_labelframe['font'] = sku.FONT_NORM
-		self.username_entry = sku.CustomEntry(self.username_labelframe, textvariable = self.username)
-		self.username_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		
-		# Password
-		self.password_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Password: ", labelanchor = "w")
-		self.password_labelframe.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.password_labelframe.grid_rowconfigure(0, weight=1)
-		self.password_labelframe.grid_columnconfigure(0, weight=1)
-		self.password_labelframe['font'] = sku.FONT_NORM
-		self.password_entry = sku.CustomEntry(self.password_labelframe, text = self.password, show = "*")
-		self.password_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		
-		
-		
-		
-		
-		
-		self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
-		#self.api = OpenSkyApi(username = login.username, password = login.password)
-
-		self.df = pd.DataFrame() """
-
 
 
 		def append_df(df, craft):
@@ -347,10 +282,16 @@ class LiveData(tk.Frame):
 				dropouts = pd.DataFrame()
 				dropouts.insert(0, 'last_contact', self.df['last_contact'])
 				dropouts.insert(0, 'dropout_length', self.df['last_contact'].diff()[1:])
-				print(dropouts)
+				#print(dropouts)
 				dropout_mean = dropouts['dropout_length'].mean()
-				print(dropout_mean)
-
+				
+				if (dropouts['dropout_length'].shape[0] == 1):
+					dropout_mode = dropout_mean
+				else:
+					dropout_mode = dropouts['dropout_length'].mode()[0]
+				# dropout_mode = dropouts['dropout_length'].mode()
+				print("[LIVE] Dropout Mean: {}".format(dropout_mean))
+				print("[LIVE] Dropout Mode: {}".format(dropout_mode))
 				#ax_b.plot(self.df.index, dropouts['dropout_length'])
 				
 				from matplotlib import cm
@@ -388,7 +329,12 @@ class LiveData(tk.Frame):
 
 
 
-				ax_b.axhline(dropout_mean, xmin = 0, xmax = 1, label='Mean', linestyle='--')
+				mean_line = ax_b.axhline(dropout_mean, xmin = 0, xmax = 1, label='Mean', linestyle='--', color = "pink")
+				mode_line = ax_b.axhline(dropout_mode, xmin = 0, xmax = 1, label='Mode', linestyle='--', color = "purple")
+				#ax_b.axhline(dropout_mean, xmin = 0, xmax = 1, label='Mean', linestyle='--', color = "#FF671F")
+				#ax_b.axhline(dropout_mode, xmin = 0, xmax = 1, label='Mode', linestyle='--', color = "#009A44")
+				ax_b.legend(handles = [mean_line, mode_line], labels = ["Mean", "Mode"], loc = "upper right", bbox_to_anchor=(0.525, 0.675, 0.6, 0.5), ncol = 2)
+				
 				fig_b.canvas.draw_idle()  # use draw_idle instead of draw
 				
 				ax_b.set_xlabel("Packet Number")
@@ -456,23 +402,32 @@ class LiveData(tk.Frame):
 		
 		
 		
-		
+		print("[INJECT] PATH: {}".format(Path.cwd() / "src" / "assets" / "on_und.png"))
 		# Switch Control
 		self.is_on = False
-		self.on = PhotoImage(file=os.path.join(os.getcwd() + "/src/assets/on_und.png"))
-		self.off = PhotoImage(file=os.path.join(os.getcwd() + "/src/assets/off_und.png"))
+		
+		
+		self.on = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
+		self.off = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
 		self.on.zoom(58, 24)
 		self.off.zoom(58, 24)
-
-		# Numeric Modification
-		labelframe_num = sku.CustomLabelFrame(self, text="Live Tracking")
-		labelframe_num.grid(row=1, column=6, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		labelframe_num.grid_rowconfigure(0, weight=1)
-		for col in range(1):
-			labelframe_num.grid_columnconfigure(col, weight=1)
-
+		
+		#self.on = PhotoImage(file=os.path.join(os.getcwd() + "/src/assets/on_und.png"))
+		
+		
+		#self.off = PhotoImage(file=os.path.join(os.getcwd() + "/src/assets/off_und.png"))
+		
 		
 
+		# Live Tracking
+		self.labelframe_live = sku.CustomLabelFrame(self, text="Live Tracking")
+		self.labelframe_live.grid(row=1, column=6, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.labelframe_live.grid_rowconfigure(0, weight=1)
+		for col in range(1):
+			self.labelframe_live.grid_columnconfigure(col, weight=1)
+
+		
+		
 
 		# Plot Frame A
 		self.frame_a = sku.BorderFrame(self, background='#505050', border_color="green")
@@ -569,7 +524,7 @@ class LiveData(tk.Frame):
 		#button_keys.grid(row = 2, column = 3, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)		
 		
 
-		switch(labelframe_num)
+		switch(self.labelframe_live)
 
 
 		
