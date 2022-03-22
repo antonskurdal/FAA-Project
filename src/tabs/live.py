@@ -23,13 +23,51 @@ from numpy import append
 
 
 import util.sku_widgets as sku
-import util.login.login as login
+
+
 
 
 import os
 from pathlib import Path
 import sys
 import inspect
+
+
+
+import time
+import _thread
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from pathlib import Path
+import threading
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from prometheus_client import Counter
+
+from opensky_api import OpenSkyApi
+
+import cartopy.crs as crs
+import cartopy.feature as cfeature
+
+import ast
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 #parentdir = os.path.dirname(currentdir)
 
@@ -93,43 +131,86 @@ class LiveData(tk.Frame):
 				labelframe_num_switch['text'] = str(self.is_on)
 
 
-		import time
-		import _thread
-		import matplotlib.pyplot as plt
-		import numpy as np
-		import pandas as pd
-
-		from pathlib import Path
-		import threading
-		import matplotlib.pyplot as plt
-		import numpy as np
-		import seaborn as sns
-		from prometheus_client import Counter
-
-		from opensky_api import OpenSkyApi
-
-		import cartopy.crs as crs
-		import cartopy.feature as cfeature
-
-		import ast
+		
 
 		global craft_icao24
 		self.count = 0
 		global lat
 		global lon
-		self.api = OpenSkyApi(username = login.username, password = login.password)
+		
+		
+		""" # OpenSky Network Login Management
+		self.username = tk.StringVar()
+		self.password = tk.StringVar()
+		try:
+			import util.login.login as login
+			self.username.set(login.username)
+			#self.username.set(login.username)
+			
+			self.password.set(login.password)
+		except ImportError:
+			#raise ImportError("[LIVE] Login not found.")
+			print("\n[LIVE] Login not found.")
+			print("Please add your login information by following these steps:")
+			print("\t1. Navigate to src/util/login")
+			print("\t2. Create a file called 'login.py' inside the login folder")
+			print("\t3. Define string variables with login information as follows:")
+			print("\t\ta)username = <username>")
+			print("\t\tb)password = <password>")
+			print("\t4. Relaunch the program.")
+			print("\nYour username and password will be automatically used as the default OpenSky Network login.")
+			
+			self.username = tk.StringVar()
+			self.username.set("N/A")
+			
+			self.password = tk.StringVar().set("N/A")
+		
+		
+		###########
+		# WIDGETS #
+		###########
+		
+		# Login Container
+		self.login_labelframe = sku.CustomLabelFrame(self, text="OpenSky Network Login")
+		self.login_labelframe.grid(row=0, column=0, rowspan=1, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.login_labelframe.grid_rowconfigure(0, weight=1)
+		self.login_labelframe.grid_columnconfigure(0, weight=1)
+		self.login_labelframe.grid_columnconfigure(1, weight=1)
+		
+		# Username
+		self.username_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Username: ", labelanchor = "w")
+		self.username_labelframe.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.username_labelframe.grid_rowconfigure(0, weight=1)
+		self.username_labelframe.grid_columnconfigure(0, weight=1)
+		self.username_labelframe['font'] = sku.FONT_NORM
+		self.username_entry = sku.CustomEntry(self.username_labelframe, textvariable = self.username)
+		self.username_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		# Password
+		self.password_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Password: ", labelanchor = "w")
+		self.password_labelframe.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.password_labelframe.grid_rowconfigure(0, weight=1)
+		self.password_labelframe.grid_columnconfigure(0, weight=1)
+		self.password_labelframe['font'] = sku.FONT_NORM
+		self.password_entry = sku.CustomEntry(self.password_labelframe, text = self.password, show = "*")
+		self.password_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		
+		
+		
+		
+		
+		self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
+		#self.api = OpenSkyApi(username = login.username, password = login.password)
 
-		self.df = pd.DataFrame()
+		self.df = pd.DataFrame() """
 
 
 
 		def append_df(df, craft):
-
-
-			
-
 			if (df.empty):
-				
 				craft_dict = ast.literal_eval(str(craft))
 				print(type(craft_dict))
 				print(craft_dict)
@@ -372,7 +453,10 @@ class LiveData(tk.Frame):
 
 				fig_a.canvas.draw_idle()  # use draw_idle instead of draw
 		
-
+		
+		
+		
+		
 		# Switch Control
 		self.is_on = False
 		self.on = PhotoImage(file=os.path.join(os.getcwd() + "/src/assets/on_und.png"))
@@ -382,7 +466,7 @@ class LiveData(tk.Frame):
 
 		# Numeric Modification
 		labelframe_num = sku.CustomLabelFrame(self, text="Live Tracking")
-		labelframe_num.grid(row=2, column=6, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_num.grid(row=1, column=6, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		labelframe_num.grid_rowconfigure(0, weight=1)
 		for col in range(1):
 			labelframe_num.grid_columnconfigure(col, weight=1)
@@ -459,54 +543,119 @@ class LiveData(tk.Frame):
 
 
 		#live_data()
+		
+		
+		
+		
 
 
 
 
 
 
-
-
-
-
-
-
-
-		#Get Aircraft Data
+		# Get Aircraft Data
 		self.button_get = sku.BorderButton(self, button_text = 'Get Live Aircraft Data', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [get_states(self.scrolledtext_console, self.api)])
 		self.button_get.grid(row = 1, column = 0, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 
-		#Start Tracking
+		# Start Tracking
 		self.button_track = sku.BorderButton(self, button_text = 'Start Tracking', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [_thread.start_new_thread(plotting_thread, (self.fig_a, self.ax_a, self.fig_b, self.ax_b, self.scrolledtext_console))])
 		self.button_track.grid(row = 1, column = 3, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 		self.button_track.child['state'] = 'disabled'
 		
-		#Clear Console
-		button_clear = sku.BorderButton(self, button_text = 'Clear Console', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: self.scrolledtext_console.delete(1.0, END))
-		button_clear.grid(row = 2, column = 0, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 		
-		#Show ICAO24
-		button_keys = sku.BorderButton(self, button_text = 'Show ICAO24 Numbers', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [json_parser.show_keys(scrolledtext_console, path)])
-		button_keys.grid(row = 2, column = 3, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)		
+		
+		# Show ICAO24
+		#button_keys = sku.BorderButton(self, button_text = 'Show ICAO24 Numbers', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [json_parser.show_keys(scrolledtext_console, path)])
+		#button_keys.grid(row = 2, column = 3, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)		
 		
 
 		switch(labelframe_num)
 
 
 		
-		#############
-		# Section 2 #
-		#############		
+		
+		# OpenSky Network Login Management
+		self.username = tk.StringVar()
+		self.password = tk.StringVar()
+		try:
+			import util.login.login as login
+			self.username.set(login.username)
+			self.password.set(login.password)
+			
+		except ImportError:
+			#raise ImportError("[LIVE] Login not found.")
+			print("\n[LIVE] Login not found.")
+			print("Please add your login information by following these steps:")
+			print("\t1. Navigate to src/util/login")
+			print("\t2. Create a file called 'login.py' inside the login folder")
+			print("\t3. Define string variables with login information as follows:")
+			print("\t\ta)username = <username>")
+			print("\t\tb)password = <password>")
+			print("\t4. Relaunch the program.")
+			print("\nYour username and password will be automatically used as the default OpenSky Network login.")
+			
+			print("\nAlternatively, navigate to src/tabs/live.py, find this exception code, and change the defaults below this line.")
+			
+			self.username.set("N/A")
+			self.password.set("N/A")
+		
+		self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
+		#self.api = OpenSkyApi(username = login.username, password = login.password)
+
+		self.df = pd.DataFrame()
+		
+		
+		
+		
+		# Login Container
+		self.login_labelframe = sku.CustomLabelFrame(self, text="OpenSky Network Login")
+		self.login_labelframe.grid(row=0, column=0, rowspan=1, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.login_labelframe.grid_rowconfigure(0, weight=1)
+		self.login_labelframe.grid_columnconfigure(0, weight=1)
+		self.login_labelframe.grid_columnconfigure(1, weight=1)
+		self.login_labelframe.grid_columnconfigure(2, weight=1)
+		
+		# Username
+		self.username_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Username: ", labelanchor = "w")
+		self.username_labelframe.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.username_labelframe.grid_rowconfigure(0, weight=1)
+		self.username_labelframe.grid_columnconfigure(0, weight=1)
+		self.username_labelframe['font'] = sku.FONT_NORM
+		self.username_entry = sku.CustomEntry(self.username_labelframe, textvariable = self.username)
+		self.username_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		# Password
+		self.password_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Password: ", labelanchor = "w")
+		self.password_labelframe.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.password_labelframe.grid_rowconfigure(0, weight=1)
+		self.password_labelframe.grid_columnconfigure(0, weight=1)
+		self.password_labelframe['font'] = sku.FONT_NORM
+		self.password_entry = sku.CustomEntry(self.password_labelframe, text = self.password, show = "*")
+		self.password_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Sign In
+		self.button_signin = sku.BorderButton(self.login_labelframe, button_text = 'Sign In', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [self.username.set(self.username_entry.get(), self.password.set(self.password_entry.get()))])
+		self.button_signin.grid(row = 0, column = 2, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		
+		
+		
+		
+			
 		#Console
 		frame_console = sku.BorderFrame(self, background = '#505050', border_color = 'green')
-		frame_console.grid(row = 3, column = 0, rowspan = 7, columnspan = 9, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		frame_console.grid(row = 3, column = 0, rowspan = 9, columnspan = 9, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 		frame_console.nametowidget('child').grid_rowconfigure(0, weight = 1)
 		frame_console.nametowidget('child').grid_columnconfigure(0, weight = 1)
 		
 		self.scrolledtext_console = sku.CustomScrolledText(frame_console.nametowidget('child'))
 		self.scrolledtext_console.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 		#self.scrolledtext_console['state'] = 'disabled'
-
+		
+		
+		# Clear Console
+		button_clear = sku.BorderButton(self, button_text = 'Clear Console', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: self.scrolledtext_console.delete(1.0, END))
+		button_clear.grid(row = 12, column = 0, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 	
 
 '''

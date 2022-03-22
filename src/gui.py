@@ -21,6 +21,7 @@ root.title("Test")
 root.geometry("400x400")
 '''
 
+sku.ENTRY_HIGHLIGHTCOLOR = "#009A44"
 PADX_CONFIG = (2,2)
 PADY_CONFIG = (2,2)
 
