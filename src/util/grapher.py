@@ -27,12 +27,36 @@ from matplotlib.patches import ConnectionPatch
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk) 
 
+import time
+import pandas as pd
+
+
 def dist(x, y):
 	"""
 	Return the distance between two points.
 	"""
 	d = x - y
 	return np.sqrt(np.dot(d, d))
+
+def dist_point_to_segment(p, s0, s1):
+    """
+    Get the distance of a point to a segment.
+      *p*, *s0*, *s1* are *xy* sequences
+    This algorithm from
+    http://www.geomalgorithms.com/algorithms.html
+    """
+    v = s1 - s0
+    w = p - s0
+    c1 = np.dot(w, v)
+    if c1 <= 0:
+        return dist(p, s0)
+    c2 = np.dot(v, v)
+    if c2 <= c1:
+        return dist(p, s1)
+    b = c1 / c2
+    pb = s0 + b * v
+    return dist(p, pb)
+
 
 def curve_fit(x, y):
 	#Create a line of evenly spaced numbers over the interval len(x)
@@ -149,10 +173,12 @@ class PolygonInteractor:
 			return
 		self._ind = None
 		new_data = self.line
-		x = list(self.line.get_xdata())
-		x.pop()
-		y = list(self.line.get_ydata())
-		y.pop()		
+		x = list(self.line.get_xdata()[:-1])
+		#x.pop()
+		y = list(self.line.get_ydata()[:-1])
+		#y.pop()		
+		
+		
 		#print(new_data.get_xdata())
 		#obj.new_data = self.line
 		#self.obj.new_data = Line2D(x, y)
@@ -163,6 +189,8 @@ class PolygonInteractor:
 	
 	def on_key_press(self, event):
 		"""Callback for key presses."""
+		key_error = False
+		
 		if not event.inaxes:
 			return
 		if event.key == 't':
@@ -177,21 +205,153 @@ class PolygonInteractor:
 		                         ind, axis=0)
 				self.line.set_data(zip(*self.poly.xy))
 		elif event.key == 'i':
+			print("I PRESSED")
 			xys = self.poly.get_transform().transform(self.poly.xy)
 			p = event.x, event.y  # display coords
+			
+			print("[INJECT][GRAPHER][POLYGONINTERACTOR] event.x:\n{}".format(event.x))
+
+			
+			
+			
+			prev_data = zip(*self.poly.xy)
+			print("[INJECT][GRAPHER][POLYGONINTERACTOR] polyxy len:\n{}".format(len(self.poly.xy)))
+			#print(self.poly.xy)
+			
+			
 			for i in range(len(xys) - 1):
 				s0 = xys[i]
 				s1 = xys[i + 1]
 				d = dist_point_to_segment(p, s0, s1)
+				
+				
+				
+				
+				
+				# Check if insert location is close enough to the line
 				if d <= self.epsilon:
 					self.poly.xy = np.insert(
 		            self.poly.xy, i+1,
 		        [event.xdata, event.ydata],
 		        axis=0)
+				
+					
+					print("[INJECT][GRAPHER][POLYGONINTERACTOR] polyxy len2:\n{}".format(len(self.poly.xy)))
+				
 					self.line.set_data(zip(*self.poly.xy))
+					
+					testdf = self.obj.current
+					xcol = self.obj.xs_colname
+					ycol = self.obj.ys_colname
+					
+					# print("[INJECT][GRAPHER][POLYGONINTERACTOR] testdf:\n{}".format(testdf))
+					# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line xdata:\n{}".format(self.line.get_xdata()))
+					# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line ydata:\n{}".format(self.line.get_ydata()))
+					# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line xlen: {}".format(len(list(self.line.get_xdata()))))
+					
+					
+					
+					# CURRENT PROBLEM IS THAT WHEN POINTS ARE ADDED BEFORE MIN AND/OR AFTER MAX,
+					# THEY NEED TO NOT BE APPLIED. THIS ISN'T TOUGH, BUT THE INDEX GETS MESSED UP AFTER
+					# IT HAPPENS WHICH MAKES THE USER UNABLE TO ADD MORE VALID POINTS.
+					# THE USER COULD JUST BE TRUSTED, BUT IT WOULD BE ANNOYING WHEN WORKING WITH
+					#  OVERLAPPING LINES OR MISCLICKS.
+					
+					
+					
+					x = list(self.line.get_xdata()[:-1])
+					y = list(self.line.get_ydata()[:-1])
+					
+					
+					
+					
+					
+					print(x)
+					print("\n")
+					
+					try:
+						
+						i = 0
+						while i < len(x):
+							
+							if(testdf[xcol][i] != x[i] or testdf[ycol][i] != y[i]):
+								print("testdf[xcol][i]: {:.2f}\tx[i]: {:.2f}\tindex: {} [different]".format(testdf[xcol][i], x[i], i))
+								
+								
+								#first = testdf.iloc[0: i]
+								#print(first[xcol])
+								
+								testdf = pd.concat([testdf.iloc[0: i],  pd.DataFrame({xcol:x[i], ycol:y[i]}, index=[i+1]), testdf.loc[i:]], ignore_index=True)
+								
+								#print(new[xcol])
+								
+								#time.sleep(100)
+								
+								
+								
+								
+								
+								
+								#print(x[i], testdf[xcol][i])
+								#print("different. i = " + str(i))
+								""" testdf.iloc[i] = 0
+								print(testdf)
+								time.sleep(10)
+								testdf.at[i, xcol] = x[i]
+								testdf.at[i, ycol] = y[i]
+								
+								
+								print(testdf[i]) """
+								#print(testdf[xcol][i], x[i])
+								print(list(testdf[xcol]))
+								
+								
+							else:
+								print("testdf[xcol][i]: {:.2f}\tx[i]: {:.2f}\tindex: {} [same]".format(testdf[xcol][i], x[i], i))
+								#print("same. i = " + str(i))
+								
+								#print(testdf[i])
+							i = i + 1
+					except KeyError:
+						print("KeyError")
+						self.line.set_data(prev_data)
+						key_error = True
+						break
+							
+							
+							
+						
+						
+						#print("[INJECT][GRAPHER][POLYGONINTERACTOR] testdf[xcol][i]:{}\tline_x[xcol][i]:{}".format(testdf[xcol][i]), x[i])
+						#if(testdf[xcol][i] != x_new[i] or testdf[xcol][i] != x_new[i]):
+						#	print("Different")
+						
+					self.obj.current = testdf
+					print(self.obj.current[xcol])
+
+						
+					
+					
+					
+					#testdf[self.obj.xs_colname] = list(self.line.get_xdata())
+					#testdf[self.obj.ys_colname] = list(self.line.get_ydata())
+					
+					
+					#line = DataFrame({"onset": 30.0, "length": 1.3}, index=[3])
+					#df2 = concat([df.iloc[:2], line, df.iloc[2:]]).reset_index(drop=True)
+					#self.obj.current[self.obj.xs_colname] = list(self.line.get_xdata())
+					#self.obj.current[self.obj.ys_colname] = list(self.line.get_ydata())
+					
 					break
-		if self.line.stale:
+				
+						
+		#time.sleep(5)
+				
+		if self.line.stale and key_error == False:
 			self.canvas.draw_idle()
+		
+		""" if self.line.stale:
+			self.canvas.draw_idle() """
 	
 	def on_mouse_move(self, event):
 		"""Callback for mouse movements."""

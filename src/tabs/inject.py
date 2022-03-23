@@ -247,9 +247,12 @@ class Inject(tk.Frame):
 				messagebox.showerror(title="Error", message="Invalid file extension. Must be '.csv' or '.parquet'")
 				return
 			
+			
 			#Check if label column exists (normal, dropout, noise, etc.)
 			if 'taxonomy' not in base_data.columns:
 				base_data.insert(1, 'taxonomy', 'normal')
+			
+			self.filecontroller_main.label.child_text.set(file.name)
 			
 			
 			populate_listbox(listbox_xs, base_data, 0)
@@ -275,7 +278,10 @@ class Inject(tk.Frame):
 			obj.current = obj.base.copy(deep = True)
 
 		def tag_attacks():
-
+			
+			# BROKEN! DOES NOT WORK WITH THE NEW 'INSERT POINTS' FUNCTIONALITY IN THE POLYGON INTERACTOR
+			
+			
 			for i in range(len(obj.base)):
 
 				if((i not in obj.base.index) | (i not in obj.current.index)):
@@ -558,25 +564,7 @@ class Inject(tk.Frame):
 		listbox_ys.bind("<<ListboxSelect>>", sel_changed)
 
 		
-		# Set directory
-		self.DATA_DIR = Path.cwd() / Path("data")
-		self.FILE = ""
-		print("[INJECT] DATA_DIR: {}".format(self.DATA_DIR))
 		
-		# Load sample file
-		load_sample = False
-		if(load_sample == True):
-			file = self.DATA_DIR / Path("sample/sample_a2fcf2_lite.csv")
-			if(file.is_file()):
-				file_load(self.DATA_DIR / Path("sample/sample_a2fcf2_lite.csv"))
-			else:
-				messagebox.showerror(
-				title="Error", message="Default file not found. No file will be loaded.")
-			#quit()
-		else:
-			self.filecontroller_main.label.child_text.set("No file loaded")
-		# 	for child in self.winfo_children():
-		# 		child['bg'] = 'red'
 		
 		
 		
@@ -715,7 +703,7 @@ class Inject(tk.Frame):
 		#sel_changed('<<ListboxSelect>>')
 
 		# Banner Image
-		img = Image.open(os.getcwd()+"/src/assets/und_banner.png")
+		img = Image.open(Path.cwd() / "src" / "assets" / "und_banner.png")
 		# img = img.resize((516, 125), Image.ANTIALIAS)
 		self.photoImg = ImageTk.PhotoImage(img)
 
@@ -729,7 +717,7 @@ class Inject(tk.Frame):
 		canvas_banner = tk.Canvas(frame_banner_child, bg='black', bd=0, highlightthickness=0, relief='flat')
 		canvas_banner.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=(0, 0), pady=(0, 0))
 		canvas_banner.after(
-			0,
+			100,
 			lambda: [
 				canvas_banner.update(),
 				# print(canvas_banner.winfo_height()),
@@ -749,7 +737,32 @@ class Inject(tk.Frame):
 		label_wip.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		label_wip['bg'] = 'black'
 		label_wip['font'] = ['Arial', 16, 'bold']
-
+		
+		
+		
+		#########
+		# SETUP #
+		#########
+		
+		# Set directory
+		self.DATA_DIR = Path.cwd() / Path("data")
+		self.FILE = ""
+		print("[INJECT] DATA_DIR: {}".format(self.DATA_DIR))
+		
+		# Load sample file
+		load_sample = True
+		if(load_sample == True):
+			file = self.DATA_DIR / Path("sample/sample_a2fcf2_lite.csv")
+			if(file.is_file()):
+				file_load(self.DATA_DIR / Path("sample/sample_a2fcf2_lite.csv"))
+			else:
+				messagebox.showerror(
+				title="Error", message="Default file not found. No file will be loaded.")
+			#quit()
+		else:
+			self.filecontroller_main.label.child_text.set("No file loaded")
+		# 	for child in self.winfo_children():
+		# 		child['bg'] = 'red'
 
 '''
 
