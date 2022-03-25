@@ -1,9 +1,9 @@
-# Make sure code runs as a module
-if(__name__ == '__main__'):
-	print("This code is meant to be run as a module.")
-	exit(0)
+#!/usr/bin/env python
 
+"""This file controls the Injection Tab.
 
+    Injection Tab description.
+"""
 
 import tkinter as tk
 from tkinter import *
@@ -11,36 +11,34 @@ from pathlib import Path
 from tkinter import messagebox
 import pandas as pd
 from dataclasses import dataclass
-
-
-
 from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
-
-import os
 import sys
 import inspect
-#currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-#parentdir = os.path.dirname(currentdir)
-
-parentdir = Path.resolve(Path.cwd())
-sys.path.insert(0, parentdir)
-
-print("[INJECT] BASE DIR: " + str(parentdir))
 
 import util.sku_widgets as sku
 import util.grapher as grapher
+
+__author__ = "Anton Skurdal"
+__copyright__ = "Copyright 2020, The FAA Project"
+__credits__ = ["Anton Skurdal"]
+__license__ = "GPL"
+__version__ = "1.5"
+__maintainer__ = "Anton Skurdal"
+__email__ = "antonskurdal@gmail.com"
+__status__ = "Development"
+
+
+# Make sure code runs as a module
+if(__name__ == '__main__'):
+	print("This code is meant to be run as a module.")
+	exit(0)
 
 
 # Padding
 PADX_CONFIG = (2, 2)
 PADY_CONFIG = (2, 2)
-
-
-
-# Methods
-
 
 # Inject Tab
 class Inject(tk.Frame):
@@ -48,8 +46,10 @@ class Inject(tk.Frame):
 	def __init__(self, parent, controller, *args, **kwargs):
 		tk.Frame.__init__(self, parent, *args, **kwargs, bg = sku.FRAME_BACKGROUND)
 		self.controller = controller
-
-		# Grid Management
+		
+		###################
+		# Layout Controls #
+		###################
 		for row in range(7):
 			self.grid_rowconfigure(row, weight=1)
 		for col in range(18):
@@ -60,6 +60,10 @@ class Inject(tk.Frame):
 		for col in range(18):
 			self.grid_columnconfigure(row, weight=0, minsize=100)
 		
+		
+		##############################
+		# 		DATA CONTAINERS		 #
+		##############################
 		@dataclass
 		class CurrentGraph:
 			
@@ -129,20 +133,12 @@ class Inject(tk.Frame):
 			@ys_colname.deleter
 			def ys_colname(self):
 				del self._ys_colname
-
-
-
-		###########
-		# Methods #
-		###########
-
-
-
-
-
-
-
-
+		
+		
+		
+		##############################
+		# 		CLASS METHODS		 #
+		##############################
 
 		def populate_listbox(listbox, df, sel=None):
 			
@@ -198,27 +194,14 @@ class Inject(tk.Frame):
 				listbox.activate(0)
 				listbox.update()
 		
-		
 		def file_browse(directory, var):
-			#print(var)
-			# folder = "data\\test\\"
-			# directory = os.path.join(os.getcwd(), folder)
 			
 			print("[INJECT][FILE_BROWSE] DIRECTORY: {}".format(directory))
 			
-			
-			
-			#folder = Path(Path.cwd() / "data" / "test")
-			#print(folder)
-
 			file = Path(filedialog.askopenfilename(
 				filetypes = [('All files', '.*'), ('CSV or Parquet files', '.csv'), ('Apache Parquet files', '.parquet')], 
 				title = "Dataset Selection", 
 				initialdir = directory))
-			
-			
-			#print(file)
-			#print(type(file))
 			
 			print("[INJECT][FILE_BROWSE] FILE NAME: {} (type = {})".format(file.name, type(file)))
 			
@@ -229,8 +212,6 @@ class Inject(tk.Frame):
 			else:
 				var.set(str(file.name))
 				file_load(file)
-		
-		
 		
 		def file_load(file):
 			print("[INJECT][FILE_LOAD] FILE: {} (type = {})".format(file.name, type(file)))
@@ -270,9 +251,6 @@ class Inject(tk.Frame):
 			print("[INJECT][FILE_LOAD] FILE: {} (type = {})".format(self.FILE.stem, type(self.FILE)))
 			
 			sel_changed('<<ListboxSelect>>')
-
-
-
 
 		def reset_plot():
 			obj.current = obj.base.copy(deep = True)
@@ -356,10 +334,6 @@ class Inject(tk.Frame):
 			self.slider.canv.master['highlightthickness'] = 2
 			self.slider.canv.master['highlightbackground'] = sku.SCALE_HIGHLIGHTBACKGROUND
 			
-			
-			
-			
-		
 		def drop_data(master, bounds):
 			
 			print(bounds)
@@ -523,19 +497,17 @@ class Inject(tk.Frame):
 				# label_num.config(label_num.child_text.set("The Switch is On"), bg = "green")
 				self.is_on = True		
 		
-		###########
-		# WIDGETS #
-		###########
-
-		#############
-		# Section 1 #
-		#############
-
-		# Main File Loader
-		# self.filecontroller_main = sku.FileController(self, text="Load CSV File", label_text="a2fcf2_test_lite.csv", button_text="Browse", button_command=lambda: [file_browse(self.filecontroller_main.label.child_text), sku.flash_zone(
-		# 	self.filecontroller_main.label, 'bg', 'green'), filecontroller_save_current.label.child_text.set(str(self.filecontroller_main.label.child_text.get()[:-4]) + "_injected.csv"), sku.flash_zone(filecontroller_save_current.label, 'bg', 'green')])
-		# self.filecontroller_main.grid(row=0, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
+		
+		######################
+		# 		WIDGETS		 #
+		######################
+		
+		##############
+		# Left Third #
+		##############
+		
+		# Input File Loader
 		self.filecontroller_main = sku.FileController(self, text="Load CSV/Parquet File", label_text="", button_text="Browse", button_command=
 		lambda: [
 			file_browse(self.DATA_DIR, self.filecontroller_main.label.child_text), 
@@ -562,14 +534,6 @@ class Inject(tk.Frame):
 		listbox_ys = sku.CustomListbox(labelframe_listbox_ys, selectmode='SINGLE', exportselection=0)
 		listbox_ys.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		listbox_ys.bind("<<ListboxSelect>>", sel_changed)
-
-		
-		
-		
-		
-		
-		
-		
 		
 		# Plot
 		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plotInteractivePolygon(frame_plot.nametowidget('child'), obj)])
@@ -590,10 +554,11 @@ class Inject(tk.Frame):
 		# Save Modified
 		filecontroller_save_current = sku.FileController(self, text="Save Modified CSV File", label_text=self.filecontroller_main.label.child_text.get()[:-4] + "_modified.csv", button_text="Save", button_command=lambda: [tag_attacks(), file_save(filecontroller_save_current.label.child_text, obj.current), sku.flash_zone(filecontroller_save_current.label, 'bg', 'green')])
 		filecontroller_save_current.grid(row=6, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-
-		#############
-		# Section 2 #
-		#############
+		
+		
+		################
+		# Middle Third #
+		################
 
 		# Plot Frame A
 		frame_plot = sku.BorderFrame(self, background='#505050', border_color="green")
@@ -609,7 +574,6 @@ class Inject(tk.Frame):
 		for col in range(3):
 			labelframe_slider.grid_columnconfigure(col, weight=1)
 		
-		
 		#Create slider
 		self.slider = sku.LiSlider(labelframe_slider, width=500, height=60, min_val=0, max_val=100, init_lis=[0, 100], show_value=True)	
 		self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
@@ -620,15 +584,9 @@ class Inject(tk.Frame):
 		self.slider.canv.master['highlightbackground'] = sku.SCALE_HIGHLIGHTBACKGROUND
 		
 		
-		
-		
-		
-		
-		
-
-		#############
-		# Section 3 #
-		#############
+		###############
+		# Right Third #
+		###############
 
 		# Polynomial fit
 		labelframe_degree = sku.CustomLabelFrame(self, text="Polynomial Fit Degree")
@@ -693,14 +651,11 @@ class Inject(tk.Frame):
 
 		# Switch Control
 		self.is_on = True
-		self.on = PhotoImage(file=os.path.join(os.getcwd() + "/src/assets/on_und.png"))
-		self.off = PhotoImage(file=os.path.join(os.getcwd() + "/src/assets/off_und.png"))
+		self.on = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
+		self.off = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
 		self.on.zoom(58, 24)
 		self.off.zoom(58, 24)
-		
-		
 		switch()
-		#sel_changed('<<ListboxSelect>>')
 
 		# Banner Image
 		img = Image.open(Path.cwd() / "src" / "assets" / "und_banner.png")
@@ -752,12 +707,11 @@ class Inject(tk.Frame):
 		# Load sample file
 		load_sample = True
 		if(load_sample == True):
-			file = self.DATA_DIR / Path("sample/sample_a2fcf2_lite.csv")
+			file = self.DATA_DIR / "sample" / "sample_a2fcf2_lite.csv"
 			if(file.is_file()):
-				file_load(self.DATA_DIR / Path("sample/sample_a2fcf2_lite.csv"))
+				file_load(self.DATA_DIR / file)
 			else:
-				messagebox.showerror(
-				title="Error", message="Default file not found. No file will be loaded.")
+				messagebox.showerror(title="Error", message="[INJECT] Default file not found. No file will be loaded.")
 			#quit()
 		else:
 			self.filecontroller_main.label.child_text.set("No file loaded")

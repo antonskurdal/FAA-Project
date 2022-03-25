@@ -1,81 +1,46 @@
+#!/usr/bin/env python
 
+"""This file controls the Live Tab.
 
-
-#Make sure code runs as a module
-if(__name__ == '__main__'):
-	print("This code is meant to be run as a module.")
-	exit(0)
-
+    Live Tab description.
+"""
 
 import tkinter as tk
 from tkinter import *
-from isort import api
-
-
+from tkinter import messagebox
+from pathlib import Path
+import pandas as pd
+import _thread
+import threading
+import time
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
-from matplotlib.artist import Artist
-from matplotlib.patches import Polygon
-from matplotlib.patches import ConnectionPatch
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
-from numpy import append 
+import cartopy.crs as crs
+import cartopy.feature as cfeature
+from isort import api
+import ast
 
+from opensky_api import OpenSkyApi
 
 import util.sku_widgets as sku
 
 
+__author__ = "Anton Skurdal"
+__copyright__ = "Copyright 2020, The FAA Project"
+__credits__ = ["Anton Skurdal"]
+__license__ = "GPL"
+__version__ = "1.5"
+__maintainer__ = "Anton Skurdal"
+__email__ = "antonskurdal@gmail.com"
+__status__ = "Development"
 
 
-import os
-from pathlib import Path
-import sys
-import inspect
+# Make sure code runs as a module
+if(__name__ == '__main__'):
+	print("This code is meant to be run as a module.")
+	exit(0)
 
-
-
-import time
-import _thread
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-
-from pathlib import Path
-import threading
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
-from prometheus_client import Counter
-
-from opensky_api import OpenSkyApi
-
-import cartopy.crs as crs
-import cartopy.feature as cfeature
-
-import ast
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-#parentdir = os.path.dirname(currentdir)
-
-# parentdir = Path.resolve(Path.cwd())
-
-# sys.path.insert(0, parentdir)
-
-# print("PARENT DIR: " + str(parentdir))
 
 #Padding
 PADX_CONFIG = (2, 2)
@@ -539,7 +504,22 @@ class LiveData(tk.Frame):
 			
 		except ImportError:
 			#raise ImportError("[LIVE] Login not found.")
-			print("\n[LIVE] Login not found.")
+			messagebox.showerror(title="Error", message=
+				"[LIVE] Login not found."+
+				
+				"\n\nPlease add your login information by following these steps:"+
+				"\n 1. Navigate to src/util/login"+
+				"\n 2. Create a file called 'login.py' inside the login folder"+
+				"\n 3. Define string variables with login information as follows:"+
+				"\n\t a)username = <username>"+
+				"\n\t b)password = <password>"+
+				"\n 4. Relaunch the program."+
+				"\n\nYour username and password will then be automatically used as the default OpenSky Network login."+
+				
+				"\n\nAlternatively, navigate to src/tabs/live.py, find this exception code, and change the defaults below this line.")
+			
+			
+			""" print("\n[LIVE] Login not found.")
 			print("Please add your login information by following these steps:")
 			print("\t1. Navigate to src/util/login")
 			print("\t2. Create a file called 'login.py' inside the login folder")
@@ -549,7 +529,7 @@ class LiveData(tk.Frame):
 			print("\t4. Relaunch the program.")
 			print("\nYour username and password will be automatically used as the default OpenSky Network login.")
 			
-			print("\nAlternatively, navigate to src/tabs/live.py, find this exception code, and change the defaults below this line.")
+			print("\nAlternatively, navigate to src/tabs/live.py, find this exception code, and change the defaults below this line.") """
 			
 			self.username.set("N/A")
 			self.password.set("N/A")

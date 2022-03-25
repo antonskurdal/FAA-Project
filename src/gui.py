@@ -1,25 +1,30 @@
+#!/usr/bin/env python
+
+"""This file controls the root window on which the rest of the application is built.
+    
+    It creates a root window on which widgets can be added. The main widgets are tabs
+    for this application. Tabs are found in src/tabs and are classes. Each tab has its
+    own unique GUI. They are shown when the user presses the button for that tab,
+    which must be added here in the root. 
+"""
+
 import tkinter as tk
-from tkinter import Tk, ttk
 
-from PIL import Image
-from PIL import ImageTk
-from pathlib import Path
-
-# audio module works as expected
-#import audio_module as am
-
-# I want this window to open and close on command
 from tabs.inject import Inject
 from tabs.parse import Parse
 from tabs.live import LiveData
-
 import util.sku_widgets as sku
 
-'''
-root = tk.Tk()
-root.title("Test")
-root.geometry("400x400")
-'''
+__author__ = "Anton Skurdal"
+__copyright__ = "Copyright 2020, The FAA Project"
+__credits__ = ["Anton Skurdal"]
+__license__ = "GPL"
+__version__ = "1.5"
+__maintainer__ = "Anton Skurdal"
+__email__ = "antonskurdal@gmail.com"
+__status__ = "Development"
+
+
 
 sku.ENTRY_HIGHLIGHTCOLOR = "#009A44"
 PADX_CONFIG = (2,2)
