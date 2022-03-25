@@ -2,7 +2,7 @@
 
 """This file controls the Live Tab.
 
-    Live Tab description.
+	Live Tab description.
 """
 
 import tkinter as tk
@@ -25,7 +25,6 @@ from opensky_api import OpenSkyApi
 
 import util.sku_widgets as sku
 
-
 __author__ = "Anton Skurdal"
 __copyright__ = "Copyright 2020, The FAA Project"
 __credits__ = ["Anton Skurdal"]
@@ -34,7 +33,6 @@ __version__ = "1.5"
 __maintainer__ = "Anton Skurdal"
 __email__ = "antonskurdal@gmail.com"
 __status__ = "Development"
-
 
 # Make sure code runs as a module
 if(__name__ == '__main__'):
@@ -367,7 +365,7 @@ class LiveData(tk.Frame):
 		
 		
 		
-		print("[INJECT] PATH: {}".format(Path.cwd() / "src" / "assets" / "on_und.png"))
+		#print("[LIVE] PATH: {}".format(Path.cwd() / "src" / "assets" / "on_und.png"))
 		# Switch Control
 		self.is_on = False
 		

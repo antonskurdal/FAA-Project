@@ -49,18 +49,6 @@ class Parse(tk.Frame):
         for col in range(18):
             self.grid_columnconfigure(row, weight = 0, minsize = 100)
         
-        '''
-        def flash_color(self, color, zone):
-            def change_color(color, zone):
-                self[zone] = color
-            current_color = self[zone]
-            next_color = color
-            self[zone] = next_color
-            self.after(500, lambda: change_color(current_color, zone))
-            self.after(1000, lambda: change_color(next_color, zone))
-            self.after(1500, lambda: change_color(current_color, zone))
-            '''
-        
         
         def file_load(file):
             self.FILE = file
@@ -68,14 +56,14 @@ class Parse(tk.Frame):
         
         def file_browse(directory, var):
             
-            print("[INJECT][FILE_BROWSE] DIRECTORY: {}".format(directory))
+            #print("[PARSE][FILE_BROWSE] DIRECTORY: {}".format(directory))
             
             file = Path(filedialog.askopenfilename(
 				filetypes = [('JSON files', '.json')],
                 title = "JSON File Selection", 
 				initialdir = directory))
 			
-            print("[PARSE][FILE_BROWSE] FILE NAME: {} (type = {})".format(file.name, type(file)))
+            #print("[PARSE][FILE_BROWSE] FILE NAME: {} (type = {})".format(file.name, type(file)))
             
             #if file is None: #askopenfilename return `None` if dialog closed with "cancel".
             if(file.name == ""): #askopenfilename return `None` if dialog closed with "cancel".
@@ -84,26 +72,6 @@ class Parse(tk.Frame):
             else:
                 var.set(str(file.name))
                 file_load(file)
-        
-        
-        """  def file_browse(var):
-            folder = "data\\test\\"
-            directory = os.path.join(os.getcwd(), folder)
-            
-            
-            self.FILE = filedialog.askopenfilename(filetypes = [('JSON files', '.json')], title = "JSON File Selection", initialdir = str(folder))
-            if file is None: #askopenfilename return `None` if dialog closed with "cancel".
-                return
-            var.set(os.path.split(file)[1]) """
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         
         
@@ -120,7 +88,7 @@ class Parse(tk.Frame):
         # Set directory
         self.DATA_DIR = Path.cwd() / Path("data")
         self.FILE = ""
-        print("[PARSE] DATA_DIR: {}".format(self.DATA_DIR))
+        #print("[PARSE] DATA_DIR: {}".format(self.DATA_DIR))
         
         # Load sample file
         load_sample = True
