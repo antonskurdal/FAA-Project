@@ -526,10 +526,18 @@ class Inject(tk.Frame):
 		listbox_ys.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		listbox_ys.bind("<<ListboxSelect>>", sel_changed)
 		
-		# Plot
+		""" # Plot
 		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plotInteractivePolygon(frame_plot.nametowidget('child'), self.obj)])
+		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
+		
+		""" # Plot
+		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj)])
+		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
+		
+		# Plot
+		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plot_interactive_line_test(frame_plot.nametowidget('child'), self.obj)])
 		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-
+		
 		# Reset Plot
 		button_reset = sku.BorderButton(self, button_text='Reset Plot', button_activebackground='green', button_command=lambda: [reset_plot(), grapher.plotInteractivePolygon(frame_plot.nametowidget('child'), self.obj)])  # obj.current.set(obj.base),
 		button_reset.grid(row=4, column=3, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
