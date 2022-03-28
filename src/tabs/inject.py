@@ -535,7 +535,7 @@ class Inject(tk.Frame):
 		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
 		
 		# Plot
-		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plot_interactive_line_test(frame_plot.nametowidget('child'), self.obj)])
+		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj)])
 		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		# Reset Plot

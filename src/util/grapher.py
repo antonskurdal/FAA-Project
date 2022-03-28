@@ -450,8 +450,14 @@ class LineBuilder:
 		x = list(line.get_xdata())
 		y = list(line.get_ydata())
 		
+		
 		self.line = Line2D(x, y, marker='o', markerfacecolor='pink', animated=True)
+		
 		self.ax.add_line(self.line)
+		
+		self.oldx = x
+		self.oldy = y
+		
 		
 		self.cid = self.line.add_callback(self.line_changed)
 		self._ind = None # the active vert
@@ -471,6 +477,7 @@ class LineBuilder:
 		canvas.mpl_connect('button_release_event', self.button_release_callback)
 		canvas.mpl_connect('key_press_event', self.key_press_callback)
 		canvas.mpl_connect('motion_notify_event', self.motion_notify_callback)
+		self.canvas = canvas
 		
 		
 		
@@ -481,7 +488,7 @@ class LineBuilder:
 		"""This method is called whenever the pathpatch object is called."""
 		# only copy the artist props to the line (except visibility)
 		vis = self.line.get_visible()
-		#Artist.update_from(self.line, poly)
+		#Artist.update_from(self.line, line)
 		self.line.set_visible(vis)  # don't use the poly visibility state
 	
 	def on_draw(self, event):
@@ -516,13 +523,14 @@ class LineBuilder:
 			return
 		self.ind = self.get_ind(event)
 		print(self.ind)
-
-		self.line.set_animated(True)
-		self.canvas.draw()
-		self.background = self.canvas.copy_from_bbox(self.line.axes.bbox)
+		
+		
+		# self.line.set_animated(True)
+		# self.canvas.draw()
+		# self.background = self.canvas.copy_from_bbox(self.line.axes.bbox)
 
 		self.ax.draw_artist(self.line)
-		self.canvas.blit(self.ax.bbox)
+		# self.canvas.blit(self.ax.bbox)
 
 	def button_release_callback(self, event):
 		print("[INJECT][LineBuilder][button_release_callback] Triggered...")
@@ -533,7 +541,13 @@ class LineBuilder:
 		
 		self.line.set_animated(True)
 		self.background = None
+		
 		self.line.figure.canvas.draw()
+		
+		print("OLDX = {}".format(self.oldx))
+		print("X = {}".format(self.line.get_xdata()))
+		
+		
 
 	def motion_notify_callback(self, event):
 		#print("[INJECT][LineBuilder][motion_notify_callback] Triggered...")
@@ -584,40 +598,7 @@ class LineBuilder:
 					self.xs = np.insert(self.xs, i+1, event.xdata)
 					self.ys = np.insert(self.ys, i+1, event.ydata)
 					self.line.set_data(self.xs, self.ys)
-					self.axes.draw_artist(self.line)
-					self.canvas.draw_idle()
-					break
-		"""Callback for key presses."""
-		print("[INJECT][LineBuilder][key_press_callback] Triggered...")
-		
-		if not event.inaxes:
-			return
-		elif event.key == 'd':
-			print("\tKey pressed = 'D'")
-			ind = self.get_ind(event)
-			if ind is not None and len(self.xs) > 2:
-				self.xs = np.delete(self.xs, ind)
-				self.ys = np.delete(self.ys, ind)
-				self.line.set_data(self.xs, self.ys)
-				self.axes.draw_artist(self.line)
-				self.canvas.draw_idle()
-		elif event.key == 'i':
-			print("\tKey pressed = 'I'")
-			
-			p = np.array([event.x, event.y])  # display coords
-			print("p = {}".format(p))
-			
-			xy = np.asarray(self.line._xy)
-			xyt = self.line.get_transform().transform(xy)
-			for i in range(len(xyt) - 1):
-				s0 = xyt[i]
-				s1 = xyt[i+1]
-				d = dist_point_to_segment(p, s0, s1)
-				if d <= self.epsilon:
-					self.xs = np.insert(self.xs, i+1, event.xdata)
-					self.ys = np.insert(self.ys, i+1, event.ydata)
-					self.line.set_data(self.xs, self.ys)
-					self.axes.draw_artist(self.line)
+					self.ax.draw_artist(self.line)
 					self.canvas.draw_idle()
 					break
 	
@@ -647,17 +628,29 @@ class LineBuilder:
 		self.ax.draw_artist(self.line)
 		self.canvas.blit(self.ax.bbox) """
 
-def plot_interactive_line_test(parent, obj):
+
+
+
+
+
+
+def plotInteractiveLine(parent, obj):
 	
 	#fig, ax = plt.subplots()
 	#line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', markerfacecolor = 'red')
 	
-	line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44')
+	#line = Line2D([0,0.5,1], [0,0.5,1], animated = True)
+	
+	line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
+	#line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "white", markerfacecolor = 'white')
+	
+	
 	
 	#fig, ax = plt.subplots()
 	
 	fig = Figure()
 	ax = fig.add_subplot(111)
+	
 	
 	# Place graph
 	canvas = FigureCanvasTkAgg(fig, parent)
@@ -670,7 +663,35 @@ def plot_interactive_line_test(parent, obj):
 	toolbarFrame.grid_columnconfigure(0, weight = 1)
 	
 	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
+	
+	from pathlib import Path
+	#print(Path.cwd())
+	import util.sku_widgets as sku
+	#button = Button(master = toolbar, text = "hello", command = lambda: print("yeet"), width = 20)
+	
+	tab_controller = parent.master.master
+	def reset_plot():
+			obj.current = obj.base.copy(deep = True)
+			
+	button = sku.BorderButton(master = toolbar, button_text = "Reset Plot", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj)], button_activebackground="#009A44")
+	button.child['width'] = 20
+	
+	
+	
+	button.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8))
+	#button.pack_propagate(False)
+	
+	
 	toolbar.grid(row = 0, column = 0, sticky="NSEW")
+	toolbar.pack_propagate(False)
+	toolbarFrame.grid_propagate(False)
+	
+	#print(toolbar.toolitems)
+	
+	
+	# tm = fig.canvas.manager.toolmanager
+	# tm.add_tool("newtool", NewTool)
+	# fig.canvas.manager.toolbar.add_tool(tm.get_tool("newtool"), "toolgroup")
 	
 
 	ax.add_line(line)
@@ -687,49 +708,49 @@ def plot_interactive_line_test(parent, obj):
 	#plt.show()
 
 
-def plotInteractiveLine(parent, obj):
+# def plotInteractiveLine(parent, obj):
 	
-	print("\n[INJECT][plotInteractiveLine] Starting...")
-	#Set xs and ys, make sure index works
-	if(obj.xs_colname == "index"):
-		xs = obj.current.index.tolist()
-	else:
-		xs = obj.current[obj.xs_colname]
+# 	print("\n[INJECT][plotInteractiveLine] Starting...")
+# 	#Set xs and ys, make sure index works
+# 	if(obj.xs_colname == "index"):
+# 		xs = obj.current.index.tolist()
+# 	else:
+# 		xs = obj.current[obj.xs_colname]
 	
-	if(obj.ys_colname == "index"):
-		ys = obj.current.index.tolist()
-	else:
-		ys =  obj.current[obj.ys_colname]
+# 	if(obj.ys_colname == "index"):
+# 		ys = obj.current.index.tolist()
+# 	else:
+# 		ys =  obj.current[obj.ys_colname]
 	
-	line = Line2D(xs, ys, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44')
+# 	line = Line2D(xs, ys, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44')
 	
-	fig = Figure()
-	ax = fig.add_subplot(111)
-	
-	
-	#Place graph
-	canvas = FigureCanvasTkAgg(fig, parent)
-	canvas.draw()
-	canvas.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW")
-	
-	toolbarFrame = Frame(parent)
-	toolbarFrame.grid(row=1,column=0, sticky = "NSEW", padx=(0,0), pady=(0,0))
-	toolbarFrame.grid_rowconfigure(0, weight = 1)
-	toolbarFrame.grid_columnconfigure(0, weight = 1)
-	
-	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
-	toolbar.grid(row = 0, column = 0, sticky="NSEW")
-	
-	ax.add_line(line)
-	linebuilder = LineBuilder(ax, line, obj)
+# 	fig = Figure()
+# 	ax = fig.add_subplot(111)
 	
 	
+# 	#Place graph
+# 	canvas = FigureCanvasTkAgg(fig, parent)
+# 	canvas.draw()
+# 	canvas.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW")
+	
+# 	toolbarFrame = Frame(parent)
+# 	toolbarFrame.grid(row=1,column=0, sticky = "NSEW", padx=(0,0), pady=(0,0))
+# 	toolbarFrame.grid_rowconfigure(0, weight = 1)
+# 	toolbarFrame.grid_columnconfigure(0, weight = 1)
+	
+# 	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
+# 	toolbar.grid(row = 0, column = 0, sticky="NSEW")
+	
+# 	ax.add_line(line)
+# 	linebuilder = LineBuilder(ax, line, obj)
 	
 	
-	ax.set_title(obj.xs_colname + " vs " + obj.ys_colname + '\nClick and drag a point to move it')
-	ax.set_xlabel(obj.xs_colname)
-	ax.set_ylabel(obj.ys_colname)
-	ax.autoscale()
+	
+	
+# 	ax.set_title(obj.xs_colname + " vs " + obj.ys_colname + '\nClick and drag a point to move it')
+# 	ax.set_xlabel(obj.xs_colname)
+# 	ax.set_ylabel(obj.ys_colname)
+# 	ax.autoscale()
 	
 	
 

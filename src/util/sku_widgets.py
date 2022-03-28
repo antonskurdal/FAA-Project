@@ -444,6 +444,7 @@ class BorderButton(tk.Frame):
 
 		self.grid_rowconfigure(0, weight = 1)
 		self.grid_columnconfigure(0, weight = 1)
+		
 	
 		
 		#test = DynamicBorderButton(self, button_text = "Sup", button_activebackground = orange)
