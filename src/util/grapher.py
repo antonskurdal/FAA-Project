@@ -14,6 +14,7 @@ Description:
 ###########
 # IMPORTS #
 ###########
+from tabnanny import check
 import numpy as np
 
 import tkinter as tk
@@ -451,7 +452,7 @@ class LineBuilder:
 		y = list(line.get_ydata())
 		
 		
-		self.line = Line2D(x, y, marker='o', markerfacecolor='pink', animated=True)
+		self.line = Line2D(x, y, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
 		
 		self.ax.add_line(self.line)
 		
@@ -636,13 +637,22 @@ class LineBuilder:
 
 def plotInteractiveLine(parent, obj):
 	
-	#fig, ax = plt.subplots()
-	#line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', markerfacecolor = 'red')
+	# Set xs and ys, make sure index works
+	if(obj.xs_colname == "index"):
+		xs = obj.current.index.tolist()
+	else:
+		xs = obj.current[obj.xs_colname]
 	
-	#line = Line2D([0,0.5,1], [0,0.5,1], animated = True)
+	if(obj.ys_colname == "index"):
+		ys = obj.current.index.tolist()
+	else:
+		ys =  obj.current[obj.ys_colname]
 	
-	line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
-	#line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "white", markerfacecolor = 'white')
+	#xs = [0,0.5,1]
+	#ys = [0,0.5,1]
+	
+	
+	
 	
 	
 	
@@ -669,22 +679,36 @@ def plotInteractiveLine(parent, obj):
 	import util.sku_widgets as sku
 	#button = Button(master = toolbar, text = "hello", command = lambda: print("yeet"), width = 20)
 	
+	
+	# Reset Plot
 	tab_controller = parent.master.master
 	def reset_plot():
-			obj.current = obj.base.copy(deep = True)
-			
-	button = sku.BorderButton(master = toolbar, button_text = "Reset Plot", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj)], button_activebackground="#009A44")
-	button.child['width'] = 20
+			obj.current = obj.base.copy(deep = True)		
+	button_reset = sku.BorderButton(master = toolbar, button_text = "Reset Plot", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj)], button_activebackground="#009A44")
+	button_reset.child['width'] = 12
+	button_reset.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8))
+	
+	""" # Show Base Line
+	var = tk.IntVar()
+	#var.set(1)
+	checkbutton_baseline = Checkbutton(toolbar, text = "Show Baseline", variable = var)
+	checkbutton_baseline.invoke()
+	print(var.get())
+	checkbutton_baseline.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8)) """
 	
 	
-	
-	button.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8))
-	#button.pack_propagate(False)
 	
 	
 	toolbar.grid(row = 0, column = 0, sticky="NSEW")
 	toolbar.pack_propagate(False)
 	toolbarFrame.grid_propagate(False)
+	
+	
+	# Create initial line - 'animated' will cause the original line to not be shown
+	line = Line2D(xs, ys, color = "#AEAEAE", linestyle="dotted")
+	
+	#line = Line2D(xs, ys, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
+	##line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
 	
 	#print(toolbar.toolitems)
 	
@@ -699,9 +723,9 @@ def plotInteractiveLine(parent, obj):
 	linebuilder = LineBuilder(ax, line, obj)
 
 	ax.set_title('click to create lines')
-	ax.set_xlim(-2,2)
-	ax.set_ylim(-2,2)
-	
+	#ax.set_xlim(-2,2)
+	#ax.set_ylim(-2,2)
+	ax.autoscale()
 	
 	
 	

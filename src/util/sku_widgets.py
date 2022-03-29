@@ -666,3 +666,54 @@ class LiSlider(tk.Frame):
 			if bbox[0] < x and bbox[2] > x and bbox[1] < y and bbox[3] > y:
 				return [True, idx]
 		return [False, None]
+
+class CustomSwitch(tk.Frame):
+	def __init__(self, master, text, textanchor, on_image, off_image, init_state, **kw):
+		tk.Frame.__init__(self, master=master, **kw)
+		
+		self.grid_rowconfigure(0, weight=1)
+		self.grid_columnconfigure(0, weight=1)
+		
+		self.text = text
+		self.textanchor = textanchor
+		self.on_image = on_image
+		self.off_image = off_image
+		self.state = init_state
+		
+		def toggle():
+			
+			if self.state == True:
+				_ = list(self.labelframe.pack_slaves())
+				for i in _:
+					i.pack_forget()
+				
+				self.switch = BorderButton(self.labelframe, button_image = self.off_image, button_activebackground = '#404040', button_command=toggle)
+				self.switch.pack()
+				self.state = False
+				print(self.state)
+				
+			else:
+				_ = list(self.labelframe.pack_slaves())
+				for i in _:
+					i.pack_forget()
+				
+				self.switch = BorderButton(self.labelframe, button_image = self.on_image, button_activebackground = '#404040', button_command=toggle)
+				self.switch.pack()
+				self.state = True
+				print(self.state)
+		
+		
+		
+		# Create labelframe container
+		self.labelframe = CustomLabelFrame(self, text = self.text, labelanchor = textanchor)
+		self.labelframe.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, padx = PADX_CONFIG, pady = PADY_CONFIG)
+		
+		# Create switch by toggling
+		toggle()
+		
+		# Toggle again if switch is not at correct initial state
+		if(self.state != init_state):
+			toggle()
+		
+	def get_state(self):
+		return self.state

@@ -681,6 +681,34 @@ class Inject(tk.Frame):
 		
 		
 		
+		
+		
+		
+		
+		
+		
+		# TEST SWITCH
+		on_image = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
+		off_image = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
+		test = sku.CustomSwitch(self, text="Test", textanchor = "n", on_image = on_image, off_image=off_image, init_state = False)
+		test.grid(row=4, column=12, rowspan=1, columnspan=2, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		print("[INJECT] state: {}".format(test.get_state()))
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		#########
 		# SETUP #
 		#########
