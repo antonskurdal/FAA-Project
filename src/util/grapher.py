@@ -548,6 +548,12 @@ class LineBuilder:
 		print("OLDX = {}".format(self.oldx))
 		print("X = {}".format(self.line.get_xdata()))
 		
+		x = list(self.line.get_xdata())
+		y = list(self.line.get_ydata())
+		
+		self.obj.current[self.obj.xs_colname] = x
+		self.obj.current[self.obj.ys_colname] = y
+		
 		
 
 	def motion_notify_callback(self, event):
@@ -602,6 +608,14 @@ class LineBuilder:
 					self.ax.draw_artist(self.line)
 					self.canvas.draw_idle()
 					break
+			
+			# INSERT LOGIC FOR NEW INDEX
+			#"LENGTH OF VALUES DOES NOT MATCH LENGTH OF INDEX"
+			
+			x = list(self.line.get_xdata())
+			y = list(self.line.get_ydata())
+			self.obj.current[self.obj.xs_colname] = x
+			self.obj.current[self.obj.ys_colname] = y
 	
 	""" def on_mouse_move(self, event):
 		#Callback for mouse movements.

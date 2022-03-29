@@ -690,7 +690,7 @@ class CustomSwitch(tk.Frame):
 				self.switch = BorderButton(self.labelframe, button_image = self.off_image, button_activebackground = '#404040', button_command=toggle)
 				self.switch.pack()
 				self.state = False
-				print(self.state)
+				#print(self.state)
 				
 			else:
 				_ = list(self.labelframe.pack_slaves())
@@ -700,7 +700,7 @@ class CustomSwitch(tk.Frame):
 				self.switch = BorderButton(self.labelframe, button_image = self.on_image, button_activebackground = '#404040', button_command=toggle)
 				self.switch.pack()
 				self.state = True
-				print(self.state)
+				#print(self.state)
 		
 		
 		

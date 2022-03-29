@@ -253,25 +253,6 @@ class Inject(tk.Frame):
 
 					self.obj.current.at[i, 'taxonomy'] = 'attack'
 
-		def get_fit(master, degree):
-
-			from numpy import array as nparray
-			from numpy import polyfit as nppolyfit
-			from numpy import poly1d as nppoly1d
-
-			x = nparray(self.obj.current[self.obj.xs_colname])
-			y = nparray(self.obj.current[self.obj.ys_colname])
-
-			map(float, x)
-			map(float, y)
-
-			weights = nppolyfit(x, y, degree)
-			model = nppoly1d(weights)
-
-			self.obj.current[self.obj.xs_colname] = x
-			self.obj.current[self.obj.ys_colname] = model(x)
-			grapher.plotInteractivePolygon(master, self.obj)
-
 		################################
 		def file_save(var, data):
 			
@@ -324,7 +305,31 @@ class Inject(tk.Frame):
 			self.slider.canv['highlightthickness'] = 0
 			self.slider.canv.master['highlightthickness'] = 2
 			self.slider.canv.master['highlightbackground'] = sku.SCALE_HIGHLIGHTBACKGROUND
-			
+		
+		
+		########################
+		# Modification Methods #
+		########################
+		def get_fit(master, degree):
+
+			from numpy import array as nparray
+			from numpy import polyfit as nppolyfit
+			from numpy import poly1d as nppoly1d
+
+			x = nparray(self.obj.current[self.obj.xs_colname])
+			y = nparray(self.obj.current[self.obj.ys_colname])
+
+			map(float, x)
+			map(float, y)
+
+			weights = nppolyfit(x, y, degree)
+			model = nppoly1d(weights)
+
+			self.obj.current[self.obj.xs_colname] = x
+			self.obj.current[self.obj.ys_colname] = model(x)
+			#grapher.plotInteractivePolygon(master, self.obj)
+			grapher.plotInteractiveLine(master, self.obj)
+		
 		def drop_data(master, bounds):
 			
 			print(bounds)
@@ -340,8 +345,9 @@ class Inject(tk.Frame):
 			data = pd.concat([low, high])
 			
 			self.obj.current = data
-			grapher.plotInteractivePolygon(master, self.obj)	
-		
+			#grapher.plotInteractivePolygon(master, self.obj)
+			grapher.plotInteractiveLine(master, self.obj)
+			
 		def add_noise(master, bounds, percent):
 			
 			from random import randint
@@ -385,8 +391,9 @@ class Inject(tk.Frame):
 			data = data.reset_index(drop = True)
 			
 			self.obj.current = data
-			grapher.plotInteractivePolygon(master, self.obj)	
-		
+			#grapher.plotInteractivePolygon(master, self.obj)
+			grapher.plotInteractiveLine(master, self.obj)
+			
 		def add_percent(master, bounds, percent):
 			x = self.obj.xs_colname
 			y = self.obj.ys_colname
@@ -417,7 +424,8 @@ class Inject(tk.Frame):
 			data = data.reset_index(drop = True)
 			
 			self.obj.current = data
-			grapher.plotInteractivePolygon(master, self.obj)		
+			#grapher.plotInteractivePolygon(master, self.obj)
+			grapher.plotInteractiveLine(master, self.obj)
 		
 		def add_num(master, bounds, number, do_rolling):
 			
@@ -460,7 +468,11 @@ class Inject(tk.Frame):
 			data = data.reset_index(drop = True)
 			
 			self.obj.current = data
-			grapher.plotInteractivePolygon(master, self.obj)		
+			#grapher.plotInteractivePolygon(master, self.obj)
+			grapher.plotInteractiveLine(master, self.obj)
+					
+		
+		
 		
 		def switch():
 		
