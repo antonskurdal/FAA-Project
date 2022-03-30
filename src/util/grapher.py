@@ -14,7 +14,7 @@ Description:
 ###########
 # IMPORTS #
 ###########
-from tabnanny import check
+#from tabnanny import check
 import numpy as np
 
 import tkinter as tk
