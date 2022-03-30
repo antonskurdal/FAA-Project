@@ -195,6 +195,11 @@ class Inject(tk.Frame):
 		def file_load(file):
 			#print("[INJECT][FILE_LOAD] FILE: {} (type = {})".format(file.name, type(file)))
 			
+			for child in frame_plot.nametowidget('child').winfo_children():
+				child.destroy()
+			
+			
+			
 			#Check file name and load 
 			if(file.suffix == ".csv"):
 				base_data = pd.read_csv(file)
@@ -233,9 +238,6 @@ class Inject(tk.Frame):
 			#print("[INJECT][FILE_LOAD] FILE: {} (type = {})".format(self.FILE.stem, type(self.FILE)))
 			
 			sel_changed('<<ListboxSelect>>')
-
-		def reset_plot():
-			self.obj.current = self.obj.base.copy(deep = True)
 
 		###############################
 		def tag_attacks():
@@ -538,21 +540,9 @@ class Inject(tk.Frame):
 		listbox_ys.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		listbox_ys.bind("<<ListboxSelect>>", sel_changed)
 		
-		""" # Plot
-		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plotInteractivePolygon(frame_plot.nametowidget('child'), self.obj)])
-		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
-		
-		""" # Plot
-		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj)])
-		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
-		
 		# Plot
-		button_plot = sku.BorderButton(self, button_text='Plot', button_activebackground='green', button_command=lambda: [grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj)])
-		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		# Reset Plot
-		button_reset = sku.BorderButton(self, button_text='Reset Plot', button_activebackground='green', button_command=lambda: [reset_plot(), grapher.plotInteractivePolygon(frame_plot.nametowidget('child'), self.obj)])  # obj.current.set(obj.base),
-		button_reset.grid(row=4, column=3, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		button_plot = sku.BorderButton(self, button_text='Plot Columns', button_activebackground='green', button_command=lambda: [grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj)])
+		button_plot.grid(row=4, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
 		# Print Base Data
 		button_print_base = sku.BorderButton(self, button_text='Show Base Data', button_activebackground='green', button_command=lambda: [print(self.obj.base[[self.obj.xs_colname, self.obj.ys_colname, 'taxonomy']])])
@@ -627,7 +617,7 @@ class Inject(tk.Frame):
 		button_noise = sku.BorderButton(labelframe_noise, button_text='Add Noise', button_activebackground='green', button_command=lambda: [add_noise(frame_plot.nametowidget('child'), self.slider.getValues(), scale_noise.get())])  # lambda: print(slider.getValues()))
 		button_noise.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
-		scale_noise = sku.CustomScale(labelframe_noise, from_=0.0, to=100.0, resolution=1, tickinterval=10, showvalue=True)
+		scale_noise = sku.CustomScale(labelframe_noise, from_=0.0, to=20, resolution=1, tickinterval=2, showvalue=True)
 		scale_noise.grid(row=0, column=1, rowspan=1, columnspan=2, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		scale_noise.set(50.0)
 
@@ -692,32 +682,12 @@ class Inject(tk.Frame):
 		)
 		
 		
-		
-		
-		
-		
-		
-		
-		
-		# TEST SWITCH
+		""" # TEST SWITCH
 		on_image = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
 		off_image = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
 		test = sku.CustomSwitch(self, text="Test", textanchor = "n", on_image = on_image, off_image=off_image, init_state = False)
 		test.grid(row=4, column=12, rowspan=1, columnspan=2, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		print("[INJECT] state: {}".format(test.get_state()))
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		print("[INJECT] state: {}".format(test.get_state())) """
 		
 		
 		

@@ -17,19 +17,22 @@ Description:
 #from tabnanny import check
 import numpy as np
 
-import tkinter as tk
+#import tkinter as tk
 from tkinter import*
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.artist import Artist
 from matplotlib.patches import Polygon
-from matplotlib.patches import ConnectionPatch
+#from matplotlib.patches import ConnectionPatch
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk) 
 
 import time
 import pandas as pd
+
+
+import util.sku_widgets as sku
 
 
 def dist(x, y):
@@ -436,7 +439,7 @@ def plotInteractivePolygon(master, obj):
 class LineBuilder:
 	print("[INJECT][LineBuilder] Triggered...")
 	
-	epsilon = 30 #in pixels
+	epsilon = 5 #in pixels
 
 	def __init__(self, ax, line, obj):
 		print("[INJECT][LineBuilder][__init__] Triggered...")
@@ -576,7 +579,8 @@ class LineBuilder:
 
 	def key_press_callback(self, event):
 		"""Callback for key presses."""
-		print("[INJECT][LineBuilder][key_press_callback] Triggered...")
+		#print("[INJECT][LineBuilder][key_press_callback] Triggered...")
+		#print("[INJECT][GRAPHER][LineBuilder] line_xy len BEFORE:{}".format(len(self.line._xy)))
 		
 		if not event.inaxes:
 			return
@@ -589,6 +593,7 @@ class LineBuilder:
 				self.line.set_data(self.xs, self.ys)
 				self.axes.draw_artist(self.line)
 				self.canvas.draw_idle()
+		
 		elif event.key == 'i':
 			print("\tKey pressed = 'I'")
 			
@@ -609,44 +614,30 @@ class LineBuilder:
 					self.canvas.draw_idle()
 					break
 			
-			# INSERT LOGIC FOR NEW INDEX
-			#"LENGTH OF VALUES DOES NOT MATCH LENGTH OF INDEX"
+			
+			# Update dataframe index layout to work with new list length
+			df = self.obj.current
+			xcol = self.obj.xs_colname
+			ycol = self.obj.ys_colname
+			
+			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] testdf:\n{}".format(testdf))
+			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line xdata:\n{}".format(self.line.get_xdata()))
+			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line ydata:\n{}".format(self.line.get_ydata()))
+			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line xlen: {}".format(len(list(self.line.get_xdata()))))
 			
 			x = list(self.line.get_xdata())
 			y = list(self.line.get_ydata())
-			self.obj.current[self.obj.xs_colname] = x
-			self.obj.current[self.obj.ys_colname] = y
-	
-	""" def on_mouse_move(self, event):
-		#Callback for mouse movements.
-		print("[INJECT][LineBuilder][on_mouse_move] Triggered...")
-			
-		if not self.showverts:
-			return
-		if self._ind is None:
-			return
-		if event.inaxes is None:
-			return
-		if event.button != 1:
-			return
-		x, y = event.xdata, event.ydata
-
-		self.poly.xy[self._ind] = x, y
-		if self._ind == 0:
-			self.poly.xy[-1] = x, y
-		elif self._ind == len(self.poly.xy) - 1:
-			self.poly.xy[0] = x, y
-		self.line.set_data(zip(*self.poly.xy))
+			i = 0
+			while i < len(x):
+				if(df[xcol][i] != x[i] or df[ycol][i] != y[i]):
+					df = pd.concat([df.iloc[0: i],  pd.DataFrame({xcol:x[i], ycol:y[i]}, index=[i+1]), df.loc[i:]], ignore_index=True)
+				else:
+					pass
+				i = i + 1
+				
+			self.obj.current = df
 		
-		self.canvas.restore_region(self.background)
-		self.ax.draw_artist(self.poly)
-		self.ax.draw_artist(self.line)
-		self.canvas.blit(self.ax.bbox) """
-
-
-
-
-
+			#print("[INJECT][GRAPHER][LineBuilder] line_xy len AFTER:{}".format(len(self.line._xy)))
 
 
 def plotInteractiveLine(parent, obj):
@@ -661,16 +652,6 @@ def plotInteractiveLine(parent, obj):
 		ys = obj.current.index.tolist()
 	else:
 		ys =  obj.current[obj.ys_colname]
-	
-	#xs = [0,0.5,1]
-	#ys = [0,0.5,1]
-	
-	
-	
-	
-	
-	
-	#fig, ax = plt.subplots()
 	
 	fig = Figure()
 	ax = fig.add_subplot(111)
@@ -688,12 +669,6 @@ def plotInteractiveLine(parent, obj):
 	
 	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
 	
-	from pathlib import Path
-	#print(Path.cwd())
-	import util.sku_widgets as sku
-	#button = Button(master = toolbar, text = "hello", command = lambda: print("yeet"), width = 20)
-	
-	
 	# Reset Plot
 	tab_controller = parent.master.master
 	def reset_plot():
@@ -710,101 +685,37 @@ def plotInteractiveLine(parent, obj):
 	print(var.get())
 	checkbutton_baseline.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8)) """
 	
-	
-	
-	
 	toolbar.grid(row = 0, column = 0, sticky="NSEW")
+	#print(toolbar.toolitems)
 	toolbar.pack_propagate(False)
 	toolbarFrame.grid_propagate(False)
 	
 	
 	# Create initial line - 'animated' will cause the original line to not be shown
-	line = Line2D(xs, ys, color = "#AEAEAE", linestyle="dotted")
-	
+	line = Line2D(xs, ys, color = "#AEAEAE", linestyle="dotted", animated = True)
 	#line = Line2D(xs, ys, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
 	##line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
 	
-	#print(toolbar.toolitems)
-	
-	
-	# tm = fig.canvas.manager.toolmanager
-	# tm.add_tool("newtool", NewTool)
-	# fig.canvas.manager.toolbar.add_tool(tm.get_tool("newtool"), "toolgroup")
-	
 
 	ax.add_line(line)
-
 	linebuilder = LineBuilder(ax, line, obj)
-
-	ax.set_title('click to create lines')
-	#ax.set_xlim(-2,2)
-	#ax.set_ylim(-2,2)
+	
+	# Working bold column names, but acts strange with '_' as it is a format specifier in MathText
+	#title = r"$\bf{}$"" vs "r"$\bf{}$""\nClick and drag a point to move it\nPress 'i' to insert a point".format(str(obj.xs_colname), str(obj.ys_colname))
+	
+	# Working annotation but intersects with title
+	#fig.text(.5,.9,'Foo Bar', fontsize=10, ha='center')
+	
+	# Dynamically set plot title depending on selected columns
+	#title = "{} vs {}".format(str(obj.xs_colname), str(obj.ys_colname))
+	title = "{} vs {}\nClick and drag a point to move it\nPress 'i' to insert a point".format(str(obj.xs_colname), str(obj.ys_colname))
+	ax.set_title(title, fontsize = 12)
+	
+	
+	ax.set_xlabel(obj.xs_colname)
+	ax.set_ylabel(obj.ys_colname)
 	ax.autoscale()
 	
-	
-	
-	#plt.show()
-
-
-# def plotInteractiveLine(parent, obj):
-	
-# 	print("\n[INJECT][plotInteractiveLine] Starting...")
-# 	#Set xs and ys, make sure index works
-# 	if(obj.xs_colname == "index"):
-# 		xs = obj.current.index.tolist()
-# 	else:
-# 		xs = obj.current[obj.xs_colname]
-	
-# 	if(obj.ys_colname == "index"):
-# 		ys = obj.current.index.tolist()
-# 	else:
-# 		ys =  obj.current[obj.ys_colname]
-	
-# 	line = Line2D(xs, ys, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44')
-	
-# 	fig = Figure()
-# 	ax = fig.add_subplot(111)
-	
-	
-# 	#Place graph
-# 	canvas = FigureCanvasTkAgg(fig, parent)
-# 	canvas.draw()
-# 	canvas.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW")
-	
-# 	toolbarFrame = Frame(parent)
-# 	toolbarFrame.grid(row=1,column=0, sticky = "NSEW", padx=(0,0), pady=(0,0))
-# 	toolbarFrame.grid_rowconfigure(0, weight = 1)
-# 	toolbarFrame.grid_columnconfigure(0, weight = 1)
-	
-# 	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
-# 	toolbar.grid(row = 0, column = 0, sticky="NSEW")
-	
-# 	ax.add_line(line)
-# 	linebuilder = LineBuilder(ax, line, obj)
-	
-	
-	
-	
-# 	ax.set_title(obj.xs_colname + " vs " + obj.ys_colname + '\nClick and drag a point to move it')
-# 	ax.set_xlabel(obj.xs_colname)
-# 	ax.set_ylabel(obj.ys_colname)
-# 	ax.autoscale()
-	
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def plot_basic(master, x, y, xlabel, ylabel):

@@ -18,56 +18,12 @@ Tkinter.
 ###########
 import sys
 import tkinter as tk
+from tkinter import ttk
 import tkinter.scrolledtext as tkscrolled
-
-from PIL import Image
-from PIL import ImageTk
 
 ###################
 # MASTER CONTROLS #
 ###################
-"""
-#################
-# COLOR PALETTE #
-#################
-Light Gray:
-    Name: Gainsboro
-    Hex: #d9dcdf
-    RGB: (217, 220, 223)
-    CMYK: 0.026, 0.013, 0, 0.125
-
-Medium Gray:
-    Name: Quick Silver
-    Hex: #A3A7AB
-    RGB: (163, 167, 171)
-    CMYK: 0.046, 0.023, 0, 0.329
-
-Gray:
-    Name: Onyx
-    Hex: #393939
-    RGB: (57, 57, 57)
-    CMYK: 0, 0, 0, 0.776
-
-Purple:
-    Hex: #8C07F1
-
-Lighter Purple:
-    Hex: #9008E7
-
-Red:
-    Hex: #B01C22
-
-Orange:
-    Hex: #D96000
-
-Yellow:
-    Hex: #F5C900
-
-White:
-    Hex: #E0E0E0
-
-
-"""
 
 #Colors
 yellow = "#F5C900"
@@ -110,7 +66,7 @@ BUTTON_CURSOR = "hand2"
 ENTRY_FONT = FONT_NORM
 ENTRY_BACKGROUND = lightgray
 ENTRY_BORDERCOLOR = orange
-ENTRY_HIGHLIGHTCOLOR = orange
+ENTRY_HIGHLIGHTCOLOR = "#009A44"
 ENTRY_HIGHLIGHTBACKGROUND = "#404040"
 #LabelFrame
 LABELFRAME_FONT = FONT_BOLD
@@ -668,6 +624,16 @@ class LiSlider(tk.Frame):
 		return [False, None]
 
 class CustomSwitch(tk.Frame):
+	"""
+	EXAMPLE USAGE:
+	
+	# TEST SWITCH
+	on_image = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
+	off_image = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
+	test = sku.CustomSwitch(self, text="Test", textanchor = "n", on_image = on_image, off_image=off_image, init_state = False)
+	test.grid(row=4, column=12, rowspan=1, columnspan=2, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+	print("[INJECT] state: {}".format(test.get_state()))
+	"""
 	def __init__(self, master, text, textanchor, on_image, off_image, init_state, **kw):
 		tk.Frame.__init__(self, master=master, **kw)
 		

@@ -69,8 +69,8 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['tkinter', 'pathlib', 'pandas', 'dataclasses', 'pillow', 'numpy', 'matplotlib', 'sys', 'time', 'threading', 'cartopy', 'ast', 'isort', 'multiprocessing', 'opensky_api'],
-    requires=['tkinter', 'pathlib', 'pandas', 'dataclasses', 'pillow', 'numpy', 'matplotlib', 'sys', 'time', 'threading', 'cartopy', 'ast', 'isort', 'multiprocessing', 'opensky_api'],
+    install_requires=['tkinter', 'pathlib', 'pandas', 'dataclasses', 'pillow', 'numpy', 'matplotlib', 'sys', 'time', 'threading', 'cartopy', 'ast', 'isort', 'multiprocessing', 'opensky_api', '_thread', 'random'],
+    requires=['tkinter', 'pathlib', 'pandas', 'dataclasses', 'pillow', 'numpy', 'matplotlib', 'sys', 'time', 'threading', 'cartopy', 'ast', 'isort', 'multiprocessing', 'opensky_api', '_thread', 'random'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

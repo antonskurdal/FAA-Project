@@ -26,7 +26,7 @@ __status__ = "Development"
 
 
 
-sku.ENTRY_HIGHLIGHTCOLOR = "#009A44"
+#sku.ENTRY_HIGHLIGHTCOLOR = "#009A44"
 PADX_CONFIG = (2,2)
 PADY_CONFIG = (2,2)
 
@@ -96,5 +96,3 @@ class App(tk.Tk):
 if __name__ == '__main__':
 	app = App()
 	app.mainloop()	
-#app = App(root)
-#root.mainloop()
