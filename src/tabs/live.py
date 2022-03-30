@@ -474,6 +474,7 @@ class LiveData(tk.Frame):
 		# Get Aircraft Data
 		self.button_get = sku.BorderButton(self, button_text = 'Get Live Aircraft Data', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [get_states(self.scrolledtext_console, self.api)])
 		self.button_get.grid(row = 1, column = 0, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		self.button_get.child['state'] = 'disabled'
 
 		# Start Tracking
 		self.button_track = sku.BorderButton(self, button_text = 'Start Tracking', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [_thread.start_new_thread(plotting_thread, (self.fig_a, self.ax_a, self.fig_b, self.ax_b, self.scrolledtext_console))])
@@ -532,11 +533,30 @@ class LiveData(tk.Frame):
 			self.username.set("N/A")
 			self.password.set("N/A")
 		
-		self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
+		#self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
 		#self.api = OpenSkyApi(username = login.username, password = login.password)
 
 		self.df = pd.DataFrame()
 		
+		def set_api():
+			print("[LIVE][set_api] Triggered...")
+			#print(self.api._auth)
+			try:
+				self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
+				_ = self.api.get_states().states[0]
+			except AttributeError as e:
+				print(e)
+				self.button_get.child['state'] = 'disabled'
+				self.login_labelframe['text'] = "OpenSky Network Login"
+				
+				messagebox.showerror(title="Error", message="Username or password is incorrect.")
+				return
+			
+			self.login_labelframe['text'] = "OpenSky Network Login - [Currenly Logged In]"
+			self.button_get.child['state'] = 'normal'
+		
+		
+		#self.after(10000, set_api())
 		
 		
 		
@@ -568,7 +588,7 @@ class LiveData(tk.Frame):
 		self.password_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		# Sign In
-		self.button_signin = sku.BorderButton(self.login_labelframe, button_text = 'Sign In', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [self.username.set(self.username_entry.get(), self.password.set(self.password_entry.get()))])
+		self.button_signin = sku.BorderButton(self.login_labelframe, button_text = 'Sign In', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [self.username.set(self.username_entry.get()), self.password.set(self.password_entry.get()), set_api()])
 		self.button_signin.grid(row = 0, column = 2, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 		
 		

@@ -195,12 +195,12 @@ class Inject(tk.Frame):
 		def file_load(file):
 			#print("[INJECT][FILE_LOAD] FILE: {} (type = {})".format(file.name, type(file)))
 			
+			# Destroy any existing plots when loading a new file
 			for child in frame_plot.nametowidget('child').winfo_children():
 				child.destroy()
 			
 			
-			
-			#Check file name and load 
+			# Check file name and load 
 			if(file.suffix == ".csv"):
 				base_data = pd.read_csv(file)
 			elif(file.suffix == ".parquet"):
@@ -212,7 +212,7 @@ class Inject(tk.Frame):
 				messagebox.showerror(title="Error", message="Invalid file extension. Must be '.csv' or '.parquet'")
 				return
 			
-			#Check if label column exists (normal, dropout, noise, etc.)
+			# Check if label column exists (normal, dropout, noise, etc.)
 			if 'taxonomy' not in base_data.columns:
 				base_data.insert(1, 'taxonomy', 'normal')
 			
