@@ -17,6 +17,7 @@ from PIL import ImageTk, Image
 
 import util.sku_widgets as sku
 import util.grapher as grapher
+import util.stat_calc as stat_calc
 
 __author__ = "Anton Skurdal"
 __copyright__ = "Copyright 2020, The FAA Project"
@@ -668,7 +669,6 @@ class Inject(tk.Frame):
 		frame_banner_child = frame_banner.nametowidget('child')
 		frame_banner_child.grid_columnconfigure(0, weight=1)
 		frame_banner_child.grid_rowconfigure(0, weight=1)
-
 		canvas_banner = tk.Canvas(frame_banner_child, bg='black', bd=0, highlightthickness=0, relief='flat')
 		canvas_banner.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=(0, 0), pady=(0, 0))
 		canvas_banner.after(
@@ -682,12 +682,46 @@ class Inject(tk.Frame):
 		)
 		
 		
-		""" # TEST SWITCH
-		on_image = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
-		off_image = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
-		test = sku.CustomSwitch(self, text="Test", textanchor = "n", on_image = on_image, off_image=off_image, init_state = False)
-		test.grid(row=4, column=12, rowspan=1, columnspan=2, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		print("[INJECT] state: {}".format(test.get_state())) """
+		# Apply Taxonomy
+		labelframe_apply = sku.CustomLabelFrame(self, text="Apply Taxonomy to Current Range")
+		labelframe_apply.grid(row=4, column=12, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_apply.grid_rowconfigure(0, weight=1)
+		for col in range(3):
+			labelframe_apply.grid_columnconfigure(col, weight=1)
+		# Noise
+		button_set_noise = sku.BorderButton(labelframe_apply, button_text="Set to 'noise'", button_activebackground='green', button_command=lambda: 
+		[
+			print(self.obj.current), 
+			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "noise")), 
+			print(self.obj.current)
+		])
+		button_set_noise.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Dropout
+		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Set to 'dropout'", button_activebackground='green', button_command=lambda: 
+		[
+			print(self.obj.current), 
+			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "dropout")), 
+			print(self.obj.current)
+		])
+		button_set_dropout.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Normal
+		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Set to 'normal'", button_activebackground='green', button_command=lambda: 
+		[
+			print(self.obj.current), 
+			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
+			print(self.obj.current)
+		])
+		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		

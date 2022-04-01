@@ -673,7 +673,7 @@ def plotInteractiveLine(parent, obj):
 	tab_controller = parent.master.master
 	def reset_plot():
 			obj.current = obj.base.copy(deep = True)		
-	button_reset = sku.BorderButton(master = toolbar, button_text = "Reset Plot", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj)], button_activebackground="#009A44")
+	button_reset = sku.BorderButton(master = toolbar, button_text = "Reset", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj)], button_activebackground="#009A44")
 	button_reset.child['width'] = 12
 	button_reset.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8))
 	
