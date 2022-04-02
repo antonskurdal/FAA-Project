@@ -35,6 +35,16 @@ import pandas as pd
 import util.sku_widgets as sku
 
 
+
+# Make sure code runs as a module
+if(__name__ == '__main__'):
+	print("This code is meant to be run as a module.")
+	exit(0)
+
+
+
+
+
 def dist(x, y):
 	"""
 	Return the distance between two points.

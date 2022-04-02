@@ -5,18 +5,7 @@
 	Description.
 """
 
-import tkinter as tk
-from tkinter import *
-from pathlib import Path
-from tkinter import messagebox
 import pandas as pd
-from dataclasses import dataclass
-from tkinter import *
-from tkinter import filedialog
-from PIL import ImageTk, Image
-
-import util.sku_widgets as sku
-import util.grapher as grapher
 
 __author__ = "Anton Skurdal"
 __copyright__ = "Copyright 2020, The FAA Project"
@@ -27,6 +16,7 @@ __maintainer__ = "Anton Skurdal"
 __email__ = "antonskurdal@gmail.com"
 __status__ = "Development"
 
+
 # Make sure code runs as a module
 if(__name__ == '__main__'):
 	print("This code is meant to be run as a module.")
@@ -36,26 +26,8 @@ if(__name__ == '__main__'):
 
 """ADD FUNCTION TO APPLY ZSCORE, TIME SINCE LAST CONTACT, ETC TO DATAFRAME"""
 
-
-
-
-
-
-
-def set_test(x):
-	x = "Goodbye"
-	return x
 	
 def apply_taxonomy(df, col, bounds, type):
-	
-	# print(df)
-	# #x = df.xs_colname
-	# #print(x)
-	# print(bounds)
-	
-	# df['taxonomy'] = type
-	
-	# return df
 	
 	# Get data lower than bounds
 	low = df[df[col] < bounds[0]]
@@ -64,7 +36,6 @@ def apply_taxonomy(df, col, bounds, type):
 	high = df[df[col] > bounds[1]]
 	
 	mid = df[(df[col] > bounds[0]) & (df[col] < bounds[1])]
-	#print(mid)
 	
 	mid['taxonomy'] = type
 	
@@ -74,40 +45,32 @@ def apply_taxonomy(df, col, bounds, type):
 	print("\n")
 	
 	return df
+
+
+
+def get_dropouts(df):
 	
-	""" x = self.obj.xs_colname
-	y = self.obj.ys_colname
-	data = self.obj.current
-	
-	# Get data lower than bounds
-	low = data[data[x] < bounds[0]]
-	
-	# Get data higher than bounds
-	high = data[data[x] > bounds[1]]
-	
-	# Remove lower than bounds
-	mid = data[data[x] >= bounds[0]]
-	
-	# Remove data higher than bounds
-	mid = mid[mid[x] <= bounds[1]]
-	
-	mid = mid.reset_index(drop = True)
-	
-	# Modify
-	for i in range(len(mid[y])):
-		
-		rand = randint(percent*-1, percent)
-		
-		if (rand != 0):
-			rand_pct = rand/100
-		else:
-			rand_pct = 0
-		
-		mid.at[i, y] = mid.at[i, y] + (mid.at[i, y] * rand_pct)
+	df.insert(df.shape[1], 'dropout_length', df['lastcontact'].diff()[1:])
+	print(df)
 	
 	
-	# Concat data frames
-	data = pd.concat([low, mid, high])
-	data = data.reset_index(drop = True)
+def regression(df):
 	
-	self.obj.current = data """
+	import numpy as np
+	import matplotlib.pyplot as plt  # To visualize
+	import pandas as pd  # To read data
+	from sklearn.linear_model import LinearRegression
+	
+	X = df['dropout_length'].values.reshape(-1, 1)  # values converts it into a numpy array
+	print("[regression] X: {}".format(X))
+	
+	Y = df.iloc[:, 1].values.reshape(-1, 1)  # -1 means that calculate the dimension of rows, but have 1 column
+	print("[regression] Y: {}".format(Y))
+	
+	# linear_regressor = LinearRegression()  # create object for the class
+	# linear_regressor.fit(X, Y)  # perform linear regression
+	# Y_pred = linear_regressor.predict(X)  # make predictions
+	
+	# plt.scatter(X, Y)
+	# plt.plot(X, Y_pred, color='red')
+	# plt.show()

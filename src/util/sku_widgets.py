@@ -672,6 +672,7 @@ class CustomSwitch(tk.Frame):
 		
 		# Create labelframe container
 		self.labelframe = CustomLabelFrame(self, text = self.text, labelanchor = textanchor)
+		self['bg'] = self.master['bg']
 		self.labelframe.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, padx = PADX_CONFIG, pady = PADY_CONFIG)
 		
 		# Create switch by toggling
@@ -683,3 +684,131 @@ class CustomSwitch(tk.Frame):
 		
 	def get_state(self):
 		return self.state
+
+
+# Custom Radiobutton
+RADIOBUTTON_ACTIVEBACKGROUND = "#009A44"
+RADIOBUTTON_ACTIVEFOREGROUND = FONT_COLOR
+
+RADIOBUTTON_BACKGROUND = "#404040"
+RADIOBUTTON_FOREGROUND = FONT_COLOR
+RADIOBUTTON_SELECTCOLOR = "#404040"
+
+RADIOBUTTON_FONT = FONT_NORM
+
+RADIOBUTTON_RELIEF = "flat"
+RADIOBUTTON_OVERRELIEF = "flat"
+RADIOBUTTON_OFFRELIEF = "flat"
+RADIOBUTTON_RELIEF_PRESSED = "groove"
+RADIOBUTTON_CURSOR = BUTTON_CURSOR
+
+
+
+
+class BorderRadiobutton(tk.Frame):
+	def __init__(self, master, activebordercolor, text, variable, command, value, indicator, **kw):
+		tk.Frame.__init__(self, master=master, **kw)
+		
+		self.activebordercolor = activebordercolor
+		self.text = text
+		self.variable = variable
+		self.command = command
+		self.value = value
+		self.indicator = indicator
+		
+		
+		self['background'] = RADIOBUTTON_BACKGROUND
+		self.grid_rowconfigure(0, weight = 1)
+		self.grid_columnconfigure(0, weight = 1)
+		
+		self.radiobutton = tk.Radiobutton(self, text = self.text, variable = self.variable, command = self.command, value = self.value, indicator = self.indicator)
+		self.radiobutton.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		
+		
+		
+		
+		self.radiobutton['activebackground'] = RADIOBUTTON_ACTIVEBACKGROUND
+		self.radiobutton['activeforeground'] = RADIOBUTTON_ACTIVEFOREGROUND
+		
+		self.radiobutton['background'] = RADIOBUTTON_BACKGROUND
+		self.radiobutton['foreground'] = RADIOBUTTON_FOREGROUND
+		self.radiobutton['selectcolor'] = RADIOBUTTON_SELECTCOLOR
+		
+		self.radiobutton['font'] = RADIOBUTTON_FONT
+		
+		self.radiobutton['relief'] = RADIOBUTTON_RELIEF
+		self.radiobutton['overrelief'] = RADIOBUTTON_OVERRELIEF
+		self.radiobutton['offrelief'] = RADIOBUTTON_OFFRELIEF
+		
+		#self.radiobutton['highlightcolor'] = 'pink'
+		self.radiobutton['highlightthickness'] = 0
+		#self.radiobutton['highlightbackground'] = 'red'
+		
+		self.radiobutton['borderwidth'] = 0
+		
+		#self.radiobutton['disabledforeground'] = 'red'
+		
+		
+		
+		
+		
+		self.bind("<Enter>", self.on_enter)
+		self.bind("<Leave>", self.on_leave)
+		self.bind("<Button-1>", self.on_click)
+		self.bind("<ButtonRelease-1>", self.on_release)
+	
+	def invoke(self):
+		self.radiobutton.invoke()
+		self['background'] = self.activebordercolor
+		self.update_idletasks()
+		
+	
+		
+	def on_enter(self, e):
+		if(self.radiobutton['state'] == 'disabled'):
+			return		
+	
+		self['background'] = self.activebordercolor
+		self['cursor'] = RADIOBUTTON_CURSOR
+
+
+	def on_leave(self, e):
+		if(self.radiobutton['state'] == 'disabled'):
+			return			
+		
+		#print(self.variable.get())
+		
+		self['cursor']="arrow"
+		
+		if(self.variable.get() == self.value):
+			self['cursor']="arrow"
+			return
+		else:
+			self['background'] = RADIOBUTTON_BACKGROUND
+			self['cursor']="arrow"
+
+	def on_click(self, e):
+		if(self.radiobutton['state'] == 'disabled'):
+			return			
+		
+		self['background'] = BUTTON_ACTIVEBACKGROUND
+		self['relief'] = BUTTON_RELIEF_PRESSED
+
+	def on_release(self, e):
+		if(self.radiobutton['state'] == 'disabled'):
+			return
+		
+		if(self.variable.get() == self.value):
+			
+			self['relief'] = BUTTON_RELIEF
+		else:
+			self['background'] = RADIOBUTTON_BACKGROUND
+		
+		
+		
+		
+		
+		
+		
+		
+		

@@ -48,12 +48,12 @@ class Inject(tk.Frame):
 		###################
 		# Layout Controls #
 		###################
-		for row in range(7):
+		for row in range(9):
 			self.grid_rowconfigure(row, weight=1)
 		for col in range(18):
 			self.grid_columnconfigure(col, weight=1)
 
-		for row in range(7):
+		for row in range(9):
 			self.grid_rowconfigure(row, weight=0, minsize=100)
 		for col in range(18):
 			self.grid_columnconfigure(row, weight=0, minsize=100)
@@ -176,14 +176,14 @@ class Inject(tk.Frame):
 		
 		def file_browse(directory, var):
 			
-			print("[INJECT][FILE_BROWSE] DIRECTORY: {}".format(directory))
+			#print("[INJECT][FILE_BROWSE] DIRECTORY: {}".format(directory))
 			
 			file = Path(filedialog.askopenfilename(
 				filetypes = [('All files', '.*'), ('CSV or Parquet files', '.csv'), ('Apache Parquet files', '.parquet')], 
 				title = "Dataset Selection", 
 				initialdir = directory))
 			
-			print("[INJECT][FILE_BROWSE] FILE NAME: {} (type = {})".format(file.name, type(file)))
+			#print("[INJECT][FILE_BROWSE] FILE NAME: {} (type = {})".format(file.name, type(file)))
 			
 			#if file is None: #askopenfilename return `None` if dialog closed with "cancel".
 			if(file.name == ""): #askopenfilename return `None` if dialog closed with "cancel".
@@ -284,6 +284,12 @@ class Inject(tk.Frame):
 			self.obj.xs_colname = listbox_xs.get(listbox_xs.curselection())
 			self.obj.ys_colname = listbox_ys.get(listbox_ys.curselection())
 			
+			#print("[INJECT][FILE_BROWSE] DIRECTORY: {}".format(directory))
+			
+			
+			
+			print("[INJECT][sel_changed] xs_colname: {}".format(self.obj.xs_colname))
+		
 			#Disable buttons if index is plotted
 			if(self.obj.xs_colname == "index" or self.obj.ys_colname == "index"):
 				button_fit.child['state'] = 'disabled'
@@ -291,6 +297,11 @@ class Inject(tk.Frame):
 				button_noise.child['state'] = 'disabled'
 				button_percent.child['state'] = 'disabled'
 				button_num.child['state'] = 'disabled'
+				
+				slider_min = min(self.obj.current.index)
+				slider_max = max(self.obj.current.index)
+				
+				
 			else:
 				button_fit.child['state'] = 'normal'
 				button_drop.child['state'] = 'normal'
@@ -298,9 +309,36 @@ class Inject(tk.Frame):
 				button_percent.child['state'] = 'normal'
 				button_num.child['state'] = 'normal'
 				
+				slider_min = min(self.obj.current[self.obj.xs_colname])
+				slider_max = max(self.obj.current[self.obj.xs_colname])
+			
+			print("slider_min: {}".format(slider_min))
+			print("slider_max: {}".format(slider_max))
+			
+			
+			
 			#Create slider
-			self.slider = sku.LiSlider(labelframe_slider, width=500, height=60, min_val=min(self.obj.current[self.obj.xs_colname]), max_val=max(
-				self.obj.current[self.obj.xs_colname]), init_lis=[min(self.obj.current[self.obj.xs_colname]), max(self.obj.current[self.obj.xs_colname])], show_value=True)
+			self.slider = sku.LiSlider(
+				labelframe_slider, 
+				width=500, 
+				height=60, 
+				min_val=slider_min, 
+				max_val=slider_max, 
+				init_lis=[slider_min, slider_max], 
+				show_value=True
+				)
+			
+			
+			""" #Create slider
+			self.slider = sku.LiSlider(
+				labelframe_slider, 
+				width=500, 
+				height=60, 
+				min_val=min(self.obj.current[self.obj.xs_colname]), 
+				max_val=max(self.obj.current[self.obj.xs_colname]), 
+				init_lis=[min(self.obj.current[self.obj.xs_colname]), max(self.obj.current[self.obj.xs_colname])], 
+				show_value=True
+				) """
 			
 			self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 			self.slider.canv['bg'] = sku.SCALE_BACKGROUND
@@ -659,27 +697,12 @@ class Inject(tk.Frame):
 		self.off.zoom(58, 24)
 		switch()
 
-		# Banner Image
-		img = Image.open(Path.cwd() / "src" / "assets" / "und_banner.png")
-		self.photoImg = ImageTk.PhotoImage(img)
-
-		# Banner
-		frame_banner = sku.BorderFrame(self, background='#505050', border_color="green")
-		frame_banner.grid(row=5, column=12, rowspan=2, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		frame_banner_child = frame_banner.nametowidget('child')
-		frame_banner_child.grid_columnconfigure(0, weight=1)
-		frame_banner_child.grid_rowconfigure(0, weight=1)
-		canvas_banner = tk.Canvas(frame_banner_child, bg='black', bd=0, highlightthickness=0, relief='flat')
-		canvas_banner.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=(0, 0), pady=(0, 0))
-		canvas_banner.after(
-			100,
-			lambda: [
-				canvas_banner.update(),
-				# print(canvas_banner.winfo_height()),
-				canvas_banner.create_image(canvas_banner.winfo_width(
-				)/2, canvas_banner.winfo_height()/2, image=self.photoImg, anchor=CENTER)
-			]
-		)
+		
+		# Switch Assets
+		switch_on = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
+		switch_off = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
+		
+		
 		
 		
 		# Apply Taxonomy
@@ -712,6 +735,30 @@ class Inject(tk.Frame):
 			print(self.obj.current)
 		])
 		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Erroneous
+		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Erroneous", button_activebackground='green', button_command=lambda: 
+		[
+			print(self.obj.current), 
+			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
+			print(self.obj.current)
+		])
+		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Spoofed
+		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Spoofed", button_activebackground='green', button_command=lambda: 
+		[
+			print(self.obj.current), 
+			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
+			print(self.obj.current)
+		])
+		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Jammed
+		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Jammed", button_activebackground='green', button_command=lambda: 
+		[
+			print(self.obj.current), 
+			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
+			print(self.obj.current)
+		])
+		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		
 		
@@ -721,10 +768,132 @@ class Inject(tk.Frame):
 		
 		
 		
+		""" # Calculate Statistic Columns
+		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns")
+		labelframe_stats.grid(row=5, column=12, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_stats.grid_rowconfigure(0, weight=1)
+		for col in range(6):
+			labelframe_stats.grid_columnconfigure(col, weight=1)
+		labelframe_stats.grid_columnconfigure(3, weight=0)
+		# Dropout Length Switch
+		switch_dropout_length = sku.CustomSwitch(labelframe_stats, text="Dropout Length", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_length.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Dropout Z-Score Switch
+		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Dropout Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_zscore.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Dropout Linear Regression
+		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Dropout Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_zscore.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		
+		# Separator
+		sep = tk.Frame(labelframe_stats, bg = '#AEAEAE', width = 2)
+		sep.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Modify Current Data Switch
+		switch_dataset = sku.CustomSwitch(labelframe_stats, text="Modify Current Data", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dataset.grid(row=0, column=4, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Apply Stats
+		button_stats_apply = sku.BorderButton(labelframe_stats, button_text="Apply", button_activebackground='green', button_command=lambda: 
+		[
+			#print("[switch state]: {}".format(getattr(switch_dropout_length, "state"))),
+			#print(self.obj.current), 
+			#setattr(self.obj, 'current', stat_calc.calc_dropouts(self.obj.current)), 
+			#print(self.obj.current)
+			#stat_calc.regression(self.obj.current)
+			stat_calc.get_dropouts(self.obj.current)
+		])
+		button_stats_apply.grid(row=0, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
 		
 		
 		
 		
+		
+		
+		
+		def sel():
+			selection = "Sel: " + str(radio_string.get())
+			label.config(text = selection)
+		radio_string = tk.StringVar()
+		
+		# Calculate Statistic Columns
+		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns [2]")
+		labelframe_stats.grid(row=5, column=12, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_stats.grid_rowconfigure(0, weight=1)
+		for row in range(2):
+			labelframe_stats.grid_rowconfigure(row, weight = 1)
+		
+		for col in range(5):
+			labelframe_stats.grid_columnconfigure(col, weight=1)
+		#labelframe_stats.grid_columnconfigure(3, weight=0)
+		labelframe_stats.grid_propagate(False)
+		
+		radio_on = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_selected.png")
+		radio_off = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_unselected.png")
+		radio_test = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_test.png")
+		radio_test2 = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_test.png")
+		
+		
+		# Normal
+		radio_normal = sku.BorderRadiobutton(labelframe_stats, activebordercolor = "#009A44", text = "normal", variable = radio_string, command = sel, value = "normal", indicator = 0)
+		radio_normal.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		sku.get_attributes(radio_normal.radiobutton)
+		
+		# Dropout
+		radio_dropout = sku.BorderRadiobutton(labelframe_stats, activebordercolor = "#009A44", text = "dropout", variable = radio_string, command = sel, value = "dropout", indicator = 0)
+		radio_dropout.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		""" # Noise
+		radio_noise = sku.CustomRadiobutton(labelframe_stats, text = "noise", variable = radio_string, command = sel, value = "noise", indicator = 0)
+		radio_noise.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Jammed
+		radio_jammed = sku.CustomRadiobutton(labelframe_stats, text = "jammed", variable = radio_string, command = sel, value = "jammed", indicator = 0)
+		radio_jammed.grid(row=1, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Spoofed
+		radio_spoofed = sku.CustomRadiobutton(labelframe_stats, text = "spoofed", variable = radio_string, command = sel, value = "spoofed", indicator = 0)
+		radio_spoofed.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Erroneous
+		radio_erroneous = sku.CustomRadiobutton(labelframe_stats, text = "erroneous", variable = radio_string, command = sel, value = "erroneous", indicator = 0)
+		radio_erroneous.grid(row=1, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
+		
+		
+		
+		
+		label = sku.CustomLabel(labelframe_stats, width = 20)
+		label.grid(row=0, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		label.grid_propagate(False)
+		
+		#radio_dropout.radiobutton.invoke()
+		radio_dropout.invoke()
+		
+		
+		
+		
+		
+		# Banner Image
+		img = Image.open(Path.cwd() / "src" / "assets" / "und_banner.png")
+		self.photoImg = ImageTk.PhotoImage(img)
+
+		# Banner
+		frame_banner = sku.BorderFrame(self, background='#505050', border_color="green")
+		frame_banner.grid(row=7, column=12, rowspan=2, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		frame_banner_child = frame_banner.nametowidget('child')
+		frame_banner_child.grid_columnconfigure(0, weight=1)
+		frame_banner_child.grid_rowconfigure(0, weight=1)
+		canvas_banner = tk.Canvas(frame_banner_child, bg='black', bd=0, highlightthickness=0, relief='flat')
+		canvas_banner.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=(0, 0), pady=(0, 0))
+		canvas_banner.after(
+			100,
+			lambda: [
+				canvas_banner.update(),
+				# print(canvas_banner.winfo_height()),
+				canvas_banner.create_image(canvas_banner.winfo_width(
+				)/2, canvas_banner.winfo_height()/2, image=self.photoImg, anchor=CENTER)
+			]
+		)
 		#########
 		# SETUP #
 		#########

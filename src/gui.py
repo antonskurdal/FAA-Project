@@ -30,12 +30,11 @@ __status__ = "Development"
 PADX_CONFIG = (2,2)
 PADY_CONFIG = (2,2)
 
-
 class App(tk.Tk):
 	def __init__(self, *args, **kwargs):
 		tk.Tk.__init__(self, *args, **kwargs)
 		self.title('UND FAA-A44 Research Project - Dataset Injector/Modifier & Aircraft Live Tracker')
-		self.geometry("1800x900")
+		self.geometry("1800x950")
 		self.resizable(0, 0)
 		self['background'] = sku.APP_BACKGROUND
 		master = self
