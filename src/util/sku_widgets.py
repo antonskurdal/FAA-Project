@@ -692,7 +692,8 @@ RADIOBUTTON_ACTIVEFOREGROUND = FONT_COLOR
 
 RADIOBUTTON_BACKGROUND = "#404040"
 RADIOBUTTON_FOREGROUND = FONT_COLOR
-RADIOBUTTON_SELECTCOLOR = "#404040"
+RADIOBUTTON_SELECTCOLOR = "#009A44"
+RADIOBUTTON_ACTIVEBORDERCOLOR = "white"
 
 RADIOBUTTON_FONT = FONT_NORM
 
@@ -701,10 +702,6 @@ RADIOBUTTON_OVERRELIEF = "flat"
 RADIOBUTTON_OFFRELIEF = "flat"
 RADIOBUTTON_RELIEF_PRESSED = "groove"
 RADIOBUTTON_CURSOR = BUTTON_CURSOR
-
-
-
-
 class BorderRadiobutton(tk.Frame):
 	def __init__(self, master, activebordercolor, text, variable, command, value, indicator, **kw):
 		tk.Frame.__init__(self, master=master, **kw)
@@ -752,62 +749,97 @@ class BorderRadiobutton(tk.Frame):
 		
 		
 		
-		self.bind("<Enter>", self.on_enter)
-		self.bind("<Leave>", self.on_leave)
-		self.bind("<Button-1>", self.on_click)
-		self.bind("<ButtonRelease-1>", self.on_release)
+		# self.bind("<Enter>", self.on_enter)
+		# self.bind("<Leave>", self.on_leave)
+		# self.bind("<Button-1>", self.on_click)
+		# self.bind("<ButtonRelease-1>", self.on_release)
+		
+		self.radiobutton.bind("<Enter>", self.on_enter)
+		self.radiobutton.bind("<Leave>", self.on_leave)
+		self.radiobutton.bind("<Button-1>", self.on_click)
+		self.radiobutton.bind("<ButtonRelease-1>", self.on_release)
 	
-	def invoke(self):
+	""" def invoke(self):
 		self.radiobutton.invoke()
 		self['background'] = self.activebordercolor
-		self.update_idletasks()
+		#self['background'] = RADIOBUTTON_ACTIVEBORDERCOLOR
+		self.update_idletasks() """
 		
 	
 		
 	def on_enter(self, e):
 		if(self.radiobutton['state'] == 'disabled'):
-			return		
-	
-		self['background'] = self.activebordercolor
+			return
+		
 		self['cursor'] = RADIOBUTTON_CURSOR
+		
+		# if(self.variable.get() == self.value):
+		# 	return
+		# else:
+		# 	self['background'] = self.activebordercolor
+		
 
 
 	def on_leave(self, e):
 		if(self.radiobutton['state'] == 'disabled'):
 			return			
 		
-		#print(self.variable.get())
-		
 		self['cursor']="arrow"
 		
-		if(self.variable.get() == self.value):
-			self['cursor']="arrow"
-			return
-		else:
-			self['background'] = RADIOBUTTON_BACKGROUND
-			self['cursor']="arrow"
-
+		# if(self.variable.get() == self.value):
+		# 	return
+		# else:
+		# 	self['background'] = RADIOBUTTON_BACKGROUND
+	
+	
 	def on_click(self, e):
 		if(self.radiobutton['state'] == 'disabled'):
 			return			
 		
-		self['background'] = BUTTON_ACTIVEBACKGROUND
 		self['relief'] = BUTTON_RELIEF_PRESSED
+		
+		self['background'] = self.activebordercolor
+		#self['background'] = "pink"
+		
+		#self['background'] = "pink"
+		
+		# if(self.variable.get() == self.value):
+		# 	return
+		# else:
+		# 	self['background'] = RADIOBUTTON_BACKGROUND
+		
+		
+		
+		#self['background'] = BUTTON_ACTIVEBACKGROUND
+		
 
 	def on_release(self, e):
 		if(self.radiobutton['state'] == 'disabled'):
 			return
 		
-		if(self.variable.get() == self.value):
-			
-			self['relief'] = BUTTON_RELIEF
-		else:
-			self['background'] = RADIOBUTTON_BACKGROUND
+		self['relief'] = BUTTON_RELIEF
+		
+		#self['background'] = "white"
 		
 		
+		#self['background'] = "pink"
 		
+		# if(self.variable.get() == self.value):
+		# 	return
+		# else:
+		# 	self['background'] = "pink"
 		
+		#self.update_idletasks()
 		
+		# else:
+		# 	self['background'] = RADIOBUTTON_BACKGROUND
+		
+	
+
+
+""" class BorderCheckbutton(tk.Frame):
+	def __init__(self, master, activebordercolor, text, variable, command, value, indicator, **kw):
+		tk.Frame.__init__(self, master=master, **kw) """
 		
 		
 		

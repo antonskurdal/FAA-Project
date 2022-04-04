@@ -705,7 +705,7 @@ class Inject(tk.Frame):
 		
 		
 		
-		# Apply Taxonomy
+		""" # Apply Taxonomy
 		labelframe_apply = sku.CustomLabelFrame(self, text="Apply Taxonomy to Current Range")
 		labelframe_apply.grid(row=4, column=12, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		labelframe_apply.grid_rowconfigure(0, weight=1)
@@ -758,7 +758,83 @@ class Inject(tk.Frame):
 			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
 			print(self.obj.current)
 		])
-		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
+		
+		
+		
+		
+		
+		def sel():
+			selection = "Sel: " + str(radio_string.get())
+			label.config(text = selection)
+		radio_string = tk.StringVar()
+		
+		# Apply Taxonomy
+		labelframe_taxonomy = sku.CustomLabelFrame(self, text="Apply Taxonomy to Current Range [2]")
+		labelframe_taxonomy.grid(row=4, column=12, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_taxonomy.grid_rowconfigure(0, weight=1)
+		for row in range(2):
+			labelframe_taxonomy.grid_rowconfigure(row, weight = 1)
+		
+		for col in range(5):
+			labelframe_taxonomy.grid_columnconfigure(col, weight=1)
+		#labelframe_taxonomy.grid_columnconfigure(3, weight=0)
+		labelframe_taxonomy.grid_propagate(False)
+		
+		radio_on = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_selected.png")
+		radio_off = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_unselected.png")
+		radio_test = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_test.png")
+		radio_test2 = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_test.png")
+		
+		
+		# Normal
+		radio_normal = sku.BorderRadiobutton(labelframe_taxonomy, activebordercolor = "#009A44", text = "normal", variable = radio_string, command = sel, value = "normal", indicator = 0)
+		radio_normal.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		#sku.get_attributes(radio_normal.radiobutton)
+		
+		# Dropout
+		radio_dropout = sku.BorderRadiobutton(labelframe_taxonomy, activebordercolor = "#009A44", text = "dropout", variable = radio_string, command = sel, value = "dropout", indicator = 0)
+		radio_dropout.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Noise
+		radio_noise = sku.BorderRadiobutton(labelframe_taxonomy, activebordercolor = "#009A44", text = "noise", variable = radio_string, command = sel, value = "noise", indicator = 0)
+		radio_noise.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Jammed
+		radio_jammed = sku.BorderRadiobutton(labelframe_taxonomy, activebordercolor = "#009A44", text = "jammed", variable = radio_string, command = sel, value = "jammed", indicator = 0)
+		radio_jammed.grid(row=1, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Spoofed
+		radio_spoofed = sku.BorderRadiobutton(labelframe_taxonomy, activebordercolor = "#009A44", text = "spoofed", variable = radio_string, command = sel, value = "spoofed", indicator = 0)
+		radio_spoofed.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Erroneous
+		radio_erroneous = sku.BorderRadiobutton(labelframe_taxonomy, activebordercolor = "#009A44", text = "erroneous", variable = radio_string, command = sel, value = "erroneous", indicator = 0)
+		radio_erroneous.grid(row=1, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		button_taxonomy_apply = sku.BorderButton(labelframe_taxonomy, button_text="Apply", button_activebackground='green', button_command=lambda: 
+		[
+			#print("[switch state]: {}".format(getattr(switch_dropout_length, "state"))),
+			#print(self.obj.current),
+			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), radio_string.get())),
+			#print(self.obj.current),
+			
+			#setattr(self.obj, 'current', stat_calc.calc_dropouts(self.obj.current)), 
+			#print(self.obj.current)
+			#stat_calc.regression(self.obj.current)
+			#stat_calc.get_dropouts(self.obj.current)
+		])
+		button_taxonomy_apply.grid(row=1, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		
+		
+		label = sku.CustomLabel(labelframe_taxonomy, width = 20)
+		label.grid(row=0, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		label.grid_propagate(False)
+		
+		radio_dropout.radiobutton.invoke()
+		#radio_dropout.invoke()
 		
 		
 		
@@ -768,7 +844,31 @@ class Inject(tk.Frame):
 		
 		
 		
-		""" # Calculate Statistic Columns
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		# Calculate Statistic Columns
 		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns")
 		labelframe_stats.grid(row=5, column=12, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		labelframe_stats.grid_rowconfigure(0, weight=1)
@@ -788,8 +888,8 @@ class Inject(tk.Frame):
 		
 		
 		# Separator
-		sep = tk.Frame(labelframe_stats, bg = '#AEAEAE', width = 2)
-		sep.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		sep_stats = tk.Frame(labelframe_stats, bg = '#AEAEAE', width = 2)
+		sep_stats.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Modify Current Data Switch
 		switch_dataset = sku.CustomSwitch(labelframe_stats, text="Modify Current Data", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dataset.grid(row=0, column=4, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
@@ -803,7 +903,7 @@ class Inject(tk.Frame):
 			#stat_calc.regression(self.obj.current)
 			stat_calc.get_dropouts(self.obj.current)
 		])
-		button_stats_apply.grid(row=0, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
+		button_stats_apply.grid(row=0, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		
 		
@@ -811,63 +911,7 @@ class Inject(tk.Frame):
 		
 		
 		
-		def sel():
-			selection = "Sel: " + str(radio_string.get())
-			label.config(text = selection)
-		radio_string = tk.StringVar()
 		
-		# Calculate Statistic Columns
-		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns [2]")
-		labelframe_stats.grid(row=5, column=12, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		labelframe_stats.grid_rowconfigure(0, weight=1)
-		for row in range(2):
-			labelframe_stats.grid_rowconfigure(row, weight = 1)
-		
-		for col in range(5):
-			labelframe_stats.grid_columnconfigure(col, weight=1)
-		#labelframe_stats.grid_columnconfigure(3, weight=0)
-		labelframe_stats.grid_propagate(False)
-		
-		radio_on = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_selected.png")
-		radio_off = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_unselected.png")
-		radio_test = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_test.png")
-		radio_test2 = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_test.png")
-		
-		
-		# Normal
-		radio_normal = sku.BorderRadiobutton(labelframe_stats, activebordercolor = "#009A44", text = "normal", variable = radio_string, command = sel, value = "normal", indicator = 0)
-		radio_normal.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		sku.get_attributes(radio_normal.radiobutton)
-		
-		# Dropout
-		radio_dropout = sku.BorderRadiobutton(labelframe_stats, activebordercolor = "#009A44", text = "dropout", variable = radio_string, command = sel, value = "dropout", indicator = 0)
-		radio_dropout.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		""" # Noise
-		radio_noise = sku.CustomRadiobutton(labelframe_stats, text = "noise", variable = radio_string, command = sel, value = "noise", indicator = 0)
-		radio_noise.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		# Jammed
-		radio_jammed = sku.CustomRadiobutton(labelframe_stats, text = "jammed", variable = radio_string, command = sel, value = "jammed", indicator = 0)
-		radio_jammed.grid(row=1, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		# Spoofed
-		radio_spoofed = sku.CustomRadiobutton(labelframe_stats, text = "spoofed", variable = radio_string, command = sel, value = "spoofed", indicator = 0)
-		radio_spoofed.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		# Erroneous
-		radio_erroneous = sku.CustomRadiobutton(labelframe_stats, text = "erroneous", variable = radio_string, command = sel, value = "erroneous", indicator = 0)
-		radio_erroneous.grid(row=1, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
-		
-		
-		
-		
-		label = sku.CustomLabel(labelframe_stats, width = 20)
-		label.grid(row=0, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		label.grid_propagate(False)
-		
-		#radio_dropout.radiobutton.invoke()
-		radio_dropout.invoke()
 		
 		
 		
