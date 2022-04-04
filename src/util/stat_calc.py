@@ -6,6 +6,7 @@
 """
 
 import pandas as pd
+import numpy as np
 
 __author__ = "Anton Skurdal"
 __copyright__ = "Copyright 2020, The FAA Project"
@@ -48,13 +49,110 @@ def apply_taxonomy(df, col, bounds, type):
 
 
 
-def get_dropouts(df):
+def dropouts(df):
 	
-	df.insert(df.shape[1], 'dropout_length', df['lastcontact'].diff()[1:])
+	if("dropout_length" in df.columns):
+		df['dropout_length'] = df['lastcontact'].diff()[1:]
+	else:
+		df.insert(df.shape[1], 'dropout_length', df['lastcontact'].diff()[1:])
+	
 	print(df)
+
+
+def zscore(df):
+	import scipy.stats as stats
 	
 	
-def regression(df):
+	zscores = stats.zscore(list(df['dropout_length'].dropna()))
+	zscores = np.insert(zscores, 0, np.NaN, axis = 0)
+		
+	if("dropout_zscore" in df.columns):
+		df['dropout_zscore'] = zscores
+	else:
+		df.insert(df.shape[1], 'dropout_zscore', zscores)
+	
+	
+	print("[zscore]:\n")
+	print(df[["dropout_length", "dropout_zscore", ]])
+	
+
+def simple_moving_average(df, window):
+	"""_summary_
+
+	Args:
+		df (_type_): _description_
+		window (int): Size of the moving window
+	"""
+	colname = "dropout_sma" + str(window)
+	
+	if(colname in df.columns):
+		print(list(df['dropout_length'].rolling(window).mean()))
+		df[colname] = list(df['dropout_length'].rolling(window).mean())
+	else:
+		df.insert(df.shape[1], colname, list(df['dropout_length'].rolling(window).mean()))
+	
+	print("[sma{}]:\n".format(window))
+	print(list(df['dropout_length'].rolling(window).mean()))
+	#y = list(df['dropout_length'].rolling(window))
+	
+	
+	
+	#df['dropout_length'].plot()
+	
+	"""
+	import matplotlib.pyplot as plt
+	df.reset_index()
+	df['dropout_length'].plot()
+	df['dropout_length'].rolling(window).mean().plot()
+	plt.legend()
+	plt.show()
+	"""
+	
+	print(df[["dropout_length", colname]])
+
+	
+
+
+def signal_noise_ratio(df, axis, ddof):
+	"""_summary_
+	Source: https://www.geeksforgeeks.org/scipy-stats-signaltonoise-function-python/
+	Args:
+		df (_type_): [array_like] Input dataframe to be converted into array or object having the elements to calculate the signal-to-noise ratio
+		axis (_type_): Axis along which the mean is to be computed. By default axis = 0.
+		ddof (_type_): Degree of freedom correction for Standard Deviation.
+
+	Returns:
+		snr (array): mean to standard deviation ratio i.e. signal-to-noise ratio.
+	"""
+	
+	
+	
+	a = df['dropout_length']
+	
+	a = np.asanyarray(a)
+	m = a.mean(axis)
+	sd = a.std(axis = axis, ddof = ddof)
+	
+	
+	snr = np.where(sd == 0, 0, m / sd)
+	
+	import matplotlib.pyplot as plt
+	
+	print("snr:\n{}".format(snr))
+	
+	plt.plot(snr)
+	plt.show()
+	
+	
+	return np.where(sd == 0, 0, m / sd)
+	
+	
+
+
+
+
+
+def linear_regression(df):
 	
 	import numpy as np
 	import matplotlib.pyplot as plt  # To visualize
@@ -62,10 +160,10 @@ def regression(df):
 	from sklearn.linear_model import LinearRegression
 	
 	X = df['dropout_length'].values.reshape(-1, 1)  # values converts it into a numpy array
-	print("[regression] X: {}".format(X))
+	print("[regression] X: {}".format(list(X)))
 	
 	Y = df.iloc[:, 1].values.reshape(-1, 1)  # -1 means that calculate the dimension of rows, but have 1 column
-	print("[regression] Y: {}".format(Y))
+	print("[regression] Y: {}".format(list(Y)))
 	
 	# linear_regressor = LinearRegression()  # create object for the class
 	# linear_regressor.fit(X, Y)  # perform linear regression
@@ -74,3 +172,4 @@ def regression(df):
 	# plt.scatter(X, Y)
 	# plt.plot(X, Y_pred, color='red')
 	# plt.show()
+	

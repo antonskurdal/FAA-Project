@@ -673,6 +673,7 @@ class CustomSwitch(tk.Frame):
 		# Create labelframe container
 		self.labelframe = CustomLabelFrame(self, text = self.text, labelanchor = textanchor)
 		self['bg'] = self.master['bg']
+		self.labelframe['font'] = FONT_NORM
 		self.labelframe.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, padx = PADX_CONFIG, pady = PADY_CONFIG)
 		
 		# Create switch by toggling
@@ -798,7 +799,8 @@ class BorderRadiobutton(tk.Frame):
 		
 		self['relief'] = BUTTON_RELIEF_PRESSED
 		
-		self['background'] = self.activebordercolor
+		#self['background'] = self.activebordercolor
+		
 		#self['background'] = "pink"
 		
 		#self['background'] = "pink"

@@ -42,7 +42,7 @@ PADY_CONFIG = (2, 2)
 class Inject(tk.Frame):
 
 	def __init__(self, parent, controller, *args, **kwargs):
-		tk.Frame.__init__(self, parent, *args, **kwargs, bg = sku.FRAME_BACKGROUND)
+		tk.Frame.__init__(self, parent, *args, **kwargs, bg = "black")#bg = sku.FRAME_BACKGROUND)
 		self.controller = controller
 		
 		###################
@@ -217,6 +217,11 @@ class Inject(tk.Frame):
 			if 'taxonomy' not in base_data.columns:
 				base_data.insert(1, 'taxonomy', 'normal')
 			
+			# Check if lastcontact column exists (normal, dropout, noise, etc.)
+			if 'lastcontact' not in base_data.columns:
+				button_stats_apply.child['state'] = 'disabled'
+			else:
+				button_stats_apply.child['state'] = 'normal'
 			
 			
 			self.filecontroller_main.label.child_text.set(file.name)
@@ -584,11 +589,11 @@ class Inject(tk.Frame):
 		button_plot.grid(row=4, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
 		# Print Base Data
-		button_print_base = sku.BorderButton(self, button_text='Show Base Data', button_activebackground='green', button_command=lambda: [print(self.obj.base[[self.obj.xs_colname, self.obj.ys_colname, 'taxonomy']])])
+		button_print_base = sku.BorderButton(self, button_text='Show Base Data', button_activebackground='green', button_command=lambda: [print(self.obj.base[[self.obj.xs_colname, self.obj.ys_colname, 'taxonomy']]), print(self.obj.base.columns)])
 		button_print_base.grid(row=5, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
 		# Print Current Data
-		button_print_current = sku.BorderButton(self, button_text='Show Current Data', button_activebackground='green', button_command=lambda: [tag_attacks(), print(self.obj.current[[self.obj.xs_colname, self.obj.ys_colname, 'taxonomy']])])
+		button_print_current = sku.BorderButton(self, button_text='Show Current Data', button_activebackground='green', button_command=lambda: [tag_attacks(), print(self.obj.current[[self.obj.xs_colname, self.obj.ys_colname, 'taxonomy']]), print(self.obj.current.columns)])
 		button_print_current.grid(row=5, column=3, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
 		# Save Modified
@@ -766,7 +771,7 @@ class Inject(tk.Frame):
 		
 		def sel():
 			selection = "Sel: " + str(radio_string.get())
-			label.config(text = selection)
+			#label.config(text = selection)
 		radio_string = tk.StringVar()
 		
 		# Apply Taxonomy
@@ -778,8 +783,8 @@ class Inject(tk.Frame):
 		
 		for col in range(5):
 			labelframe_taxonomy.grid_columnconfigure(col, weight=1)
-		#labelframe_taxonomy.grid_columnconfigure(3, weight=0)
-		labelframe_taxonomy.grid_propagate(False)
+		labelframe_taxonomy.grid_columnconfigure(3, weight=0)
+		#labelframe_taxonomy.grid_propagate(False)
 		
 		radio_on = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_selected.png")
 		radio_off = ImageTk.PhotoImage(file=Path.cwd() / "src" / "assets" / "radio_unselected.png")
@@ -812,29 +817,25 @@ class Inject(tk.Frame):
 		radio_erroneous = sku.BorderRadiobutton(labelframe_taxonomy, activebordercolor = "#009A44", text = "erroneous", variable = radio_string, command = sel, value = "erroneous", indicator = 0)
 		radio_erroneous.grid(row=1, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
+		
+		# Separator
+		sep_taxonomy = tk.Frame(labelframe_taxonomy, bg = '#AEAEAE', width = 2)
+		sep_taxonomy.grid(row=0, column=3, rowspan=2, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		""" # Label
+		label = sku.CustomLabel(labelframe_taxonomy, width = 20)
+		label.grid(row=0, column=4, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		label.grid_propagate(False) """
+		
+		# Apply
 		button_taxonomy_apply = sku.BorderButton(labelframe_taxonomy, button_text="Apply", button_activebackground='green', button_command=lambda: 
 		[
-			#print("[switch state]: {}".format(getattr(switch_dropout_length, "state"))),
-			#print(self.obj.current),
 			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), radio_string.get())),
-			#print(self.obj.current),
-			
-			#setattr(self.obj, 'current', stat_calc.calc_dropouts(self.obj.current)), 
-			#print(self.obj.current)
-			#stat_calc.regression(self.obj.current)
-			#stat_calc.get_dropouts(self.obj.current)
 		])
-		button_taxonomy_apply.grid(row=1, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		button_taxonomy_apply.grid(row=0, column=4, rowspan=2, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
-		
-		
-		
-		label = sku.CustomLabel(labelframe_taxonomy, width = 20)
-		label.grid(row=0, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		label.grid_propagate(False)
-		
+		# Set default value
 		radio_dropout.radiobutton.invoke()
-		#radio_dropout.invoke()
 		
 		
 		
@@ -863,16 +864,39 @@ class Inject(tk.Frame):
 		
 		
 		
-		
-		
-		
+		def calc_statistics():
+			
+			info = "[INJECT][calc_statistics] Settings:\n"
+			
+			if(switch_dataset.get_state()):
+				info += "- [Dataset]: current\n"
+				df = self.obj.current
+			else:
+				info += "- [Dataset]: base\n"
+				df = self.obj.base
+			
+			
+			if(switch_dropout_length.get_state()):
+				info += "- [dropout_length]: True\n"
+				stat_calc.dropouts(df)
+			else:
+				info += "- [dropout_length]: False\n"
+
+			#stat_calc.linear_regression(df)
+			stat_calc.zscore(df)
+			stat_calc.simple_moving_average(df, 25)
+			
+			stat_calc.signal_noise_ratio(df, 0, 1)
+			
+			print(info)
 		
 		
 		# Calculate Statistic Columns
-		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns")
+		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns (Dropout Length is always calculated)")
 		labelframe_stats.grid(row=5, column=12, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		labelframe_stats.grid_rowconfigure(0, weight=1)
-		for col in range(6):
+		for row in range(2):
+			labelframe_stats.grid_rowconfigure(row, weight=1)
+		for col in range(5):
 			labelframe_stats.grid_columnconfigure(col, weight=1)
 		labelframe_stats.grid_columnconfigure(3, weight=0)
 		# Dropout Length Switch
@@ -881,29 +905,38 @@ class Inject(tk.Frame):
 		# Dropout Z-Score Switch
 		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Dropout Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_zscore.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		# Dropout Linear Regression
-		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Dropout Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
-		switch_dropout_zscore.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Dropout Moving Average
+		switch_dropout_sma = sku.CustomSwitch(labelframe_stats, text="Simple Moving Average\n(w=25)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_sma.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Dropout Mode Deviation
+		switch_dropout_modedev = sku.CustomSwitch(labelframe_stats, text="Mode Deviation", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_modedev.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		
+		
+		
+		
+		
+		
+		""" # Dropout Linear Regression
+		switch_dropout_linearregression = sku.CustomSwitch(labelframe_stats, text="Linear Regression", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_linearregression.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
 		
 		
 		
 		# Separator
 		sep_stats = tk.Frame(labelframe_stats, bg = '#AEAEAE', width = 2)
-		sep_stats.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		sep_stats.grid(row=0, column=3, rowspan=2, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Modify Current Data Switch
 		switch_dataset = sku.CustomSwitch(labelframe_stats, text="Modify Current Data", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dataset.grid(row=0, column=4, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Apply Stats
 		button_stats_apply = sku.BorderButton(labelframe_stats, button_text="Apply", button_activebackground='green', button_command=lambda: 
 		[
-			#print("[switch state]: {}".format(getattr(switch_dropout_length, "state"))),
-			#print(self.obj.current), 
-			#setattr(self.obj, 'current', stat_calc.calc_dropouts(self.obj.current)), 
-			#print(self.obj.current)
-			#stat_calc.regression(self.obj.current)
-			stat_calc.get_dropouts(self.obj.current)
+			calc_statistics(),
 		])
-		button_stats_apply.grid(row=0, column=5, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		button_stats_apply.grid(row=1, column=4, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		
 		
@@ -950,7 +983,8 @@ class Inject(tk.Frame):
 		# Load sample file
 		load_sample = True
 		if(load_sample == True):
-			file = self.DATA_DIR / "sample" / "sample_a2fcf2_lite.csv"
+			#file = self.DATA_DIR / "sample" / "sample_a2fcf2_lite.csv"
+			file = self.DATA_DIR / "sample" / "a0f7db.parquet"
 			if(file.is_file()):
 				file_load(self.DATA_DIR / file)
 			else:
