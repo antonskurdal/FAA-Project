@@ -27,16 +27,16 @@ def signal_noise_ratio(df, axis, ddof):
 	m = np.nanmean(a, axis = axis)
 	
 	
-	print("mean: {}".format(m))
+	#print("mean: {}".format(m))
 	
 	sd = np.nanstd(a, axis = axis, ddof = ddof)
 	
-	print("mean: {}".format(m))
+	#print("mean: {}".format(m))
 	
 	
 	snr = np.where(sd == 0, 0, m / sd)
 	
-	print("snr:\n{}".format(snr))
+	#print("snr:\n{}".format(snr))
 	
 	#plt.plot(snr)
 	#plt.show()
@@ -173,9 +173,7 @@ def snr_rolling(df):
 	
 	#print(snr_list)
 	
-	df2 = df.copy()
-	
-	mode_dev, mode_zscores = mode_deviation(df2)
+	mode_dev, mode_zscores = mode_deviation(df)
 	
 	
 	

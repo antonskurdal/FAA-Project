@@ -7,6 +7,7 @@
 
 import pandas as pd
 import numpy as np
+import scipy.stats as stats
 
 __author__ = "Anton Skurdal"
 __copyright__ = "Copyright 2020, The FAA Project"
@@ -48,32 +49,35 @@ def apply_taxonomy(df, col, bounds, type):
 	return df
 
 
-
 def dropouts(df):
 	
+	# Dropout Length
 	if("dropout_length" in df.columns):
 		df['dropout_length'] = df['lastcontact'].diff()[1:]
 	else:
 		df.insert(df.shape[1], 'dropout_length', df['lastcontact'].diff()[1:])
-	
-	print(df)
+	#print(df)
+	return
 
 
-def zscore(df):
-	import scipy.stats as stats
+def stdev_zscore(df):
 	
-	
-	zscores = stats.zscore(list(df['dropout_length'].dropna()))
-	zscores = np.insert(zscores, 0, np.NaN, axis = 0)
-		
-	if("dropout_zscore" in df.columns):
-		df['dropout_zscore'] = zscores
+	# Standard Deviation
+	stdev = df['dropout_length'].std()
+	if("stdev" in df.columns):
+		df['stdev'] = stdev
 	else:
-		df.insert(df.shape[1], 'dropout_zscore', zscores)
+		df.insert(df.shape[1], 'stdev', stdev)
 	
+	# Standard Deviation Z-Score
+	stdev_zscores = stats.zscore(df['dropout_length'].dropna())
+	if("stdev_zscore" in df.columns):
+		df['stdev_zscore'] = stdev_zscores
+	else:
+		df.insert(df.shape[1], 'stdev_zscore', stdev_zscores)
 	
-	print("[zscore]:\n")
-	print(df[["dropout_length", "dropout_zscore", ]])
+	#print(df[['dropout_length', 'stdev', 'stdev_zscore']])
+	return
 	
 
 def simple_moving_average(df, window):
@@ -83,8 +87,24 @@ def simple_moving_average(df, window):
 		df (_type_): _description_
 		window (int): Size of the moving window
 	"""
+	
+	# Create column name with window value included
 	colname = "dropout_sma" + str(window)
 	
+	# Simple Moving Average
+	sma = df['dropout_length'].rolling(window).mean()
+	if(colname in df.columns):
+		df[colname] = sma
+	else:
+		df.insert(df.shape[1], colname, sma)
+	
+	#print(df[['dropout_length', colname]])
+	""" import matplotlib.pyplot as plt
+	df['dropout_length'].plot()
+	df[colname].plot()
+	plt.legend()
+	plt.show() """
+	return
 	if(colname in df.columns):
 		print(list(df['dropout_length'].rolling(window).mean()))
 		df[colname] = list(df['dropout_length'].rolling(window).mean())
@@ -110,8 +130,6 @@ def simple_moving_average(df, window):
 	
 	print(df[["dropout_length", colname]])
 
-	
-
 
 def signal_noise_ratio(df, axis, ddof):
 	"""_summary_
@@ -125,7 +143,19 @@ def signal_noise_ratio(df, axis, ddof):
 		snr (array): mean to standard deviation ratio i.e. signal-to-noise ratio.
 	"""
 	
+	# Set column to numpy array
+	arr = df['dropout_length']
+	arr = np.asanyarray(arr)
 	
+	# Mean and standard deviation
+	mean = np.nanmean(arr, axis = axis)
+	stdev = np.nanstd(arr, axis = axis, ddof = ddof)
+	
+	# Signal to Noise Ratio
+	snr = np.where(stdev == 0, 0, mean / stdev)
+	
+	#print(snr)
+	return snr
 	
 	a = df['dropout_length']
 	
@@ -147,6 +177,143 @@ def signal_noise_ratio(df, axis, ddof):
 	return np.where(sd == 0, 0, m / sd)
 	
 	
+def snr_rolling(df, axis, ddof):
+	
+	# Initialize list
+	snr_list = []
+	
+	# Loop through list calculating and appending Signal to Noise Ratio
+	for i in range(df.shape[0]):
+		snr_list.append(signal_noise_ratio(df[:i], axis, ddof))
+	
+	# Signal to Noise Ratio (Rolling)
+	if("snr_rolling" in df.columns):
+		df['snr_rolling'] = snr_list
+	else:
+		df.insert(df.shape[1], 'snr_rolling', snr_list)
+	
+	#print(df[['dropout_length', 'snr_rolling']])
+	return
+	
+
+def mode_deviation(df):
+	"""_summary_
+	Mode Deviation Algorithm by Akshay Ramchandra, University of North Dakota, April 4 2022
+
+	Args:
+		df (_type_): _description_
+	"""
+	
+	
+	# Calculate 'true mode' by removing values <=0
+	df_temp = df.copy()
+	df_temp.loc[df_temp['dropout_length'] <= 0] = None
+	true_mode = df_temp['dropout_length'].mode()[0]
+	
+	# Calculate mode
+	mode = df['dropout_length'].mode()[0]
+	
+	# Use true mode?
+	#print(mode, true_mode)
+	use_true_mode = True
+	if(use_true_mode):
+		mode = true_mode
+	
+	
+	# Calculate Mode Deviation
+	arr = df['dropout_length']
+	sig = 0
+	counter = 0
+	for i in arr:
+		if i > mode:
+			counter += 1
+			sig += ((i - mode) ** 2)
+	if counter > 0:
+		mode_dev = (sig / counter) ** 0.5
+	else:
+		mode_dev = 0
+	
+	# Mode Deviation
+	#print("Mode Deviation: {}".format(mode_dev))
+	if("mode_dev" in df.columns):
+		df['mode_dev'] = mode_dev
+	else:
+		df.insert(df.shape[1], 'mode_dev', mode_dev)
+	
+	
+	# Calculate Mode Deviation Z-Score
+	mode_dev_zscores = []
+	for i in arr:
+		z = (i - mode) / mode_dev
+		mode_dev_zscores.append(z)
+	
+	# Mode Deviation Z-Scores
+	#print("Mode Deviation Z-Scores: {}".format(mode_dev_zscores))
+	if("mode_dev_zscore" in df.columns):
+		df['mode_dev_zscore'] = mode_dev_zscores
+	else:
+		df.insert(df.shape[1], 'mode_dev_zscore', mode_dev_zscores)
+	
+	#print(df[['dropout_length', 'mode_dev', 'mode_dev_zscore']])
+	return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

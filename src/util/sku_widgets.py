@@ -682,7 +682,7 @@ class CustomSwitch(tk.Frame):
 		# Toggle again if switch is not at correct initial state
 		if(self.state != init_state):
 			toggle()
-		
+	
 	def get_state(self):
 		return self.state
 

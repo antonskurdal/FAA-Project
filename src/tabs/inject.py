@@ -866,62 +866,93 @@ class Inject(tk.Frame):
 		
 		def calc_statistics():
 			
-			info = "[INJECT][calc_statistics] Settings:\n"
+			# Set booleans
+			current_dataset = switch_dataset.get_state()
+			dropout_length = switch_dropout_length.get_state()
+			stddev_zscore = switch_dropout_zscore.get_state()
+			sma = switch_dropout_sma.get_state()
+			snr = switch_dropout_snr.get_state()
+			modedev_zscore = switch_dropout_modedev.get_state()
+			constants = switch_dropout_constants.get_state()
 			
+			# Return if nothing is true
+			if not any(v == True for v in [dropout_length, stddev_zscore, sma, snr, modedev_zscore, constants]):
+				#print("NONE TRUE")
+				return
+			
+			# Calculate dropout_length if any others are true
+			if any(v == True for v in [stddev_zscore, sma, snr, modedev_zscore, constants]):
+				#print("TRUE")
+				dropout_length = True
+				#return
+			
+			# Assign dataset
 			if(switch_dataset.get_state()):
-				info += "- [Dataset]: current\n"
+				#info += "- [Dataset]: current\n"
 				df = self.obj.current
 			else:
-				info += "- [Dataset]: base\n"
+				#info += "- [Dataset]: base\n"
 				df = self.obj.base
 			
 			
-			if(switch_dropout_length.get_state()):
-				info += "- [dropout_length]: True\n"
+			# Dropout Length
+			if(dropout_length):
 				stat_calc.dropouts(df)
-			else:
-				info += "- [dropout_length]: False\n"
-
-			#stat_calc.linear_regression(df)
-			stat_calc.zscore(df)
-			stat_calc.simple_moving_average(df, 25)
 			
-			stat_calc.signal_noise_ratio(df, 0, 1)
+			"""CONSTANTS?"""
 			
-			print(info)
+			# Standard Deviation Z-Score
+			if(stddev_zscore):
+				stat_calc.stdev_zscore(df)
+			
+			# Simple Moving Average (window = 25)
+			if(switch_dropout_sma):
+				stat_calc.simple_moving_average(df, 25)
+			
+			# Signal to Noise Ratio (Rolling)
+			if(switch_dropout_snr):
+				stat_calc.snr_rolling(df, 0, 0)
+			
+			# Mode Deviation Z-Score
+			if(switch_dropout_modedev):
+				stat_calc.mode_deviation(df)
+			
+			return
 		
 		
 		# Calculate Statistic Columns
-		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns (Dropout Length is always calculated)")
-		labelframe_stats.grid(row=5, column=12, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns (Dropout Length is always calculated if anything else is)")
+		labelframe_stats.grid(row=5, column=12, rowspan=2, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		for row in range(2):
 			labelframe_stats.grid_rowconfigure(row, weight=1)
 		for col in range(5):
 			labelframe_stats.grid_columnconfigure(col, weight=1)
 		labelframe_stats.grid_columnconfigure(3, weight=0)
+		labelframe_stats.grid_propagate(False)
 		# Dropout Length Switch
 		switch_dropout_length = sku.CustomSwitch(labelframe_stats, text="Dropout Length", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_length.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Z-Score Switch
-		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Dropout Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Std Dev Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_zscore.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Moving Average
 		switch_dropout_sma = sku.CustomSwitch(labelframe_stats, text="Simple Moving Average\n(w=25)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_sma.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Dropout Signal to Noise Ratio
+		switch_dropout_snr = sku.CustomSwitch(labelframe_stats, text="Signal to Noise Ratio (rolling)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_snr.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Mode Deviation
-		switch_dropout_modedev = sku.CustomSwitch(labelframe_stats, text="Mode Deviation", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
-		switch_dropout_modedev.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		switch_dropout_modedev = sku.CustomSwitch(labelframe_stats, text="Mode Dev Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_modedev.grid(row=1, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
-		
-		
-		
-		
-		
-		
+		# Mean, Mode, Std, Mode Dev
+		switch_dropout_constants = sku.CustomSwitch(labelframe_stats, text="Mean, Mode, Std, Mode Dev\n(Constants)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_constants.grid(row=1, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		""" # Dropout Linear Regression
 		switch_dropout_linearregression = sku.CustomSwitch(labelframe_stats, text="Linear Regression", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
-		switch_dropout_linearregression.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
+		switch_dropout_linearregression.grid(row=1, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
+		
 		
 		
 		
@@ -937,9 +968,6 @@ class Inject(tk.Frame):
 			calc_statistics(),
 		])
 		button_stats_apply.grid(row=1, column=4, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		
-		
 		
 		
 		
