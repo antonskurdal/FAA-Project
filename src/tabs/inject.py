@@ -225,7 +225,7 @@ class Inject(tk.Frame):
 			
 			
 			self.filecontroller_main.label.child_text.set(file.name)
-			self.filecontroller_save_current.label.child_text.set(file.stem + "_modified" + file.suffix)
+			self.filecontroller_save_current.label.child_text.set(file.stem + "_modified")
 			
 			
 			
@@ -968,6 +968,17 @@ class Inject(tk.Frame):
 			calc_statistics(),
 		])
 		button_stats_apply.grid(row=1, column=4, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		
+		
+		# Autotag
+		button_autotag = sku.BorderButton(self, button_text="Autotag", button_activebackground='green', button_command=lambda: 
+		[
+			stat_calc.scoreV0(self.obj.current),
+		])
+		button_autotag.grid(row=8, column=6, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
 		
 		
 		

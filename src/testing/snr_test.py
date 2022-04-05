@@ -113,10 +113,19 @@ def reg_rmse(df):
 def mode_deviation(df):
 	
 	
-	# Calculate true mode by remove values <= 0
-	df.loc[df['dropout_length'] <= 0] = None
+	# Calculate 'true mode' by removing values <=0
+	df_temp = df.copy()
+	df_temp.loc[df_temp['dropout_length'] <= 0] = None
+	true_mode = df_temp['dropout_length'].mode()[0]
+	
+	# Calculate mode
 	mode = df['dropout_length'].mode()[0]
-	print("Mode: {}".format(mode))
+	
+	# Use true mode?
+	#print(mode, true_mode)
+	use_true_mode = True
+	if(use_true_mode):
+		mode = true_mode
 	
 	arr = df['dropout_length']
 	sig = 0
@@ -157,6 +166,7 @@ def mode_deviation(df):
 	plt.legend()
 	plt.title("STD vs MODE Deviation")
 	plt.show()
+	plt.clf()
 	return mode_dev, mode_zscores
 
 
@@ -177,10 +187,17 @@ def snr_rolling(df):
 	
 	
 	
-	plt.plot(df['dropout_length'], label = "dropout_length")
-	plt.plot(snr_list, label = "rolling snr")
-	plt.plot(df['dropout_sma25'], label = "sma25")
-	plt.plot(df['dropout_zscore'], label = "dropout_zscore")
+	# plt.plot(df['dropout_length'], label = "dropout_length")
+	# plt.plot(snr_list, label = "rolling snr")
+	# plt.plot(df['dropout_sma25'], label = "sma25")
+	# plt.plot(df['dropout_zscore'], label = "dropout_zscore")
+	
+	
+	plt.scatter(df.index, df['dropout_length'], label = "dropout_length", s = 100)
+	plt.scatter(df.index, snr_list, label = "rolling snr")
+	plt.scatter(df.index, df['dropout_sma25'], label = "sma25")
+	plt.scatter(df.index, df['dropout_zscore'], label = "dropout_zscore")
+	
 	
 	df.loc[df['dropout_length'] <= 0] = None
 	#print(df)
@@ -195,12 +212,7 @@ def snr_rolling(df):
 	
 	#print(df['dropout_length'].mode()[0])
 	print(mode)
-	
-	
-	
-	
-	
-	plt.plot(mode_zscores, label = "mode zscore")
+	#plt.plot(mode_zscores, label = "mode zscore")
 	
 	
 	

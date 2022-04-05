@@ -56,6 +56,14 @@ def dropouts(df):
 		df['dropout_length'] = df['lastcontact'].diff()[1:]
 	else:
 		df.insert(df.shape[1], 'dropout_length', df['lastcontact'].diff()[1:])
+	
+	# Mean
+	mean = df['dropout_length'].mean()
+	if("mean" in df.columns):
+		df['mean'] = mean
+	else:
+		df.insert(df.shape[1], 'mean', mean)
+		
 	#print(df)
 	return
 
@@ -89,7 +97,7 @@ def simple_moving_average(df, window):
 	"""
 	
 	# Create column name with window value included
-	colname = "dropout_sma" + str(window)
+	colname = "sma" + str(window)
 	
 	# Simple Moving Average
 	sma = df['dropout_length'].rolling(window).mean()
@@ -219,6 +227,12 @@ def mode_deviation(df):
 	if(use_true_mode):
 		mode = true_mode
 	
+	# Mode 
+	if("mode" in df.columns):
+		df['mode'] = mode
+	else:
+		df.insert(df.shape[1], 'mode', mode)
+	
 	
 	# Calculate Mode Deviation
 	arr = df['dropout_length']
@@ -258,7 +272,71 @@ def mode_deviation(df):
 	return
 
 
-
+def scoreV0(df):
+	
+	# Calculate a score for each row
+	scores = []
+	for i, row in df.iterrows():
+		score = 0
+		#print(row['dropout_length'])
+		
+		
+		# dropout_length > mean
+		if (row['dropout_length'] > row['mean']):
+			score += 1
+			
+		# dropout_length > mode
+		if (row['dropout_length'] > row['mode']):
+			score += 1
+		
+		# dropout_length > sma25
+		if (row['dropout_length'] > row['sma25']):
+			score += 1
+		
+		# dropout_length > snr_rolling
+		if (row['dropout_length'] > row['snr_rolling']):
+			score += 1
+		
+		# stdev_zscore > x
+		if (row['stdev_zscore'] > 1):
+			score += 1
+		if (row['stdev_zscore'] > 2):
+			score += 1
+		if (row['stdev_zscore'] > 3):
+			score += 1
+		
+		# mode_dev_zscore > x
+		if (row['mode_dev_zscore'] > 1):
+			score += 1
+		if (row['mode_dev_zscore'] > 2):
+			score += 1
+		if (row['mode_dev_zscore'] > 3):
+			score += 1
+		
+		scores.append(score)
+		
+	# Dropout Score
+	if("score" in df.columns):
+		df['score'] = scores
+	else:
+		df.insert(df.shape[1], 'score', scores)
+	
+	
+	import matplotlib.pyplot as plt
+	from matplotlib import rcParams
+	import seaborn as sns
+	fig, axs = plt.subplots(2, 1, figsize = (10, 8))
+	axs[0].plot(df['score'])
+	axs[1].plot(df['dropout_length'])
+	plt.show()
+	plt.clf()
+	
+	
+	rcParams['figure.figsize'] = 10, 8
+	sns.scatterplot(data = df, x = df.index, y = "score", hue = "score", palette=sns.dark_palette("#FF0000", as_cmap=True))
+	plt.show()
+	
+	#return df
 
 
 
