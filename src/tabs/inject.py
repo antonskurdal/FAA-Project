@@ -1024,7 +1024,7 @@ class Inject(tk.Frame):
 		
 		
 		# Calculate Statistic Columns
-		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns (Dropout Length is always calculated if anything else is)")
+		labelframe_stats = sku.CustomLabelFrame(self, text="Create Statistic Columns")
 		labelframe_stats.grid(row=5, column=12, rowspan=2, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		for row in range(2):
 			labelframe_stats.grid_rowconfigure(row, weight=1)
@@ -1033,24 +1033,24 @@ class Inject(tk.Frame):
 		labelframe_stats.grid_columnconfigure(3, weight=0)
 		labelframe_stats.grid_propagate(False)
 		# Dropout Length Switch
-		switch_dropout_length = sku.CustomSwitch(labelframe_stats, text="Dropout Length", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_length = sku.CustomSwitch(labelframe_stats, text="Dropout Length\n(seconds)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_length.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Z-Score Switch
-		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Std Dev Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Std Deviation\nZ-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_zscore.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Moving Average
-		switch_dropout_sma = sku.CustomSwitch(labelframe_stats, text="Simple Moving Average\n(w=10)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_sma = sku.CustomSwitch(labelframe_stats, text="Simple Moving\nAverage\n(w=10)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_sma.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Signal to Noise Ratio
-		switch_dropout_snr = sku.CustomSwitch(labelframe_stats, text="Signal to Noise Ratio (rolling)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_snr = sku.CustomSwitch(labelframe_stats, text="Signal to Noise Ratio\n(rolling)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_snr.grid(row=1, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Mode Deviation
-		switch_dropout_modedev = sku.CustomSwitch(labelframe_stats, text="Mode Dev Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_modedev = sku.CustomSwitch(labelframe_stats, text="Mode Deviation\nZ-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_modedev.grid(row=1, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		# Mean, Mode, Std, Mode Dev
 		switch_dropout_constants = sku.CustomSwitch(labelframe_stats, text="Mean, Mode, Std, Mode Dev\n(Constants)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
-		switch_dropout_constants.grid(row=1, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		#switch_dropout_constants.grid(row=1, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		""" # Dropout Linear Regression
 		switch_dropout_linearregression = sku.CustomSwitch(labelframe_stats, text="Linear Regression", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
@@ -1063,7 +1063,7 @@ class Inject(tk.Frame):
 		sep_stats = tk.Frame(labelframe_stats, bg = '#AEAEAE', width = 2)
 		sep_stats.grid(row=0, column=3, rowspan=2, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Modify Current Data Switch
-		switch_dataset = sku.CustomSwitch(labelframe_stats, text="Modify Current Data", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dataset = sku.CustomSwitch(labelframe_stats, text="Modify Current\n Dataset", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dataset.grid(row=0, column=4, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Apply Stats
 		button_stats_apply = sku.BorderButton(labelframe_stats, button_text="Apply", button_activebackground='green', button_command=lambda: 
@@ -1081,7 +1081,7 @@ class Inject(tk.Frame):
 			stat_calc.score(self.obj.current),
 			stat_calc.autotag(self.obj.current)
 		])
-		button_autotag.grid(row=8, column=6, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		button_autotag.grid(row=7, column=12, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		
 		
 		
@@ -1099,7 +1099,7 @@ class Inject(tk.Frame):
 
 		# Banner
 		frame_banner = sku.BorderFrame(self, background='#505050', border_color="green")
-		frame_banner.grid(row=7, column=12, rowspan=2, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		frame_banner.grid(row=7, column=0, rowspan=2, columnspan=8, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		frame_banner_child = frame_banner.nametowidget('child')
 		frame_banner_child.grid_columnconfigure(0, weight=1)
 		frame_banner_child.grid_rowconfigure(0, weight=1)
