@@ -269,7 +269,7 @@ class Inject(tk.Frame):
 
 		###############################
 		def tag_attacks():
-			
+			return
 			# BROKEN! DOES NOT WORK WITH THE NEW 'INSERT POINTS' FUNCTIONALITY IN THE POLYGON INTERACTOR
 			
 			
@@ -712,7 +712,9 @@ class Inject(tk.Frame):
 		frame_plot.nametowidget('child').grid_columnconfigure(0, weight=1)  # , minsize = 100)
 		frame_plot.nametowidget('child').grid_rowconfigure(0, weight=1)
 		frame_plot.nametowidget('child').grid_rowconfigure(1, weight=0, minsize=50)
-
+		#self.grid_propagate(False)
+		#frame_plot.grid_propagate(False)
+		
 		# Double Slider Parent Widget
 		labelframe_slider = sku.CustomLabelFrame(self, text="X-Axis Modification Range Selection (Inclusive)")
 		labelframe_slider.grid(row=6, column=6, rowspan=1, columnspan=6,sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
@@ -1008,7 +1010,7 @@ class Inject(tk.Frame):
 			
 			# Simple Moving Average (window = 25)
 			if(switch_dropout_sma):
-				stat_calc.simple_moving_average(df, 25)
+				stat_calc.simple_moving_average(df, 10)
 			
 			# Signal to Noise Ratio (Rolling)
 			if(switch_dropout_snr):
@@ -1037,7 +1039,7 @@ class Inject(tk.Frame):
 		switch_dropout_zscore = sku.CustomSwitch(labelframe_stats, text="Std Dev Z-Score", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_zscore.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Moving Average
-		switch_dropout_sma = sku.CustomSwitch(labelframe_stats, text="Simple Moving Average\n(w=25)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
+		switch_dropout_sma = sku.CustomSwitch(labelframe_stats, text="Simple Moving Average\n(w=10)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
 		switch_dropout_sma.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		# Dropout Signal to Noise Ratio
 		switch_dropout_snr = sku.CustomSwitch(labelframe_stats, text="Signal to Noise Ratio (rolling)", textanchor = "n", on_image = switch_on, off_image=switch_off, init_state = True)
@@ -1115,6 +1117,15 @@ class Inject(tk.Frame):
 		#########
 		# SETUP #
 		#########
+		
+		""" self.grid_propagate(False)
+		for child in self.winfo_children():
+			child.grid_propagate(False)
+			for c in child.winfo_children():
+				c.grid_propagate(False)
+				for _ in c.winfo_children():
+					_.grid_propagate(False) """
+		
 		
 		# Set directory
 		self.DATA_DIR = Path.cwd() / Path("data")

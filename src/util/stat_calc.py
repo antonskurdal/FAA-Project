@@ -100,14 +100,21 @@ def simple_moving_average(df, window):
 	"""
 	
 	# Create column name with window value included
-	colname = "sma" + str(window)
+	#window_colname = "window_size"
+	
+	# Window Size
+	if("sma_window_size" in df.columns):
+		df['sma_window_size'] = str(window)
+	else:
+		df.insert(df.shape[1], 'sma_window_size', str(window))
+	
 	
 	# Simple Moving Average
 	sma = df['dropout_length'].rolling(window).mean()
-	if(colname in df.columns):
-		df[colname] = sma
+	if("sma" in df.columns):
+		df['sma'] = sma
 	else:
-		df.insert(df.shape[1], colname, sma)
+		df.insert(df.shape[1], 'sma', sma)
 	
 	#print(df[['dropout_length', colname]])
 	""" import matplotlib.pyplot as plt
@@ -293,7 +300,7 @@ def score(df):
 			score += 1
 		
 		# dropout_length > sma25
-		if (row['dropout_length'] > row['sma25']):
+		if (row['dropout_length'] > row['sma']):
 			score += 1
 		
 		# dropout_length > snr_rolling
@@ -325,14 +332,25 @@ def score(df):
 		df.insert(df.shape[1], 'score', scores)
 	
 	fig, axs = plt.subplots(2, 1, figsize = (10, 8))
-	axs[0].plot(df['score'])
-	axs[1].plot(df['dropout_length'])
+	axs[0].plot(df['time'], df['score'], label = "score value")
+	axs[0].set_title("Score vs Time")
+	axs[0].set_xlabel("time (s)")
+	axs[0].set_ylabel("score")
+	
+	axs[1].plot(df['time'], df['dropout_length'], label = "dropout_length")
+	axs[1].set_title("Dropout Length vs Time")
+	axs[1].set_xlabel("time (s)")
+	axs[1].set_ylabel("dropout_length (s)")
+	
 	plt.show()
 	plt.clf()
 	
 	from matplotlib import rcParams
 	rcParams['figure.figsize'] = 10, 8
-	sns.scatterplot(data = df, x = df.index, y = "score", hue = "score", palette=sns.dark_palette("#FF0000", as_cmap=True))
+	sns.scatterplot(data = df, x = "time", y = "score", hue = "score", palette=sns.dark_palette("#FF0000", as_cmap=True))
+	plt.title("Score vs Time")
+	plt.xlabel("time (s)")
+	plt.ylabel("score value")
 	plt.show()
 	
 	return df
@@ -360,7 +378,10 @@ def autotag(df):
 			df.at[i, 'taxonomy'] = "erroneous"
 	
 	hue_order = ['normal', 'erroneous', 'noise', 'dropout']
-	sns.scatterplot(data = df, x = df.index, y = "dropout_length", hue = "taxonomy", hue_order = hue_order)
+	sns.scatterplot(data = df, x = "time", y = "dropout_length", hue = "taxonomy", hue_order = hue_order)
+	plt.title("Dropout Length vs Time (Colored by Label)")
+	plt.xlabel("time (s)")
+	plt.ylabel("dropout_length (s)")
 	plt.show()
 	
 	# Taxonomy Counts
