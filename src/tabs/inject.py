@@ -147,6 +147,7 @@ class Inject(tk.Frame):
 			# Allow rows with one or less unique value to appear in the selection listboxes
 			allow_generic = False
 			#print("[INJECT][POPULATE_LISTBOX] DF COLUMNS: {}".format(df.columns))
+			#print(df['vertrate'])
 			
 			for col in df.columns:
 				#print("[INJECT][POPULATE_LISTBOX] COL: {}, type={}".format(col, df.dtypes[col]))
@@ -217,6 +218,10 @@ class Inject(tk.Frame):
 			if 'taxonomy' not in base_data.columns:
 				base_data.insert(1, 'taxonomy', 'normal')
 			
+			##########################################################################
+			base_data = remove_epoch(base_data)
+			##########################################################################
+			
 			# Check if lastcontact column exists (normal, dropout, noise, etc.)
 			if 'lastcontact' not in base_data.columns:
 				button_stats_apply.child['state'] = 'disabled'
@@ -244,6 +249,23 @@ class Inject(tk.Frame):
 			#print("[INJECT][FILE_LOAD] FILE: {} (type = {})".format(self.FILE.stem, type(self.FILE)))
 			
 			sel_changed('<<ListboxSelect>>')
+
+
+		def remove_epoch(df):
+			
+			# Dropout Score
+			if("epoch_time" in df.columns):
+				df['epoch_time'] = df['time']
+			else:
+				df.insert(1, 'epoch_time', df['time'])
+			
+			
+			epoch = df['time'].iloc[0]
+			print(epoch)
+			df['time'] = df['time'] - epoch
+			print(df.head())
+			print(df.columns)
+			return df
 
 		###############################
 		def tag_attacks():
@@ -285,7 +307,7 @@ class Inject(tk.Frame):
 			# print(listbox_xs.get(listbox_ys.curselection()))
 			
 			#Set object parameters
-			self.obj.current = self.obj.base.copy(deep=True)
+			#self.obj.current = self.obj.base.copy(deep=True)
 			self.obj.xs_colname = listbox_xs.get(listbox_xs.curselection())
 			self.obj.ys_colname = listbox_ys.get(listbox_ys.curselection())
 			
@@ -295,7 +317,7 @@ class Inject(tk.Frame):
 			
 			print("[INJECT][sel_changed] xs_colname: {}".format(self.obj.xs_colname))
 		
-			#Disable buttons if index is plotted
+			""" #Disable buttons if index is plotted
 			if(self.obj.xs_colname == "index" or self.obj.ys_colname == "index"):
 				button_fit.child['state'] = 'disabled'
 				button_drop.child['state'] = 'disabled'
@@ -305,9 +327,8 @@ class Inject(tk.Frame):
 				
 				slider_min = min(self.obj.current.index)
 				slider_max = max(self.obj.current.index)
-				
-				
 			else:
+				print("colname not index")
 				button_fit.child['state'] = 'normal'
 				button_drop.child['state'] = 'normal'
 				button_noise.child['state'] = 'normal'
@@ -318,14 +339,53 @@ class Inject(tk.Frame):
 				slider_max = max(self.obj.current[self.obj.xs_colname])
 			
 			print("slider_min: {}".format(slider_min))
+			print("slider_max: {}".format(slider_max)) """
+			
+			
+			# Create array for slider
+			if(self.obj.xs_colname == "index"):
+				arr = self.obj.current.index
+			else:
+				print("[INJECT][sel_changed] xs not 'index'")
+				arr = self.obj.current[self.obj.xs_colname]
+			
+			# Set min/max
+			slider_min = min(arr)
+			slider_max = max(arr)
+			
+			# Widen bounds by 0.001 on either side for floating point precision error tolerance
+			print("BEFORE:")
+			print("slider_min: {}".format(slider_min))
 			print("slider_max: {}".format(slider_max))
+			slider_min -= 0.001
+			slider_max += 0.001
+			
+			# Disable buttons if y-axis is 'index'
+			if(self.obj.ys_colname == "index"):
+				button_fit.child['state'] = 'disabled'
+				button_drop.child['state'] = 'disabled'
+				button_noise.child['state'] = 'disabled'
+				button_percent.child['state'] = 'disabled'
+				button_num.child['state'] = 'disabled'
+			else:
+				print("[INJECT][sel_changed] ys not 'index'")
+				button_fit.child['state'] = 'normal'
+				button_drop.child['state'] = 'normal'
+				button_noise.child['state'] = 'normal'
+				button_percent.child['state'] = 'normal'
+				button_num.child['state'] = 'normal'
+			
+			print("AFTER:")
+			print("slider_min: {}".format(slider_min))
+			print("slider_max: {}".format(slider_max))
+			
 			
 			
 			
 			#Create slider
 			self.slider = sku.LiSlider(
 				labelframe_slider, 
-				width=500, 
+				width=650, 
 				height=60, 
 				min_val=slider_min, 
 				max_val=slider_max, 
@@ -345,12 +405,15 @@ class Inject(tk.Frame):
 				show_value=True
 				) """
 			
-			self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+			self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,sticky="NSEW", padx=(3,2), pady=PADY_CONFIG)
 			self.slider.canv['bg'] = sku.SCALE_BACKGROUND
 			self.slider.canv.master['bg'] = sku.SCALE_BACKGROUND
 			self.slider.canv['highlightthickness'] = 0
 			self.slider.canv.master['highlightthickness'] = 2
 			self.slider.canv.master['highlightbackground'] = sku.SCALE_HIGHLIGHTBACKGROUND
+			
+			grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj)
+			
 		
 		
 		########################
@@ -379,10 +442,44 @@ class Inject(tk.Frame):
 		def drop_data(master, bounds):
 			
 			print(bounds)
+			print("[INJECT][drop_data] Bounds:{}".format(bounds))
 			
-			data = self.obj.current
+			df = self.obj.current.copy()
+			# Create array
+			if(self.obj.xs_colname == "index"):
+				arr = df.index
+			else:
+				print("[INJECT][drop_data] xs not 'index'")
+				arr = df[self.obj.xs_colname]
+			
+			
+			lower = df[arr <= bounds[0]]
+			higher = df[arr >= bounds[1]]
+			df = pd.concat([lower, higher])
+			print("[INJECT][drop_data] df:\n{}\n".format(df))
+			
+			self.obj.current = df
+			
+			
+			
+			# t = data.index
+			# test_low = data[t <= bounds[0]]
+			# test_high = data[t >= bounds[1]]
+			# test_data = pd.concat([test_low, test_high])
+			
+			# print("[INJECT][drop_data] test:\n{}\n".format(test_data))
+			
+			
+			
+			
+			
+			""" data = self.obj.current
 			x = self.obj.xs_colname
 			y = self.obj.ys_colname
+			
+			
+			
+
 			
 			low = data[data[x] < bounds[0]]
 			
@@ -390,9 +487,13 @@ class Inject(tk.Frame):
 			
 			data = pd.concat([low, high])
 			
-			self.obj.current = data
+			self.obj.current = data """
 			#grapher.plotInteractivePolygon(master, self.obj)
+			
 			grapher.plotInteractiveLine(master, self.obj)
+			sel_changed('<<ListboxSelect>>')
+			
+			#sel_changed(self)
 			
 		def add_noise(master, bounds, percent):
 			
@@ -975,7 +1076,8 @@ class Inject(tk.Frame):
 		# Autotag
 		button_autotag = sku.BorderButton(self, button_text="Autotag", button_activebackground='green', button_command=lambda: 
 		[
-			stat_calc.scoreV0(self.obj.current),
+			stat_calc.score(self.obj.current),
+			stat_calc.autotag(self.obj.current)
 		])
 		button_autotag.grid(row=8, column=6, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		

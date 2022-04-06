@@ -8,7 +8,10 @@
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
-
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+import seaborn as sns
+	
 __author__ = "Anton Skurdal"
 __copyright__ = "Copyright 2020, The FAA Project"
 __credits__ = ["Anton Skurdal"]
@@ -272,7 +275,7 @@ def mode_deviation(df):
 	return
 
 
-def scoreV0(df):
+def score(df):
 	
 	# Calculate a score for each row
 	scores = []
@@ -321,24 +324,49 @@ def scoreV0(df):
 	else:
 		df.insert(df.shape[1], 'score', scores)
 	
-	
-	import matplotlib.pyplot as plt
-	from matplotlib import rcParams
-	import seaborn as sns
 	fig, axs = plt.subplots(2, 1, figsize = (10, 8))
 	axs[0].plot(df['score'])
 	axs[1].plot(df['dropout_length'])
 	plt.show()
 	plt.clf()
 	
-	
+	from matplotlib import rcParams
 	rcParams['figure.figsize'] = 10, 8
 	sns.scatterplot(data = df, x = df.index, y = "score", hue = "score", palette=sns.dark_palette("#FF0000", as_cmap=True))
 	plt.show()
 	
-	#return df
+	return df
 
-
+def autotag(df):
+	
+	# Score Counts
+	print(df['score'].value_counts().sort_index())
+	
+	# Generate tag for each row
+	tags = []
+	dropout_threshold = 4
+	for i, row in df.iterrows():
+		
+		if(row['score'] <= dropout_threshold):
+			df.at[i, 'taxonomy'] = "noise"
+			
+		if(row['score'] > dropout_threshold):
+			df.at[i, 'taxonomy'] = "dropout"
+		
+		if(row['dropout_length'] <= row['mode']):
+			df.at[i, 'taxonomy'] = "normal"
+		
+		if(row['dropout_length'] <= 0):
+			df.at[i, 'taxonomy'] = "erroneous"
+	
+	hue_order = ['normal', 'erroneous', 'noise', 'dropout']
+	sns.scatterplot(data = df, x = df.index, y = "dropout_length", hue = "taxonomy", hue_order = hue_order)
+	plt.show()
+	
+	# Taxonomy Counts
+	print(df['taxonomy'].value_counts().sort_index())
+	
+	return df
 
 
 

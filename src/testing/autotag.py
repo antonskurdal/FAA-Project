@@ -69,36 +69,30 @@ def score(df):
 
 def autotag(df):
 	
+	# Score Counts
 	print(df['score'].value_counts().sort_index())
 	
+	# Generate tag for each row
 	tags = []
 	dropout_threshold = 4
 	for i, row in df.iterrows():
 		
 		if(row['score'] <= dropout_threshold):
-			
 			df.at[i, 'taxonomy'] = "noise"
-			
-			row['taxonomy'] = "noise"
 			
 		if(row['score'] > dropout_threshold):
 			df.at[i, 'taxonomy'] = "dropout"
-			row['taxonomy'] = "dropout"
 		
 		if(row['dropout_length'] <= row['mode']):
-			row['taxonomy'] = 'normal'
 			df.at[i, 'taxonomy'] = "normal"
 		
 		if(row['dropout_length'] <= 0):
-			row['taxonomy'] = 'erroneous'
 			df.at[i, 'taxonomy'] = "erroneous"
 	
-	#df2 = df.where(df['taxonomy'] == 'normal')
-	#print(df2)
 	sns.scatterplot(data = df, x = df.index, y = "dropout_length", hue = "taxonomy")
-	#sns.lineplot(df2['dropout_length'])
 	plt.show()
 	
+	# Taxonomy Counts
 	print(df['taxonomy'].value_counts().sort_index())
 	
 	return df
