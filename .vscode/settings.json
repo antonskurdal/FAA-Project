@@ -1,4 +1,7 @@
 {
 	"code-runner.clearPreviousOutput": true,
-	"code-runner.respectShebang": false
+	"code-runner.respectShebang": false,
+	"python.analysis.extraPaths": [
+		"C:\\Users\\sasqu\\anaconda3\\Lib\\site-packages\\opensky-api-master"
+	]
 }
