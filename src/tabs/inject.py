@@ -412,7 +412,7 @@ class Inject(tk.Frame):
 			self.slider.canv.master['highlightthickness'] = 2
 			self.slider.canv.master['highlightbackground'] = sku.SCALE_HIGHLIGHTBACKGROUND
 			
-			grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj)
+			grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj, self.slider)
 			
 		
 		
@@ -490,7 +490,7 @@ class Inject(tk.Frame):
 			self.obj.current = data """
 			#grapher.plotInteractivePolygon(master, self.obj)
 			
-			grapher.plotInteractiveLine(master, self.obj)
+			#grapher.plotInteractiveLine(master, self.obj, self.slider)
 			sel_changed('<<ListboxSelect>>')
 			
 			#sel_changed(self)
@@ -686,7 +686,7 @@ class Inject(tk.Frame):
 		listbox_ys.bind("<<ListboxSelect>>", sel_changed)
 		
 		# Plot
-		button_plot = sku.BorderButton(self, button_text='Plot Columns', button_activebackground='green', button_command=lambda: [grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj)])
+		button_plot = sku.BorderButton(self, button_text='Plot Columns', button_activebackground='green', button_command=lambda: [grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj, self.slider)])
 		button_plot.grid(row=4, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
 		# Print Base Data
@@ -809,66 +809,6 @@ class Inject(tk.Frame):
 		# Switch Assets
 		switch_on = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
 		switch_off = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
-		
-		
-		
-		
-		""" # Apply Taxonomy
-		labelframe_apply = sku.CustomLabelFrame(self, text="Apply Taxonomy to Current Range")
-		labelframe_apply.grid(row=4, column=12, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		labelframe_apply.grid_rowconfigure(0, weight=1)
-		for col in range(3):
-			labelframe_apply.grid_columnconfigure(col, weight=1)
-		# Noise
-		button_set_noise = sku.BorderButton(labelframe_apply, button_text="Set to 'noise'", button_activebackground='green', button_command=lambda: 
-		[
-			print(self.obj.current), 
-			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "noise")), 
-			print(self.obj.current)
-		])
-		button_set_noise.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		# Dropout
-		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Set to 'dropout'", button_activebackground='green', button_command=lambda: 
-		[
-			print(self.obj.current), 
-			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "dropout")), 
-			print(self.obj.current)
-		])
-		button_set_dropout.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		# Normal
-		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Set to 'normal'", button_activebackground='green', button_command=lambda: 
-		[
-			print(self.obj.current), 
-			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
-			print(self.obj.current)
-		])
-		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		# Erroneous
-		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Erroneous", button_activebackground='green', button_command=lambda: 
-		[
-			print(self.obj.current), 
-			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
-			print(self.obj.current)
-		])
-		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		# Spoofed
-		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Spoofed", button_activebackground='green', button_command=lambda: 
-		[
-			print(self.obj.current), 
-			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
-			print(self.obj.current)
-		])
-		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		# Jammed
-		button_set_dropout = sku.BorderButton(labelframe_apply, button_text="Jammed", button_activebackground='green', button_command=lambda: 
-		[
-			print(self.obj.current), 
-			setattr(self.obj, 'current', stat_calc.apply_taxonomy(self.obj.current, self.obj.xs_colname, self.slider.getValues(), "normal")), 
-			print(self.obj.current)
-		])
-		button_set_dropout.grid(row=0, column=2, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG) """
-		
-		
 		
 		
 		

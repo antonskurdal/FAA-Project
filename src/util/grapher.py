@@ -95,6 +95,508 @@ def curve_fit(x, y):
 
 	return coefs, x, y	
 
+
+class LineBuilder:
+	print("[INJECT][LineBuilder] Triggered...")
+	
+	epsilon = 5 #in pixels
+
+	def __init__(self, ax, line, obj, slider = None):
+		#print("[INJECT][LineBuilder][__init__] Triggered...")
+		if line.figure is None:
+			raise RuntimeError('You must first add the polygon to a figure or canvas before defining the interactor')
+		
+		self.slider = slider
+		try:
+			print("[INJECT][LineBuilder][__init__] slider bounds: {}".format(slider.getValues()))
+		except AttributeError:
+			print("[INJECT][LineBuilder][__init__] slider error")
+		
+		
+		
+		self.ax = ax
+		canvas = line.figure.canvas
+		self.line = line
+		self.obj = obj
+		
+		x = list(line.get_xdata())
+		y = list(line.get_ydata())
+		
+		
+		self.line = Line2D(x, y, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
+		
+		self.ax.add_line(self.line)
+		
+		#self.min_line = plt.axvline(self.slider.getValues()[0])
+		
+		""" def test(e):
+			print(self.slider.getValues())
+			#self.ax.get_lines()[2].remove()
+			try:
+				
+				print(self.minline)
+				#print(id(self.ax.lines), id(self.lines))
+				self.minline.remove()
+				print("\n=====REMOVED=====\n")
+				print(self.ax.lines)
+			except (IndexError, ValueError) as error:
+				print(error)
+				
+			
+			#self.ax.lines.pop(-1)
+			# for line in self.ax.get_lines():
+			# 	print(line)
+		
+		#self.ax.add_line(self.min_line)
+		self.minline = self.ax.axvline(self.slider.getValues()[0], animated = True)
+		self.maxline = self.ax.axvline(self.slider.getValues()[1])
+		self.slider.bind('<Motion>', test) """
+		
+		
+		
+		
+		self.minline = self.ax.axvline(self.slider.getValues()[0], color = "black", linestyle = "--")
+
+		
+		self.maxline = self.ax.axvline(self.slider.getValues()[1], color = "black", linestyle = "--")
+		
+		self.fill = self.ax.axvspan(self.slider.getValues()[0], self.slider.getValues()[1], alpha=0.1, hatch = '/', color='gray', zorder = 0)
+		
+		
+		#self.minline.figure.canvas.draw()
+		# self.maxline.figure.canvas.draw()
+		#self.ax.draw_artist(self.minline)
+		# self.ax.draw_artist(self.maxline)
+		
+		#self.ax.add_line(self.minline)
+		
+		# self.ax.figure.canvas.blit(self.ax.bbox)
+		
+		#print(self.slider.canv.)
+		#self.slider.canv.bind('<ButtonRelease-1>', self.b1motion)
+		
+		# WORKING
+		#self.slider.bind('<Motion>', self.slider_changed)
+		
+		
+		
+		self.slider.canv.bind('<B1-Motion>', self.slider_changed, add = "+")
+		self.slider.event_generate('<B1-Motion>')
+		
+		self.oldx = x
+		self.oldy = y
+		
+
+		self.cid = self.line.add_callback(self.line_changed)
+		self._ind = None # the active vert
+		
+		
+		#canvas = line.figure.canvas
+		self.canvas = canvas
+		
+		# self.slider_changed('<B1-Motion>')
+		# self.ax.figure.canvas.blit(self.ax.bbox)
+		
+		#self.line = line
+		#self.axes = line.axes
+		self.xs = list(line.get_xdata())
+		self.ys = list(line.get_ydata())
+
+		self.ind = None
+		
+		canvas.mpl_connect('draw_event', self.on_draw)
+		canvas.mpl_connect('button_press_event', self.button_press_callback)
+		canvas.mpl_connect('button_release_event', self.button_release_callback)
+		canvas.mpl_connect('key_press_event', self.key_press_callback)
+		canvas.mpl_connect('motion_notify_event', self.motion_notify_callback)
+		self.canvas = canvas
+		
+	
+	def b1motion(self, event):
+		print("B1-Motion")
+	
+		
+	def slider_changed(self, event):
+		#print("[INJECT][LineBuilder][slider_changed] Triggered...")
+		print("[INJECT][LineBuilder][slider_changed] slider bounds: {}".format(self.slider.getValues()))
+		self.minline.set_animated(True)
+		self.maxline.set_animated(True)
+		self.fill.set_animated(True)
+		
+		#self.minline.remove()
+		#self.ax.figure.canvas.blit(self.ax.bbox)
+		self.minline.figure.canvas.draw()
+		self.maxline.figure.canvas.draw()
+		self.fill.figure.canvas.draw()
+		
+		self.background = self.canvas.copy_from_bbox(self.ax.bbox)
+		
+		
+		""" print(self.slider.__getattribute__('min_val'))
+		
+		minval = self.slider.__getattribute__('min_val') - abs((self.ax.get_xlim()[0] - self.slider.__getattribute__('min_val')) / 2)
+		self.slider.__setattr__('min_val', minval)
+		
+		#self.slider.__setattr__('min_val', self.ax.get_xlim()[0])
+		print("NEW MINVAL: {}".format(self.slider.__getattribute__('min_val')))
+		#print(self.ax.get_xlim()) """
+		
+		
+		
+		print("AXIS BOUNDS: {}".format(self.ax.get_xlim()))
+		self.minline = self.ax.axvline(self.slider.getValues()[0], color = "black", linestyle = "--", animated = True)
+		self.maxline = self.ax.axvline(self.slider.getValues()[1], color = "black", linestyle = "--", animated = True)
+		self.fill = self.ax.axvspan(self.slider.getValues()[0], self.slider.getValues()[1], alpha=0.1, color='gray', hatch = '/', animated = True)
+		#self.minline.set_xdata(self.slider.getValues()[0])
+		#self.maxline = self.ax.axvline(self.slider.getValues()[1], animated = True)
+		
+		self.ax.draw_artist(self.minline)
+		self.ax.draw_artist(self.maxline)
+		self.ax.draw_artist(self.fill)
+		
+		self.ax.figure.canvas.blit(self.ax.bbox)
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	def line_changed(self, line):
+		print("[INJECT][LineBuilder][line_changed] Triggered...")
+		
+		"""This method is called whenever the pathpatch object is called."""
+		# only copy the artist props to the line (except visibility)
+		vis = self.line.get_visible()
+		#Artist.update_from(self.line, line)
+		self.line.set_visible(vis)  # don't use the poly visibility state
+	
+	def on_draw(self, event):
+		print("[INJECT][LineBuilder][on_draw] Triggered...")
+		self.background = self.canvas.copy_from_bbox(self.ax.bbox)
+		self.ax.draw_artist(self.line)
+		# do not need to blit here, this will fire before the screen is
+		# updated
+		
+		""" try:
+			print("[INJECT][LineBuilder][on_draw] slider bounds: {}".format(self.slider.getValues()))
+		except AttributeError:
+			print("[INJECT][LineBuilder][on_draw] slider error")
+		
+		self.minline = self.ax.axvline(self.slider.getValues()[0], animated = True)
+		self.maxline = self.ax.axvline(self.slider.getValues()[1])
+		
+		self.ax.draw_artist(self.minline) """
+		
+		
+		print("")
+
+	def get_ind(self, event):
+		print("[INJECT][LineBuilder][get_ind] Triggered...")
+		
+		xy = np.asarray(self.line._xy)
+		xyt = self.line.get_transform().transform(xy)
+		x, y = xyt[:, 0], xyt[:, 1]
+		d = np.sqrt((x-event.x)**2 + (y - event.y)**2)
+		indseq, = np.nonzero(d == d.min())
+		ind = indseq[0]
+
+		if d[ind] >= self.epsilon:
+			ind = None
+
+		return ind
+
+	def button_press_callback(self, event):
+		print("[INJECT][LineBuilder][button_press_callback] Triggered...")
+		
+		if event.button != 1:
+			return
+		if event.inaxes is None:
+			return
+		self.ind = self.get_ind(event)
+		print(self.ind)
+		
+		
+		# self.line.set_animated(True)
+		# self.canvas.draw()
+		# self.background = self.canvas.copy_from_bbox(self.line.axes.bbox)
+
+		self.ax.draw_artist(self.line)
+		# self.canvas.blit(self.ax.bbox)
+
+	def button_release_callback(self, event):
+		print("[INJECT][LineBuilder][button_release_callback] Triggered...")
+		
+		if event.button != 1:
+			return
+		self.ind = None
+		
+		self.line.set_animated(True)
+		self.background = None
+		
+		self.line.figure.canvas.draw()
+		
+		#print("OLDX = {}".format(self.oldx))
+		#print("X = {}".format(self.line.get_xdata()))
+		
+		x = list(self.line.get_xdata())
+		y = list(self.line.get_ydata())
+		
+		self.obj.current[self.obj.xs_colname] = x
+		self.obj.current[self.obj.ys_colname] = y
+		
+
+	def motion_notify_callback(self, event):
+		#print("[INJECT][LineBuilder][motion_notify_callback] Triggered...")
+		
+		if event.inaxes != self.line.axes:
+			return
+		if event.button != 1:
+			return
+		if self.ind is None:
+			return
+		self.xs[self.ind] = event.xdata
+		self.ys[self.ind] = event.ydata
+		self.line.set_data(self.xs, self.ys)
+
+		self.canvas.restore_region(self.background)
+		self.ax.draw_artist(self.line)
+		self.canvas.blit(self.ax.bbox)
+		
+
+	def key_press_callback(self, event):
+		"""Callback for key presses."""
+		#print("[INJECT][LineBuilder][key_press_callback] Triggered...")
+		#print("[INJECT][GRAPHER][LineBuilder] line_xy len BEFORE:{}".format(len(self.line._xy)))
+		
+		if not event.inaxes:
+			return
+		elif event.key == 'd':
+			print("\tKey pressed = 'D'")
+			ind = self.get_ind(event)
+			if ind is not None and len(self.xs) > 2:
+				self.xs = np.delete(self.xs, ind)
+				self.ys = np.delete(self.ys, ind)
+				self.line.set_data(self.xs, self.ys)
+				self.axes.draw_artist(self.line)
+				self.canvas.draw_idle()
+		
+		elif event.key == 'i':
+			print("\tKey pressed = 'I'")
+			
+			p = np.array([event.x, event.y])  # display coords
+			print("p = {}".format(p))
+			
+			xy = np.asarray(self.line._xy)
+			xyt = self.line.get_transform().transform(xy)
+			for i in range(len(xyt) - 1):
+				s0 = xyt[i]
+				s1 = xyt[i+1]
+				d = dist_point_to_segment(p, s0, s1)
+				if d <= self.epsilon:
+					self.xs = np.insert(self.xs, i+1, event.xdata)
+					self.ys = np.insert(self.ys, i+1, event.ydata)
+					self.line.set_data(self.xs, self.ys)
+					self.ax.draw_artist(self.line)
+					self.canvas.draw_idle()
+					break
+			
+			
+			# Update dataframe index layout to work with new list length
+			df = self.obj.current
+			xcol = self.obj.xs_colname
+			ycol = self.obj.ys_colname
+			
+			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] testdf:\n{}".format(testdf))
+			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line xdata:\n{}".format(self.line.get_xdata()))
+			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line ydata:\n{}".format(self.line.get_ydata()))
+			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line xlen: {}".format(len(list(self.line.get_xdata()))))
+			
+			x = list(self.line.get_xdata())
+			y = list(self.line.get_ydata())
+			i = 0
+			while i < len(x):
+				if(df[xcol][i] != x[i] or df[ycol][i] != y[i]):
+					df = pd.concat([df.iloc[0: i],  pd.DataFrame({xcol:x[i], ycol:y[i]}, index=[i+1]), df.loc[i:]], ignore_index=True)
+				else:
+					pass
+				i = i + 1
+				
+			self.obj.current = df
+		
+			#print("[INJECT][GRAPHER][LineBuilder] line_xy len AFTER:{}".format(len(self.line._xy)))
+
+
+def plotInteractiveLine(parent, obj, slider = None):
+	
+	print(plt.clf())
+	
+	
+	for child in parent.winfo_children():
+		#print("child")
+		child.destroy()
+	
+	for child in slider.master.winfo_children():
+		print("child")
+		#child.destroy()
+	
+	try:
+		print(slider.getValues())
+	except AttributeError:
+		print("nah")
+		return
+	
+	
+	# Set xs and ys, make sure index works
+	if(obj.xs_colname == "index"):
+		xs = obj.current.index.tolist()
+	else:
+		xs = obj.current[obj.xs_colname]
+	
+	if(obj.ys_colname == "index"):
+		ys = obj.current.index.tolist()
+	else:
+		ys =  obj.current[obj.ys_colname]
+	
+	fig = Figure()
+	ax = fig.add_subplot(111)
+	
+	
+	# Place graph
+	canvas = FigureCanvasTkAgg(fig, parent)
+	canvas.draw()
+	canvas.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW")
+	
+	toolbarFrame = Frame(parent)
+	toolbarFrame.grid(row=1,column=0, sticky = "NSEW", padx=(0,0), pady=(0,0))
+	toolbarFrame.grid_rowconfigure(0, weight = 1)
+	toolbarFrame.grid_columnconfigure(0, weight = 1)
+	
+	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
+	
+	# Reset Plot
+	tab_controller = parent.master.master
+	def reset_plot():
+			obj.current = obj.base.copy(deep = True)		
+	button_reset = sku.BorderButton(master = toolbar, button_text = "Reset", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj, slider)], button_activebackground="#009A44")
+	button_reset.child['width'] = 12
+	button_reset.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8))
+	
+	""" # Show Base Line
+	var = tk.IntVar()
+	#var.set(1)
+	checkbutton_baseline = Checkbutton(toolbar, text = "Show Baseline", variable = var)
+	checkbutton_baseline.invoke()
+	print(var.get())
+	checkbutton_baseline.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8)) """
+	
+	toolbar.grid(row = 0, column = 0, sticky="NSEW")
+	#print(toolbar.toolitems)
+	toolbar.pack_propagate(False)
+	toolbarFrame.grid_propagate(False)
+	
+	
+	# Create initial line - 'animated' will cause the original line to not be shown
+	line = Line2D(xs, ys, color = "#AEAEAE", linestyle="dotted", animated = True)
+	#line = Line2D(xs, ys, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
+	##line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
+	
+
+	ax.add_line(line)
+	linebuilder = LineBuilder(ax, line, obj, slider)
+	
+	# Working bold column names, but acts strange with '_' as it is a format specifier in MathText
+	#title = r"$\bf{}$"" vs "r"$\bf{}$""\nClick and drag a point to move it\nPress 'i' to insert a point".format(str(obj.xs_colname), str(obj.ys_colname))
+	
+	# Working annotation but intersects with title
+	#fig.text(.5,.9,'Foo Bar', fontsize=10, ha='center')
+	
+	# Dynamically set plot title depending on selected columns
+	#title = "{} vs {}".format(str(obj.xs_colname), str(obj.ys_colname))
+	title = "{} vs {}\nClick and drag a point to move it\nPress 'i' to insert a point".format(str(obj.xs_colname), str(obj.ys_colname))
+	ax.set_title(title, fontsize = 12)
+	
+	
+	ax.set_xlabel(obj.xs_colname)
+	ax.set_ylabel(obj.ys_colname)
+	ax.autoscale()
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def plot_basic(master, x, y, xlabel, ylabel):
+
+	fig = Figure()
+	ax = fig.add_subplot(111)
+	
+	#Place graph
+	canvas = FigureCanvasTkAgg(fig, master)
+	canvas.draw()
+	canvas.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW")
+	
+	toolbarFrame = Frame(master=master)
+	toolbarFrame.grid(row=1,column=0, sticky = "NSEW", padx=(0,0), pady=(0,0))
+	toolbarFrame.grid_rowconfigure(0, weight = 1)
+	toolbarFrame.grid_columnconfigure(0, weight = 1)
+	
+	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
+	toolbar.grid(row = 0, column = 0, sticky="NSEW")
+	
+	ax.scatter(x, y)
+	ax.autoscale()
+	ax.set_title(xlabel + " vs " + ylabel)
+	ax.set_xlabel(xlabel)
+	ax.set_ylabel(ylabel)
+	#ax.set_xlim((-2, 2))
+	#ax.set_ylim((-2, 2))
+	
+	return
+
+
 class PolygonInteractor:
 	"""
 	A polygon editor.
@@ -443,315 +945,3 @@ def plotInteractivePolygon(master, obj):
 	ax.set_xlabel(obj.xs_colname)
 	ax.set_ylabel(obj.ys_colname)
 	ax.autoscale()
-
-
-
-class LineBuilder:
-	print("[INJECT][LineBuilder] Triggered...")
-	
-	epsilon = 5 #in pixels
-
-	def __init__(self, ax, line, obj):
-		print("[INJECT][LineBuilder][__init__] Triggered...")
-		if line.figure is None:
-			raise RuntimeError('You must first add the polygon to a figure or canvas before defining the interactor')
-		
-		self.ax = ax
-		canvas = line.figure.canvas
-		self.line = line
-		self.obj = obj
-		
-		x = list(line.get_xdata())
-		y = list(line.get_ydata())
-		
-		
-		self.line = Line2D(x, y, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
-		
-		self.ax.add_line(self.line)
-		
-		self.oldx = x
-		self.oldy = y
-		
-		
-		self.cid = self.line.add_callback(self.line_changed)
-		self._ind = None # the active vert
-		
-		
-		#canvas = line.figure.canvas
-		self.canvas = canvas
-		#self.line = line
-		#self.axes = line.axes
-		self.xs = list(line.get_xdata())
-		self.ys = list(line.get_ydata())
-
-		self.ind = None
-		
-		canvas.mpl_connect('draw_event', self.on_draw)
-		canvas.mpl_connect('button_press_event', self.button_press_callback)
-		canvas.mpl_connect('button_release_event', self.button_release_callback)
-		canvas.mpl_connect('key_press_event', self.key_press_callback)
-		canvas.mpl_connect('motion_notify_event', self.motion_notify_callback)
-		self.canvas = canvas
-		
-		
-		
-		
-	def line_changed(self, line):
-		print("[INJECT][LineBuilder][line_changed] Triggered...")
-		
-		"""This method is called whenever the pathpatch object is called."""
-		# only copy the artist props to the line (except visibility)
-		vis = self.line.get_visible()
-		#Artist.update_from(self.line, line)
-		self.line.set_visible(vis)  # don't use the poly visibility state
-	
-	def on_draw(self, event):
-		print("[INJECT][LineBuilder][on_draw] Triggered...")
-		self.background = self.canvas.copy_from_bbox(self.ax.bbox)
-		self.ax.draw_artist(self.line)
-		# do not need to blit here, this will fire before the screen is
-		# updated
-		print("")
-
-	def get_ind(self, event):
-		print("[INJECT][LineBuilder][get_ind] Triggered...")
-		
-		xy = np.asarray(self.line._xy)
-		xyt = self.line.get_transform().transform(xy)
-		x, y = xyt[:, 0], xyt[:, 1]
-		d = np.sqrt((x-event.x)**2 + (y - event.y)**2)
-		indseq, = np.nonzero(d == d.min())
-		ind = indseq[0]
-
-		if d[ind] >= self.epsilon:
-			ind = None
-
-		return ind
-
-	def button_press_callback(self, event):
-		print("[INJECT][LineBuilder][button_press_callback] Triggered...")
-		
-		if event.button != 1:
-			return
-		if event.inaxes is None:
-			return
-		self.ind = self.get_ind(event)
-		print(self.ind)
-		
-		
-		# self.line.set_animated(True)
-		# self.canvas.draw()
-		# self.background = self.canvas.copy_from_bbox(self.line.axes.bbox)
-
-		self.ax.draw_artist(self.line)
-		# self.canvas.blit(self.ax.bbox)
-
-	def button_release_callback(self, event):
-		print("[INJECT][LineBuilder][button_release_callback] Triggered...")
-		
-		if event.button != 1:
-			return
-		self.ind = None
-		
-		self.line.set_animated(True)
-		self.background = None
-		
-		self.line.figure.canvas.draw()
-		
-		print("OLDX = {}".format(self.oldx))
-		print("X = {}".format(self.line.get_xdata()))
-		
-		x = list(self.line.get_xdata())
-		y = list(self.line.get_ydata())
-		
-		self.obj.current[self.obj.xs_colname] = x
-		self.obj.current[self.obj.ys_colname] = y
-		
-		
-
-	def motion_notify_callback(self, event):
-		#print("[INJECT][LineBuilder][motion_notify_callback] Triggered...")
-		
-		if event.inaxes != self.line.axes:
-			return
-		if event.button != 1:
-			return
-		if self.ind is None:
-			return
-		self.xs[self.ind] = event.xdata
-		self.ys[self.ind] = event.ydata
-		self.line.set_data(self.xs, self.ys)
-
-		self.canvas.restore_region(self.background)
-		self.ax.draw_artist(self.line)
-		self.canvas.blit(self.ax.bbox)
-		
-
-	def key_press_callback(self, event):
-		"""Callback for key presses."""
-		#print("[INJECT][LineBuilder][key_press_callback] Triggered...")
-		#print("[INJECT][GRAPHER][LineBuilder] line_xy len BEFORE:{}".format(len(self.line._xy)))
-		
-		if not event.inaxes:
-			return
-		elif event.key == 'd':
-			print("\tKey pressed = 'D'")
-			ind = self.get_ind(event)
-			if ind is not None and len(self.xs) > 2:
-				self.xs = np.delete(self.xs, ind)
-				self.ys = np.delete(self.ys, ind)
-				self.line.set_data(self.xs, self.ys)
-				self.axes.draw_artist(self.line)
-				self.canvas.draw_idle()
-		
-		elif event.key == 'i':
-			print("\tKey pressed = 'I'")
-			
-			p = np.array([event.x, event.y])  # display coords
-			print("p = {}".format(p))
-			
-			xy = np.asarray(self.line._xy)
-			xyt = self.line.get_transform().transform(xy)
-			for i in range(len(xyt) - 1):
-				s0 = xyt[i]
-				s1 = xyt[i+1]
-				d = dist_point_to_segment(p, s0, s1)
-				if d <= self.epsilon:
-					self.xs = np.insert(self.xs, i+1, event.xdata)
-					self.ys = np.insert(self.ys, i+1, event.ydata)
-					self.line.set_data(self.xs, self.ys)
-					self.ax.draw_artist(self.line)
-					self.canvas.draw_idle()
-					break
-			
-			
-			# Update dataframe index layout to work with new list length
-			df = self.obj.current
-			xcol = self.obj.xs_colname
-			ycol = self.obj.ys_colname
-			
-			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] testdf:\n{}".format(testdf))
-			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line xdata:\n{}".format(self.line.get_xdata()))
-			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line ydata:\n{}".format(self.line.get_ydata()))
-			# print("[INJECT][GRAPHER][POLYGONINTERACTOR] line xlen: {}".format(len(list(self.line.get_xdata()))))
-			
-			x = list(self.line.get_xdata())
-			y = list(self.line.get_ydata())
-			i = 0
-			while i < len(x):
-				if(df[xcol][i] != x[i] or df[ycol][i] != y[i]):
-					df = pd.concat([df.iloc[0: i],  pd.DataFrame({xcol:x[i], ycol:y[i]}, index=[i+1]), df.loc[i:]], ignore_index=True)
-				else:
-					pass
-				i = i + 1
-				
-			self.obj.current = df
-		
-			#print("[INJECT][GRAPHER][LineBuilder] line_xy len AFTER:{}".format(len(self.line._xy)))
-
-
-def plotInteractiveLine(parent, obj):
-	
-	# Set xs and ys, make sure index works
-	if(obj.xs_colname == "index"):
-		xs = obj.current.index.tolist()
-	else:
-		xs = obj.current[obj.xs_colname]
-	
-	if(obj.ys_colname == "index"):
-		ys = obj.current.index.tolist()
-	else:
-		ys =  obj.current[obj.ys_colname]
-	
-	fig = Figure()
-	ax = fig.add_subplot(111)
-	
-	
-	# Place graph
-	canvas = FigureCanvasTkAgg(fig, parent)
-	canvas.draw()
-	canvas.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW")
-	
-	toolbarFrame = Frame(parent)
-	toolbarFrame.grid(row=1,column=0, sticky = "NSEW", padx=(0,0), pady=(0,0))
-	toolbarFrame.grid_rowconfigure(0, weight = 1)
-	toolbarFrame.grid_columnconfigure(0, weight = 1)
-	
-	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
-	
-	# Reset Plot
-	tab_controller = parent.master.master
-	def reset_plot():
-			obj.current = obj.base.copy(deep = True)		
-	button_reset = sku.BorderButton(master = toolbar, button_text = "Reset", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj)], button_activebackground="#009A44")
-	button_reset.child['width'] = 12
-	button_reset.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8))
-	
-	""" # Show Base Line
-	var = tk.IntVar()
-	#var.set(1)
-	checkbutton_baseline = Checkbutton(toolbar, text = "Show Baseline", variable = var)
-	checkbutton_baseline.invoke()
-	print(var.get())
-	checkbutton_baseline.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8)) """
-	
-	toolbar.grid(row = 0, column = 0, sticky="NSEW")
-	#print(toolbar.toolitems)
-	toolbar.pack_propagate(False)
-	toolbarFrame.grid_propagate(False)
-	
-	
-	# Create initial line - 'animated' will cause the original line to not be shown
-	line = Line2D(xs, ys, color = "#AEAEAE", linestyle="dotted", animated = True)
-	#line = Line2D(xs, ys, marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
-	##line = Line2D([0,0.5,1], [0,0.5,1], marker = 'o', color = "#AEAEAE", markerfacecolor = '#009A44', animated = True)
-	
-
-	ax.add_line(line)
-	linebuilder = LineBuilder(ax, line, obj)
-	
-	# Working bold column names, but acts strange with '_' as it is a format specifier in MathText
-	#title = r"$\bf{}$"" vs "r"$\bf{}$""\nClick and drag a point to move it\nPress 'i' to insert a point".format(str(obj.xs_colname), str(obj.ys_colname))
-	
-	# Working annotation but intersects with title
-	#fig.text(.5,.9,'Foo Bar', fontsize=10, ha='center')
-	
-	# Dynamically set plot title depending on selected columns
-	#title = "{} vs {}".format(str(obj.xs_colname), str(obj.ys_colname))
-	title = "{} vs {}\nClick and drag a point to move it\nPress 'i' to insert a point".format(str(obj.xs_colname), str(obj.ys_colname))
-	ax.set_title(title, fontsize = 12)
-	
-	
-	ax.set_xlabel(obj.xs_colname)
-	ax.set_ylabel(obj.ys_colname)
-	ax.autoscale()
-	
-
-
-def plot_basic(master, x, y, xlabel, ylabel):
-
-	fig = Figure()
-	ax = fig.add_subplot(111)
-	
-	#Place graph
-	canvas = FigureCanvasTkAgg(fig, master)
-	canvas.draw()
-	canvas.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW")
-	
-	toolbarFrame = Frame(master=master)
-	toolbarFrame.grid(row=1,column=0, sticky = "NSEW", padx=(0,0), pady=(0,0))
-	toolbarFrame.grid_rowconfigure(0, weight = 1)
-	toolbarFrame.grid_columnconfigure(0, weight = 1)
-	
-	toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
-	toolbar.grid(row = 0, column = 0, sticky="NSEW")
-	
-	ax.scatter(x, y)
-	ax.autoscale()
-	ax.set_title(xlabel + " vs " + ylabel)
-	ax.set_xlabel(xlabel)
-	ax.set_ylabel(ylabel)
-	#ax.set_xlim((-2, 2))
-	#ax.set_ylim((-2, 2))
-	
-	return
