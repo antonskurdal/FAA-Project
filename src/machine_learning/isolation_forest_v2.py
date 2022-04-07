@@ -1,5 +1,152 @@
 # Original Code Source:
-# https://chrisalbon.com/code/machine_learning/trees_and_forests/random_forest_classifier_example/
+# https://scikit-learn.org/stable/auto_examples/ensemble/plot_isolation_forest.html
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import IsolationForest
+
+rng = np.random.RandomState(42)
+
+import pandas as pd
+from pathlib import Path
+
+#############
+# LOAD DATA #
+#############
+directory = Path.cwd() / "data" / "ML-datasets" / "RandomForest"
+print(directory.glob('**/*'))
+files = [f for f in directory.glob('**/*.csv')]
+print(files)
+#print([f.name for f in directory.glob('**/*.csv')])
+df = pd.concat(map(pd.read_csv, files), ignore_index = True)
+print(df.columns)
+df = df.drop('Unnamed: 0', axis = 1)
+df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length'])
+print(df)
+print("\nDataframe Size: {}".format(df.shape[0]))
+print("\nValue Counts:\n{}".format(df['taxonomy'].value_counts()))
+
+#features = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length']
+features = ['lat', 'lon', 'geoaltitude', 'velocity']
+
+contamination = float(0.028)
+
+
+#model=IsolationForest(n_estimators=50, max_samples='auto', contamination=float(0.1),max_features=1.0)
+#model=IsolationForest(n_estimators=50, max_samples='auto', contamination='auto',max_features=1.0)
+model=IsolationForest(n_estimators=50, max_samples='auto', contamination=contamination,max_features=1.0)
+model.fit(df[['dropout_length']])
+
+df['isolation_forest_scores']=model.decision_function(df[['dropout_length']])
+df['isolation_forest_anomaly']=model.predict(df[['dropout_length']])
+df['isolation_forest_prediction'] = df['isolation_forest_anomaly'].map({1: "normal", -1: "anomaly"})
+
+
+print(df.head(20))
+
+outlier_counter = len(df[df['taxonomy'] == "dropout"])# + len(df[df['taxonomy'] == "noise"])
+print("Actual Outlier (Dropout or Noise) Count: {}".format(outlier_counter))
+print("Predicated Anomaly Count: {}".format(list(df['isolation_forest_anomaly']).count(-1)))
+
+print("Accuracy percentage: {:4f}%".format(100*list(df['isolation_forest_anomaly']).count(-1)/(outlier_counter)))
+
+
+import seaborn as sns
+sns.scatterplot(data = df, x = "time", y = "dropout_length", hue = "isolation_forest_prediction")
+plt.show()
+
+exit(0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################################
+# CREATE TRAINING AND TEST DATA #
+#################################
+""" # Generate train data
+X = 0.3 * rng.randn(100, 2)
+X_train = np.r_[X + 2, X - 2]
+# Generate some regular novel observations
+X = 0.3 * rng.randn(20, 2)
+X_test = np.r_[X + 2, X - 2]
+# Generate some abnormal novel observations
+X_outliers = rng.uniform(low=-4, high=4, size=(20, 2)) """
+
+
+
+codes, y = pd.factorize(df['taxonomy'])
+#print(y.take(codes).unique())
+#print(df['taxonomy'].unique())
+
+
+#################
+# FIT THE MODEL #
+#################
+""" # fit the model
+clf = IsolationForest(max_samples=100, random_state=rng)
+clf.fit(X_train)
+y_pred_train = clf.predict(X_train)
+y_pred_test = clf.predict(X_test)
+y_pred_outliers = clf.predict(X_outliers) """
+
+#model = IsolationForest(max_samples=100, random_state=rng)
+model = IsolationForest(n_jobs = 10, n_estimators = 1000, contamination=contamination)
+model.fit(df[features])
+
+df['isolation_forest'] = pd.Series(model.predict(df[features]))
+
+# Make predictions easier to read for humans
+df['isolation_forest'] = df['isolation_forest'].map({1: 0, -1: 1})
+
+preds = df['isolation_forest'].value_counts()
+#print(df['isolation_forest'].value_counts())
+print("\nPrediction Counts:\n{}".format(preds))
+print("\nAnomaly Percentage: {:4f}%".format((preds[1] / preds[0]) * 100))
+
+exit(0)
+##################
+# PLOT THE MODEL #
+##################
+# plot the line, the samples, and the nearest vectors to the plane
+xx, yy = np.meshgrid(np.linspace(-5, 5, 50), np.linspace(-5, 5, 50))
+Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+plt.title("IsolationForest")
+plt.contourf(xx, yy, Z, cmap=plt.cm.Blues_r)
+
+b1 = plt.scatter(X_train[:, 0], X_train[:, 1], c="white", s=20, edgecolor="k")
+b2 = plt.scatter(X_test[:, 0], X_test[:, 1], c="green", s=20, edgecolor="k")
+c = plt.scatter(X_outliers[:, 0], X_outliers[:, 1], c="red", s=20, edgecolor="k")
+plt.axis("tight")
+plt.xlim((-5, 5))
+plt.ylim((-5, 5))
+plt.legend(
+    [b1, b2, c],
+    ["training observations", "new regular observations", "new abnormal observations"],
+    loc="upper left",
+)
+plt.show()
+
+
+exit(0)
+
+
+
+
+
+
+
 
 #################
 # PRELIMINARIES #
@@ -9,7 +156,7 @@
 from sklearn.datasets import load_iris
 
 # Load scikit's random forest classifier library
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import IsolationForest
 
 # Load pandas
 import pandas as pd
@@ -119,7 +266,7 @@ print(features)
 
 codes, _y = pd.factorize(train['taxonomy'])
 y = pd.factorize(train['taxonomy'])[0]
-print(list(y))
+#print(list(y))
 print(np.unique(y))
 
 
@@ -136,7 +283,7 @@ clf = RandomForestClassifier(n_jobs=2, random_state=0)
 # to the training y (the species)
 clf.fit(train[features], y) """
 
-clf = RandomForestClassifier(n_jobs = 10, random_state=0)
+clf = IsolationForest(n_jobs = 10, random_state=0)
 
 clf.fit(train[features], y)
 
