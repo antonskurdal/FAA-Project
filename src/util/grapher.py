@@ -481,8 +481,16 @@ def plotInteractiveLine(parent, obj, slider = None):
 	# Reset Plot
 	tab_controller = parent.master.master
 	def reset_plot():
-			obj.current = obj.base.copy(deep = True)		
-	button_reset = sku.BorderButton(master = toolbar, button_text = "Reset", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj, slider)], button_activebackground="#009A44")
+		obj.current = obj.base.copy(deep = True)
+		#parent.master.sel_changed()
+		print(parent.master.master.winfo_name())
+		
+		for child in parent.master.master.winfo_children():
+			print(child.winfo_name())
+		
+		#print(parent.master.winfo_parent())
+		#plotInteractiveLine(parent, obj, slider)	
+	button_reset = sku.BorderButton(master = toolbar, button_text = "Reset", button_activebackground="#009A44", button_command = lambda: [reset_plot(), plotInteractiveLine(parent, obj, slider)])
 	button_reset.child['width'] = 12
 	button_reset.pack(side = "left", fill = "both", padx = (2, 2), pady = (8, 8))
 	

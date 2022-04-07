@@ -37,6 +37,7 @@ class App(tk.Tk):
 		self.geometry("1800x950")
 		self.resizable(0, 0)
 		self['background'] = sku.APP_BACKGROUND
+		self['background'] = 'red'
 		master = self
 
 		for row in range(2):
@@ -45,10 +46,11 @@ class App(tk.Tk):
 			self.grid_columnconfigure(col, weight = 1)
 		
 		self.grid_rowconfigure(0, weight = 0, minsize = 50)
-		#self.grid_columnconfigure(0, weight = 1)
+		self.grid_rowconfigure(1, weight = 0, minsize = 900)
+		self.grid_columnconfigure(0, weight = 1, minsize = 1800)
 
 
-		self.tab_frame = tk.Frame(master, bg = sku.FRAME_BACKGROUND)
+		self.tab_frame = tk.Frame(master, background = 'white')#bg = sku.FRAME_BACKGROUND)
 		self.tab_frame.grid(row = 0, column = 0, sticky = "NSEW")
 		self.tab_frame.grid_rowconfigure(0, weight = 1)
 		self.tab_frame.grid_columnconfigure(0, weight = 1)
@@ -70,8 +72,8 @@ class App(tk.Tk):
 		
 		#Main Container for frame stacking
 		#self.container = tk.Frame(master, bg='red')
-		self.container = tk.Frame(master, bg='white')
-		self.container.grid(row = 1, column = 0, sticky = "NSEW")
+		self.container = tk.Frame(master, bg='pink')
+		self.container.grid(row = 1, column = 0, sticky = "NSEW")#, padx = (0, 0), pady = (0, 0))
 		self.container.grid_columnconfigure(0, weight = 1)
 		self.container.grid_rowconfigure(0, weight = 1)
 		

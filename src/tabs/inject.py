@@ -304,43 +304,13 @@ class Inject(tk.Frame):
 			f.close()
 		
 		def sel_changed(event):
-			# print(listbox_xs.get(listbox_xs.curselection()))
-			# print(listbox_xs.get(listbox_ys.curselection()))
-			
 			#Set object parameters
 			#self.obj.current = self.obj.base.copy(deep=True)
 			self.obj.xs_colname = listbox_xs.get(listbox_xs.curselection())
 			self.obj.ys_colname = listbox_ys.get(listbox_ys.curselection())
 			
 			#print("[INJECT][FILE_BROWSE] DIRECTORY: {}".format(directory))
-			
-			
-			
-			print("[INJECT][sel_changed] xs_colname: {}".format(self.obj.xs_colname))
-		
-			""" #Disable buttons if index is plotted
-			if(self.obj.xs_colname == "index" or self.obj.ys_colname == "index"):
-				button_fit.child['state'] = 'disabled'
-				button_drop.child['state'] = 'disabled'
-				button_noise.child['state'] = 'disabled'
-				button_percent.child['state'] = 'disabled'
-				button_num.child['state'] = 'disabled'
-				
-				slider_min = min(self.obj.current.index)
-				slider_max = max(self.obj.current.index)
-			else:
-				print("colname not index")
-				button_fit.child['state'] = 'normal'
-				button_drop.child['state'] = 'normal'
-				button_noise.child['state'] = 'normal'
-				button_percent.child['state'] = 'normal'
-				button_num.child['state'] = 'normal'
-				
-				slider_min = min(self.obj.current[self.obj.xs_colname])
-				slider_max = max(self.obj.current[self.obj.xs_colname])
-			
-			print("slider_min: {}".format(slider_min))
-			print("slider_max: {}".format(slider_max)) """
+			#print("[INJECT][sel_changed] xs_colname: {}".format(self.obj.xs_colname))
 			
 			
 			# Create array for slider
@@ -351,13 +321,13 @@ class Inject(tk.Frame):
 				arr = self.obj.current[self.obj.xs_colname]
 			
 			# Set min/max
-			slider_min = min(arr)
-			slider_max = max(arr)
+			slider_min = min(arr.dropna())
+			slider_max = max(arr.dropna())
 			
 			# Widen bounds by 0.001 on either side for floating point precision error tolerance
-			print("BEFORE:")
-			print("slider_min: {}".format(slider_min))
-			print("slider_max: {}".format(slider_max))
+			# print("BEFORE:")
+			# print("slider_min: {}".format(slider_min))
+			# print("slider_max: {}".format(slider_max))
 			slider_min -= 0.001
 			slider_max += 0.001
 			
@@ -376,10 +346,24 @@ class Inject(tk.Frame):
 				button_percent.child['state'] = 'normal'
 				button_num.child['state'] = 'normal'
 			
-			print("AFTER:")
-			print("slider_min: {}".format(slider_min))
-			print("slider_max: {}".format(slider_max))
+			# print("AFTER:")
+			# print("slider_min: {}".format(slider_min))
+			# print("slider_max: {}".format(slider_max))
 			
+			
+			
+			# sku.get_attributes(self.slider)
+			# self.slider.__setattr__('min_val', slider_min)
+			# self.slider.__setattr__('max_val', slider_max)
+			# self.slider.__setattr__('init_lis', [slider_min, slider_max])
+			
+			
+			# print("SLIDER MIN: {}".format(self.slider.min_val))
+			
+			# self.slider.update_idletasks()
+			
+			# #self.slider.grid_forget()
+			# self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,sticky="NSEW", padx=(3,2), pady=PADY_CONFIG)
 			
 			
 			
@@ -395,16 +379,16 @@ class Inject(tk.Frame):
 				)
 			
 			
-			""" #Create slider
-			self.slider = sku.LiSlider(
-				labelframe_slider, 
-				width=500, 
-				height=60, 
-				min_val=min(self.obj.current[self.obj.xs_colname]), 
-				max_val=max(self.obj.current[self.obj.xs_colname]), 
-				init_lis=[min(self.obj.current[self.obj.xs_colname]), max(self.obj.current[self.obj.xs_colname])], 
-				show_value=True
-				) """
+			# """ #Create slider
+			# self.slider = sku.LiSlider(
+			# 	labelframe_slider, 
+			# 	width=500, 
+			# 	height=60, 
+			# 	min_val=min(self.obj.current[self.obj.xs_colname]), 
+			# 	max_val=max(self.obj.current[self.obj.xs_colname]), 
+			# 	init_lis=[min(self.obj.current[self.obj.xs_colname]), max(self.obj.current[self.obj.xs_colname])], 
+			# 	show_value=True
+			# 	) """
 			
 			self.slider.grid(row=0, column=0, rowspan=1, columnspan=3,sticky="NSEW", padx=(3,2), pady=PADY_CONFIG)
 			self.slider.canv['bg'] = sku.SCALE_BACKGROUND
@@ -687,8 +671,13 @@ class Inject(tk.Frame):
 		listbox_ys.bind("<<ListboxSelect>>", sel_changed)
 		
 		# Plot
-		button_plot = sku.BorderButton(self, button_text='Plot Columns', button_activebackground='green', button_command=lambda: [grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj, self.slider)])
-		button_plot.grid(row=4, column=0, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		button_plot = sku.BorderButton(self, button_text='Plot Columns', button_activebackground='green', button_command=lambda: [sel_changed('<<ListboxSelect>>')])#grapher.plotInteractiveLine(frame_plot.nametowidget('child'), self.obj, self.slider)])
+		button_plot.grid(row=4, column=0, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		# Reset Plot
+		button_reset = sku.BorderButton(self, button_text='Reset Plot', button_activebackground='green', button_command=lambda: [self.obj.__setattr__('current', self.obj.base.copy(deep = True)), sel_changed('<<ListboxSelect>>')])
+		button_reset.grid(row=4, column=3, rowspan=1, columnspan=3, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 
 		# Print Base Data
 		button_print_base = sku.BorderButton(self, button_text='Show Base Data', button_activebackground='green', button_command=lambda: [print(self.obj.base[[self.obj.xs_colname, self.obj.ys_colname, 'taxonomy']]), print(self.obj.base.columns)])
@@ -708,7 +697,7 @@ class Inject(tk.Frame):
 		################
 
 		# Plot Frame A
-		frame_plot = sku.BorderFrame(self, background='#505050', border_color="green")
+		frame_plot = sku.BorderFrame(self, background='#505050', border_color="#404040")
 		frame_plot.grid(row=0, column=6, rowspan=6, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
 		frame_plot.nametowidget('child').grid_columnconfigure(0, weight=1)  # , minsize = 100)
 		frame_plot.nametowidget('child').grid_rowconfigure(0, weight=1)
