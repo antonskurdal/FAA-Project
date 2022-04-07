@@ -9,8 +9,9 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
 import seaborn as sns
+from matplotlib import rcParams
+
 	
 __author__ = "Anton Skurdal"
 __copyright__ = "Copyright 2020, The FAA Project"
@@ -331,6 +332,7 @@ def score(df):
 	else:
 		df.insert(df.shape[1], 'score', scores)
 	
+	plt.close('all')
 	fig, axs = plt.subplots(2, 1, figsize = (10, 8))
 	axs[0].plot(df['time'], df['score'], label = "score value")
 	axs[0].set_title("Score vs Time")
@@ -343,7 +345,7 @@ def score(df):
 	axs[1].set_ylabel("dropout_length (s)")
 	
 	plt.show()
-	plt.clf()
+	plt.close('all')
 	
 	from matplotlib import rcParams
 	rcParams['figure.figsize'] = 10, 8
@@ -352,6 +354,7 @@ def score(df):
 	plt.xlabel("time (s)")
 	plt.ylabel("score value")
 	plt.show()
+	plt.close('all')
 	
 	return df
 

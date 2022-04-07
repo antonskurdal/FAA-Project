@@ -50,7 +50,7 @@ class App(tk.Tk):
 		self.grid_columnconfigure(0, weight = 1, minsize = 1800)
 
 
-		self.tab_frame = tk.Frame(master, background = 'white')#bg = sku.FRAME_BACKGROUND)
+		self.tab_frame = tk.Frame(master, background = '#BFBFBF')#bg = sku.FRAME_BACKGROUND)
 		self.tab_frame.grid(row = 0, column = 0, sticky = "NSEW")
 		self.tab_frame.grid_rowconfigure(0, weight = 1)
 		self.tab_frame.grid_columnconfigure(0, weight = 1)
