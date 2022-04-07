@@ -45,6 +45,7 @@ class Inject(tk.Frame):
 		tk.Frame.__init__(self, parent, *args, **kwargs, bg = "black")#bg = sku.FRAME_BACKGROUND)
 		self.controller = controller
 		
+		
 		###################
 		# Layout Controls #
 		###################
