@@ -49,11 +49,20 @@ outlier_counter = len(df[df['taxonomy'] == "dropout"])# + len(df[df['taxonomy'] 
 print("Actual Outlier (Dropout or Noise) Count: {}".format(outlier_counter))
 print("Predicated Anomaly Count: {}".format(list(df['isolation_forest_anomaly']).count(-1)))
 
-print("Accuracy percentage: {:4f}%".format(100*list(df['isolation_forest_anomaly']).count(-1)/(outlier_counter)))
+print("Accuracy percentage: {:.4f}%".format(100*list(df['isolation_forest_anomaly']).count(-1)/(outlier_counter)))
 
 
 import seaborn as sns
-sns.scatterplot(data = df, x = "time", y = "dropout_length", hue = "isolation_forest_prediction")
+plt.figure(1)
+sns.scatterplot(data = df, x = "time", y = "dropout_length", hue = "isolation_forest_prediction", palette=['tab:blue', 'tab:red'])
+plt.title("Isolation Forest Prediction (Anomaly: True or False)\nAccuracy: {:.4f}%".format(100*list(df['isolation_forest_anomaly']).count(-1)/(outlier_counter)))
+#plt.show()
+
+plt.figure(2)
+hue_order = ['normal', 'erroneous', 'noise', 'dropout']
+
+sns.scatterplot(data = df, x = "time", y = "dropout_length", hue = "taxonomy", hue_order=hue_order)
+plt.title("Actual Taxonomy/Labels")
 plt.show()
 
 exit(0)

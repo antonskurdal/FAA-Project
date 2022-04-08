@@ -214,4 +214,30 @@ print(list(zip(train[features], clf.feature_importances_)))
 ##################
 y_true = list(test['taxonomy'])
 y_pred = preds
-print(metrics.accuracy_score(y_true, y_pred))
+print("Accuracy: {:.4f}".format(metrics.accuracy_score(y_true, y_pred)))
+
+test['random_forest_prediction'] = preds
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+hue_order = ['normal', 'erroneous', 'noise', 'dropout']
+
+plt.figure(1)
+sns.scatterplot(data = test, x = "time", y = "dropout_length", hue = "random_forest_prediction", hue_order=hue_order)
+plt.title("Random Forest Predicted Taxonomy/Labels\nAccuracy: {:.4f}%".format(100 * (metrics.accuracy_score(y_true, y_pred))))
+#plt.show()
+
+plt.figure(2)
+hue_order = ['normal', 'erroneous', 'noise', 'dropout']
+
+sns.scatterplot(data = test, x = "time", y = "dropout_length", hue = "taxonomy", hue_order=hue_order)
+plt.title("Actual Taxonomy/Labels")
+plt.show()
+
+
+
+#from pandas.tools.plotting import parallel_coordinated
+
+
+exit(0)
