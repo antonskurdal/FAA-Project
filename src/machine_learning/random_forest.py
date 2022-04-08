@@ -1,32 +1,42 @@
-# Original Code Source:
-# https://chrisalbon.com/code/machine_learning/trees_and_forests/random_forest_classifier_example/
+#!/usr/bin/env python
+
+"""Random Forest Classifier
+    
+    Original Code Source:
+    https://chrisalbon.com/code/machine_learning/trees_and_forests/random_forest_classifier_example/
+    
+    description
+"""
+# from sklearnex import patch_sklearn
+# patch_sklearn(["RandomForestClassifier"])
+from sklearn.ensemble import RandomForestClassifier
+import pandas as pd
+import numpy as np
+import time
+from pathlib import Path
+from sklearn import metrics
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+
+__author__ = "Anton Skurdal"
+__copyright__ = "Copyright 2022, The FAA Project"
+__credits__ = ["Anton Skurdal"]
+__license__ = "GPL"
+__version__ = "1.5"
+__maintainer__ = "Anton Skurdal"
+__email__ = "antonskurdal@gmail.com"
+__status__ = "Development"
+
 
 #################
 # PRELIMINARIES #
 #################
-
-# Load the library with the iris dataset
-from sklearn.datasets import load_iris
-
-# Load scikit's random forest classifier library
-from sklearn.ensemble import RandomForestClassifier
-
-# Load pandas
-import pandas as pd
-
-# Load numpy
-import numpy as np
-
 # Set random seed
 import time
 #np.random.seed(1)
 np.random.seed(int(time.time()))
 
-from pathlib import Path
-from sklearn import metrics
-
-import matplotlib.pyplot as plt
-import seaborn as sns
 #############
 # LOAD DATA #
 #############
@@ -50,42 +60,38 @@ df.head() """
 
 
 
-
+# Open directory and concatenate all files into a dataframe
 directory = Path.cwd() / "data" / "ML-datasets" / "RandomForest"
-print(directory.glob('**/*'))
-
 files = [f for f in directory.glob('**/*.csv')]
-print(files)
-#print([f.name for f in directory.glob('**/*.csv')])
-
 df = pd.concat(map(pd.read_csv, files), ignore_index = True)
-print(df.columns)
-df = df.drop('Unnamed: 0', axis = 1)
 
+# Drop irrelevant data
+try:
+    df = df.drop('Unnamed: 0', axis = 1)
+except KeyError as e:
+    print(e)
+    pass
 df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length'])
 
 print(df)
 print(df.shape[0])
+print(df['taxonomy'].value_counts())
 
-""" ###################################################################################################
-# library
-import matplotlib.pyplot as plt
- 
-# create data
-names = df['taxonomy'].value_counts().index
-size = df['taxonomy'].value_counts()
- 
-# Create a circle at the center of the plot
-my_circle = plt.Circle( (0,0), 0.7, color='white')
+#time.sleep(2)
 
-# Give color names
-plt.pie(size, labels=names, colors=['tab:orange','tab:green','tab:blue','tab:red'])
-p = plt.gcf()
-p.gca().add_artist(my_circle)
+fig = px.strip(df, x="taxonomy", y="dropout_length", color="taxonomy", stripmode='overlay')
+fig.show()
 
-# Show the graph
-plt.show()
-################################################################################################### """
+
+
+""" hue_order = ['normal', 'noise', 'erroneous', 'dropout']
+sns.set(rc={'figure.figsize':(12,6)})
+#fig, ax = plt.subplots(figsize=(10, 8))
+sns.set_theme(style="whitegrid")
+ax = sns.stripplot(data = df, x = "dropout_length", y = "taxonomy", hue_order=hue_order, jitter=0.4)
+#ax.set_xscale("log")
+
+plt.show() """
 
 
 
@@ -167,10 +173,12 @@ clf = RandomForestClassifier(n_jobs=2, random_state=0)
 # to the training y (the species)
 clf.fit(train[features], y) """
 
-clf = RandomForestClassifier(n_jobs = 10, random_state=0)
+start_time = time.time()
 
+clf = RandomForestClassifier(n_jobs = 10, random_state=0)
 clf.fit(train[features], y)
 
+print("--- %s seconds ---" % (time.time() - start_time))
 
 #################################
 # APPLY CLASSIFIER TO TEST DATA #
@@ -432,6 +440,7 @@ fig = px.parallel_coordinates(
 fig.update_layout(coloraxis_showscale=False)
 
 # Show the plot
+#fig.write_html("plotly_test.html")
 fig.show()
 
 
