@@ -124,7 +124,6 @@ print(np.unique(y))
 
 
 
-
 ######################################
 # TRAIN THE RANDOM FOREST CLASSIFIER #
 ######################################
@@ -216,7 +215,8 @@ y_true = list(test['taxonomy'])
 y_pred = preds
 print("Accuracy: {:.4f}".format(metrics.accuracy_score(y_true, y_pred)))
 
-test['random_forest_prediction'] = preds
+print("PREDS: {}".format(preds))
+test['random_forest_prediction'] = list(preds)
 
 
 import seaborn as sns
@@ -233,11 +233,137 @@ hue_order = ['normal', 'erroneous', 'noise', 'dropout']
 
 sns.scatterplot(data = test, x = "time", y = "dropout_length", hue = "taxonomy", hue_order=hue_order)
 plt.title("Actual Taxonomy/Labels")
-plt.show()
+#plt.show()
 
 
 
-#from pandas.tools.plotting import parallel_coordinated
+from pandas.plotting import parallel_coordinates
+
+plt.figure(3)
+pfeatures = features.append("taxonomy")
+p = df[features]
+#p = p[p['taxonomy'] == "dropout"]
+parallel_coordinates(p, "taxonomy", colormap = plt.get_cmap("Set2"))
+
+
+
+
+
+#plt.show()
+
+
+
+#exit(0)
+
+""" # Import the library
+import plotly.express as px
+
+# Load the iris dataset provided by the library
+#df = px.data.iris()
+
+df['labels_fact'] = pd.factorize(df['taxonomy'])[0]
+pfeatures = features.append('labels_fact')
+p = df[features]
+p = p[p['taxonomy'] == "dropout"]
+# Create the chart:
+fig = px.parallel_coordinates(
+    p, 
+    #color = "labels_fact", 
+    labels={"lat": "Lat", "lon": "Lon", "velocity": "Velocity", "geoaltitude": "Altitude (geo)"},
+    #color_continuous_scale=px.colors.diverging.Tealrose,
+    #color_continuous_midpoint=2)
+)
+
+# Hide the color scale that is useless in this case
+fig.update_layout(coloraxis_showscale=False)
+
+# Show the plot
+fig.show() """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Import the library
+import plotly.express as px
+
+# Load the iris dataset provided by the library
+#df = px.data.iris()
+
+codes, _y = pd.factorize(df['taxonomy'])
+
+print("CODES:\n{}".format(_y.take(codes).unique()))
+
+df['labels_fact'] = pd.factorize(df['taxonomy'])[0]
+pfeatures = features.append('labels_fact')
+p = df[features]
+# Create the chart:
+fig = px.parallel_coordinates(
+    p, 
+    color = "labels_fact", 
+    labels={"lat": "Lat", "lon": "Lon", "velocity": "Velocity", "geoaltitude": "Altitude (geo)", "labels_fact": "Class", },
+    #color_continuous_scale=px.colors.diverging.Tealrose,
+    #color_continuous_midpoint=2)
+)
+
+# Hide the color scale that is useless in this case
+fig.update_layout(coloraxis_showscale=False)
+
+# Show the plot
+fig.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+""" # Import the library
+import plotly.express as px
+
+# Load the iris dataset provided by the library
+df = px.data.iris()
+
+# Create the chart:
+fig = px.parallel_coordinates(
+    df, 
+    color="species_id", 
+    labels={"species_id": "Species","sepal_width": "Sepal Width", "sepal_length": "Sepal Length", "petal_width": "Petal Width", "petal_length": "Petal Length", },
+    color_continuous_scale=px.colors.diverging.Tealrose,
+    color_continuous_midpoint=2)
+
+# Hide the color scale that is useless in this case
+fig.update_layout(coloraxis_showscale=False)
+
+# Show the plot
+fig.show() """
+
+
+
+
+
+
 
 
 exit(0)
