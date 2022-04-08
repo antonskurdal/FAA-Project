@@ -18,11 +18,15 @@ import pandas as pd
 import numpy as np
 
 # Set random seed
-np.random.seed(0)
+import time
+#np.random.seed(1)
+np.random.seed(int(time.time()))
 
 from pathlib import Path
 from sklearn import metrics
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 #############
 # LOAD DATA #
 #############
@@ -63,6 +67,34 @@ df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 've
 print(df)
 print(df.shape[0])
 
+""" ###################################################################################################
+# library
+import matplotlib.pyplot as plt
+ 
+# create data
+names = df['taxonomy'].value_counts().index
+size = df['taxonomy'].value_counts()
+ 
+# Create a circle at the center of the plot
+my_circle = plt.Circle( (0,0), 0.7, color='white')
+
+# Give color names
+plt.pie(size, labels=names, colors=['tab:orange','tab:green','tab:blue','tab:red'])
+p = plt.gcf()
+p.gca().add_artist(my_circle)
+
+# Show the graph
+plt.show()
+################################################################################################### """
+
+
+
+
+
+
+
+
+
 
 #################################
 # CREATE TRAINING AND TEST DATA #
@@ -86,7 +118,7 @@ train, test = df[df['is_train']==True], df[df['is_train']==False]
 print('Number of observations in the training data:', len(train))
 print('Number of observations in the test data:',len(test)) """
 
-df['is_train'] = np.random.uniform(0, 1, len(df)) <= 0.75
+df['is_train'] = np.random.uniform(0, 1, len(df)) <= 0.6
 
 train, test = df[df['is_train'] == True], df[df['is_train'] == False]
 
@@ -114,7 +146,7 @@ print(y) """
 
 
 features = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length']
-#features = ['lat', 'lon', 'geoaltitude', 'velocity']
+features = ['lat', 'lon', 'geoaltitude', 'velocity']
 print(features)
 
 codes, _y = pd.factorize(train['taxonomy'])
@@ -211,12 +243,91 @@ print(list(zip(train[features], clf.feature_importances_)))
 ##################
 # EXTRA ANALYSIS #
 ##################
+
 y_true = list(test['taxonomy'])
 y_pred = preds
+
+accuracy = 100 * metrics.accuracy_score(y_true, y_pred)
 print("Accuracy: {:.4f}".format(metrics.accuracy_score(y_true, y_pred)))
+
+
 
 print("PREDS: {}".format(preds))
 test['random_forest_prediction'] = list(preds)
+
+
+
+###################################################################################################
+# library
+import matplotlib.pyplot as plt
+ 
+fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(10,6))
+# create data
+names = test['taxonomy'].value_counts().index
+names_pred = test['random_forest_prediction'].value_counts().index
+
+size = test['taxonomy'].value_counts()
+size_pred = test['random_forest_prediction'].value_counts()
+ 
+wedgeprops = {'width':0.5, 'edgecolor':'white', 'linewidth':3}
+wedgeprops_pred = {'width':0.5, 'edgecolor':'white', 'linewidth':3}
+# Create a circle at the center of the plot
+my_circle = plt.Circle( (0,0), 0.7, color='white')
+my_circle_preds = plt.Circle( (0,0), 0.7, color='white')
+
+def make_autopct(values):
+    def my_autopct(pct):
+        total = sum(values)
+        val = int(round(pct*total/100.0))
+        return '{p:.2f}%\n({v:d})'.format(p=pct,v=val)
+    return my_autopct
+
+
+# Actual Labels
+wedgeprops, texts, autotexts = ax0.pie(
+    size,
+    labels=names, 
+    colors=['tab:orange','tab:green','tab:blue','tab:red'], 
+    wedgeprops=wedgeprops, autopct=make_autopct(size), 
+    pctdistance = 0.75, 
+    labeldistance = None
+    )
+plt.setp(autotexts, **{'color':'black', 'weight':'bold', 'fontsize':12})
+ax0.legend(frameon = False, loc = 'center')
+ax0.set_title("Actual Labels (Test Set)")
+
+
+# Random Forest Predicted Labels
+wedgeprops_pred, texts_pred, autotexts_pred = ax1.pie(
+    size_pred,
+    labels=names_pred, 
+    colors=['tab:orange','tab:green','tab:blue','tab:red'], 
+    wedgeprops=wedgeprops_pred, autopct=make_autopct(size_pred), 
+    pctdistance = 0.75, 
+    labeldistance = None
+    )
+ax1.text(0, 0, "Accuracy:\n{:.4f}%".format(accuracy), ha='center', va='center', fontsize=14)
+plt.setp(autotexts_pred, **{'color':'black', 'weight':'bold', 'fontsize':12})
+ax1.set_title("Random Forest Predicted Labels (Test Set)")
+
+
+# Show the graph
+plt.tight_layout()
+plt.show()
+###################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 import seaborn as sns
@@ -233,7 +344,7 @@ hue_order = ['normal', 'erroneous', 'noise', 'dropout']
 
 sns.scatterplot(data = test, x = "time", y = "dropout_length", hue = "taxonomy", hue_order=hue_order)
 plt.title("Actual Taxonomy/Labels")
-#plt.show()
+plt.show()
 
 
 
