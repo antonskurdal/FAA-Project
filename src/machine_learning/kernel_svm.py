@@ -145,6 +145,7 @@ print("--- %s seconds ---" % (time.time() - start_time))
 
 y_pred = clf.predict(X_test)
 
+accuracy = clf.score(X_test, y_test) * 100
 
 
 
@@ -164,6 +165,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 cm = confusion_matrix(y_test, y_pred, labels = clf.classes_)
 disp = ConfusionMatrixDisplay(confusion_matrix = cm, display_labels = clf.classes_)
 disp.plot()
+disp.ax_.set_title("Linear Kernel SVM Classifier\nAccuracy: {:.4f}%".format(accuracy))
 plt.show()
 
 exit(0)

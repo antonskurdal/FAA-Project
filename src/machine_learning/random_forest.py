@@ -34,8 +34,8 @@ __status__ = "Development"
 #################
 # Set random seed
 import time
-#np.random.seed(1)
-np.random.seed(int(time.time()))
+np.random.seed(1)
+#np.random.seed(int(time.time()))
 
 #############
 # LOAD DATA #
@@ -80,7 +80,7 @@ print(df['taxonomy'].value_counts())
 #time.sleep(2)
 
 fig = px.strip(df, x="taxonomy", y="dropout_length", color="taxonomy", stripmode='overlay')
-fig.show()
+#fig.show()
 
 
 
@@ -152,7 +152,7 @@ print(y) """
 
 
 features = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length']
-features = ['lat', 'lon', 'geoaltitude', 'velocity']
+#features = ['lat', 'lon', 'geoaltitude', 'velocity']
 print(features)
 
 codes, _y = pd.factorize(train['taxonomy'])
@@ -237,6 +237,7 @@ print(pd.crosstab(test['taxonomy'], preds, rownames=['Actual Taxonomy'], colname
 
 
 
+
 ###########################
 # VIEW FEATURE IMPORTANCE #
 ###########################
@@ -255,13 +256,37 @@ print(list(zip(train[features], clf.feature_importances_)))
 y_true = list(test['taxonomy'])
 y_pred = preds
 
+y_test = pd.factorize(test['taxonomy'])[0]
+
+from sklearn.metrics import classification_report
+print("Classification Report:\n{}".format(classification_report(y_true, y_pred)))
+
+
 accuracy = 100 * metrics.accuracy_score(y_true, y_pred)
 print("Accuracy: {:.4f}".format(metrics.accuracy_score(y_true, y_pred)))
-
-
-
 print("PREDS: {}".format(preds))
+print("TEST TAX: {}".format(test['taxonomy']))
+print("CLF CLASSES: {}".format(clf.classes_))
+
+codes_test, _y_test = pd.factorize(test['taxonomy'])
+#y = pd.factorize(train['taxonomy'])[0]
+target_names_test = _y_test.take(codes_test).unique()
+print("target names test: {}".format(target_names_test))
+
 test['random_forest_prediction'] = list(preds)
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+cm = confusion_matrix(test['taxonomy'], preds, labels = target_names_test[clf.classes_])
+disp = ConfusionMatrixDisplay(confusion_matrix = cm, display_labels = target_names_test[clf.classes_])
+disp.plot()
+disp.ax_.set_title("Random Forest Classifier\nAccuracy: {:.4f}%".format(accuracy))
+plt.show()
+
+
+
+
+
+
+
 
 
 
