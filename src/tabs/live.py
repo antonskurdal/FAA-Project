@@ -51,15 +51,15 @@ class LiveData(tk.Frame):
 		self.controller = controller
 		
 		#Grid Management
-		for row in range(14):
+		for row in range(7):
 			self.grid_rowconfigure(row, weight = 1)
 		for col in range(18):
 			self.grid_columnconfigure(col, weight = 1)
 		
-		# for row in range(7):
-		# 	self.grid_rowconfigure(row, weight = 0, minsize = 100)
-		# for col in range(18):
-		# 	self.grid_columnconfigure(row, weight = 0, minsize = 100)
+		for row in range(7):
+			self.grid_rowconfigure(row, weight = 0, minsize = 100)
+		for col in range(18):
+			self.grid_columnconfigure(row, weight = 0, minsize = 100)
 
 		###########
 		# METHODS #
@@ -365,6 +365,116 @@ class LiveData(tk.Frame):
 		
 		
 		
+		# OpenSky Network Login Management
+		self.username = tk.StringVar()
+		self.password = tk.StringVar()
+		try:
+			import util.login.login as login
+			self.username.set(login.username)
+			self.password.set(login.password)
+			
+		except ImportError:
+			#raise ImportError("[LIVE] Login not found.")
+			messagebox.showerror(title="Error", message=
+				"[LIVE] Login not found."+
+				
+				"\n\nPlease add your login information by following these steps:"+
+				"\n 1. Navigate to src/util/login"+
+				"\n 2. Create a file called 'login.py' inside the login folder"+
+				"\n 3. Define string variables with login information as follows:"+
+				"\n\t a)username = <username>"+
+				"\n\t b)password = <password>"+
+				"\n 4. Relaunch the program."+
+				"\n\nYour username and password will then be automatically used as the default OpenSky Network login."+
+				
+				"\n\nAlternatively, navigate to src/tabs/live.py, find this exception code, and change the defaults below this line.")
+			
+			
+			""" print("\n[LIVE] Login not found.")
+			print("Please add your login information by following these steps:")
+			print("\t1. Navigate to src/util/login")
+			print("\t2. Create a file called 'login.py' inside the login folder")
+			print("\t3. Define string variables with login information as follows:")
+			print("\t\ta)username = <username>")
+			print("\t\tb)password = <password>")
+			print("\t4. Relaunch the program.")
+			print("\nYour username and password will be automatically used as the default OpenSky Network login.")
+			
+			print("\nAlternatively, navigate to src/tabs/live.py, find this exception code, and change the defaults below this line.") """
+			
+			self.username.set("N/A")
+			self.password.set("N/A")
+		
+		#self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
+		#self.api = OpenSkyApi(username = login.username, password = login.password)
+
+		self.df = pd.DataFrame()
+		
+		def set_api():
+			print("[LIVE][set_api] Triggered...")
+			#print(self.api._auth)
+			try:
+				self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
+				_ = self.api.get_states().states[0]
+			except AttributeError as e:
+				print(e)
+				self.button_get.child['state'] = 'disabled'
+				self.login_labelframe['text'] = "OpenSky Network Login"
+				
+				messagebox.showerror(title="Error", message="Username or password is incorrect.")
+				return
+			
+			self.login_labelframe['text'] = "OpenSky Network Login - [Currenly Logged In]"
+			self.button_get.child['state'] = 'normal'
+		
+		
+		#self.after(10000, set_api())
+		
+		
+		
+		# Login Container
+		self.login_labelframe = sku.CustomLabelFrame(self, text="OpenSky Network Login")
+		self.login_labelframe.grid(row=0, column=0, rowspan=1, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.login_labelframe.grid_rowconfigure(0, weight=1)
+		self.login_labelframe.grid_columnconfigure(0, weight=1)
+		self.login_labelframe.grid_columnconfigure(1, weight=1)
+		self.login_labelframe.grid_columnconfigure(2, weight=1)
+		
+		# Username
+		self.username_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Username: ", labelanchor = "w")
+		self.username_labelframe.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.username_labelframe.grid_rowconfigure(0, weight=1)
+		self.username_labelframe.grid_columnconfigure(0, weight=1)
+		self.username_labelframe['font'] = sku.FONT_NORM
+		self.username_entry = sku.CustomEntry(self.username_labelframe, textvariable = self.username)
+		self.username_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		# Password
+		self.password_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Password: ", labelanchor = "w")
+		self.password_labelframe.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.password_labelframe.grid_rowconfigure(0, weight=1)
+		self.password_labelframe.grid_columnconfigure(0, weight=1)
+		self.password_labelframe['font'] = sku.FONT_NORM
+		self.password_entry = sku.CustomEntry(self.password_labelframe, text = self.password, show = "*")
+		self.password_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		# Sign In
+		self.button_signin = sku.BorderButton(self.login_labelframe, button_text = 'Sign In', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [self.username.set(self.username_entry.get()), self.password.set(self.password_entry.get()), set_api()])
+		self.button_signin.grid(row = 0, column = 2, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		#print("[LIVE] PATH: {}".format(Path.cwd() / "src" / "assets" / "on_und.png"))
 		# Switch Control
 		self.is_on = False
@@ -493,103 +603,7 @@ class LiveData(tk.Frame):
 
 		
 		
-		# OpenSky Network Login Management
-		self.username = tk.StringVar()
-		self.password = tk.StringVar()
-		try:
-			import util.login.login as login
-			self.username.set(login.username)
-			self.password.set(login.password)
-			
-		except ImportError:
-			#raise ImportError("[LIVE] Login not found.")
-			messagebox.showerror(title="Error", message=
-				"[LIVE] Login not found."+
-				
-				"\n\nPlease add your login information by following these steps:"+
-				"\n 1. Navigate to src/util/login"+
-				"\n 2. Create a file called 'login.py' inside the login folder"+
-				"\n 3. Define string variables with login information as follows:"+
-				"\n\t a)username = <username>"+
-				"\n\t b)password = <password>"+
-				"\n 4. Relaunch the program."+
-				"\n\nYour username and password will then be automatically used as the default OpenSky Network login."+
-				
-				"\n\nAlternatively, navigate to src/tabs/live.py, find this exception code, and change the defaults below this line.")
-			
-			
-			""" print("\n[LIVE] Login not found.")
-			print("Please add your login information by following these steps:")
-			print("\t1. Navigate to src/util/login")
-			print("\t2. Create a file called 'login.py' inside the login folder")
-			print("\t3. Define string variables with login information as follows:")
-			print("\t\ta)username = <username>")
-			print("\t\tb)password = <password>")
-			print("\t4. Relaunch the program.")
-			print("\nYour username and password will be automatically used as the default OpenSky Network login.")
-			
-			print("\nAlternatively, navigate to src/tabs/live.py, find this exception code, and change the defaults below this line.") """
-			
-			self.username.set("N/A")
-			self.password.set("N/A")
 		
-		#self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
-		#self.api = OpenSkyApi(username = login.username, password = login.password)
-
-		self.df = pd.DataFrame()
-		
-		def set_api():
-			print("[LIVE][set_api] Triggered...")
-			#print(self.api._auth)
-			try:
-				self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
-				_ = self.api.get_states().states[0]
-			except AttributeError as e:
-				print(e)
-				self.button_get.child['state'] = 'disabled'
-				self.login_labelframe['text'] = "OpenSky Network Login"
-				
-				messagebox.showerror(title="Error", message="Username or password is incorrect.")
-				return
-			
-			self.login_labelframe['text'] = "OpenSky Network Login - [Currenly Logged In]"
-			self.button_get.child['state'] = 'normal'
-		
-		
-		#self.after(10000, set_api())
-		
-		
-		
-		# Login Container
-		self.login_labelframe = sku.CustomLabelFrame(self, text="OpenSky Network Login")
-		self.login_labelframe.grid(row=0, column=0, rowspan=1, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.login_labelframe.grid_rowconfigure(0, weight=1)
-		self.login_labelframe.grid_columnconfigure(0, weight=1)
-		self.login_labelframe.grid_columnconfigure(1, weight=1)
-		self.login_labelframe.grid_columnconfigure(2, weight=1)
-		
-		# Username
-		self.username_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Username: ", labelanchor = "w")
-		self.username_labelframe.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.username_labelframe.grid_rowconfigure(0, weight=1)
-		self.username_labelframe.grid_columnconfigure(0, weight=1)
-		self.username_labelframe['font'] = sku.FONT_NORM
-		self.username_entry = sku.CustomEntry(self.username_labelframe, textvariable = self.username)
-		self.username_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		
-		# Password
-		self.password_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Password: ", labelanchor = "w")
-		self.password_labelframe.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.password_labelframe.grid_rowconfigure(0, weight=1)
-		self.password_labelframe.grid_columnconfigure(0, weight=1)
-		self.password_labelframe['font'] = sku.FONT_NORM
-		self.password_entry = sku.CustomEntry(self.password_labelframe, text = self.password, show = "*")
-		self.password_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		# Sign In
-		self.button_signin = sku.BorderButton(self.login_labelframe, button_text = 'Sign In', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [self.username.set(self.username_entry.get()), self.password.set(self.password_entry.get()), set_api()])
-		self.button_signin.grid(row = 0, column = 2, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 		
 		
 		

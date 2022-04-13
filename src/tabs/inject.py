@@ -181,7 +181,7 @@ class Inject(tk.Frame):
 			#print("[INJECT][FILE_BROWSE] DIRECTORY: {}".format(directory))
 			
 			file = Path(filedialog.askopenfilename(
-				filetypes = [('All files', '.*'), ('CSV or Parquet files', '.csv'), ('Apache Parquet files', '.parquet')], 
+				filetypes = [('All files', '.*'), ('CSV files', '.csv'), ('Apache Parquet files', '.parquet')], 
 				title = "Dataset Selection", 
 				initialdir = directory))
 			
@@ -292,8 +292,8 @@ class Inject(tk.Frame):
 			
 			
 			f = filedialog.asksaveasfile(
-				filetypes = [('CSV files', '.csv')], 
-				mode='w', defaultextension=".csv", 
+				filetypes = [('Apache Parquet files', '.parquet'), ('CSV files', '.csv')], 
+				mode='w', defaultextension=".parquet", 
 				initialfile = var.get(), 
 				initialdir = directory
 				)

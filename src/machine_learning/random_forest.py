@@ -71,7 +71,8 @@ try:
 except KeyError as e:
     print(e)
     pass
-df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length'])
+#df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length'])
+df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length', 'lastcontact'])
 
 print(df)
 print(df.shape[0])
@@ -150,6 +151,7 @@ y = pd.factorize(train['species'])[0]
 #y
 print(y) """
 
+#features = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length', 'lastcontact']
 
 features = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length']
 #features = ['lat', 'lon', 'geoaltitude', 'velocity']
