@@ -50,20 +50,43 @@ class LiveData(tk.Frame):
 		tk.Frame.__init__(self, parent, *args, **kwargs, bg = sku.FRAME_BACKGROUND)
 		self.controller = controller
 		
-		#Grid Management
-		for row in range(7):
+		###################
+		# Layout Controls #
+		###################
+		for row in range(9):
 			self.grid_rowconfigure(row, weight = 1)
 		for col in range(18):
 			self.grid_columnconfigure(col, weight = 1)
 		
-		for row in range(7):
+		for row in range(9):
 			self.grid_rowconfigure(row, weight = 0, minsize = 100)
 		for col in range(18):
 			self.grid_columnconfigure(row, weight = 0, minsize = 100)
-
-		###########
-		# METHODS #
-		###########
+		
+		
+		##############################
+		# 		DATA CONTAINERS		 #
+		##############################	
+		global craft_icao24
+		self.count = 0
+		global lat
+		global lon
+		self.df = pd.DataFrame()
+		
+		# OpenSky Network Login Management
+		self.username = tk.StringVar()
+		self.password = tk.StringVar()
+		
+		# Switch Assets
+		self.switch_on = PhotoImage(file=Path.cwd() / "src" / "assets" / "on_und.png")
+		self.switch_off = PhotoImage(file=Path.cwd() / "src" / "assets" / "off_und.png")
+		
+		# Switch Control
+		self.is_on = False
+		
+		##############################
+		# 		CLASS METHODS		 #
+		##############################
 		def switch(master):
 		
 			# Determine if switch is on or off
@@ -95,17 +118,6 @@ class LiveData(tk.Frame):
 				labelframe_live_switch['text'] = "On"
 				#labelframe_live_switch['text'] = str(self.is_on)
 				self.button_track.child['state'] = 'disabled'
-				
-
-
-		
-
-		global craft_icao24
-		self.count = 0
-		global lat
-		global lon
-		
-
 
 		def append_df(df, craft):
 			if (df.empty):
@@ -113,19 +125,41 @@ class LiveData(tk.Frame):
 				print(type(craft_dict))
 				print(craft_dict)
 
-
-
 		def get_states(console, api):
 			
-			states = api.get_states()
-			#print(states)
-
-			'''
-			for s in states.states:
-				print(s.icao24)
-			'''
-
-			craft = states.states[0]
+			states = None
+			while(states == None):
+				try: 
+					states = api.get_states()
+					print(len(states.states))
+				except AttributeError as e:
+					#print(e)
+					#console.insert(tk.END, "Error:\n{}".format(e))
+					pass
+					
+			console.insert(tk.END, "Number of Aircraft: {}\n".format(len(states.states)))
+			
+			
+			# for s in states.states:
+			# 	print(s)
+			# 	if(s.origin_country == "United States"):
+			# 		#print(s)
+			# 		craft = s
+			# 		break
+			
+			# console.insert(tk.END, "Chosen Aircraft:\n{}\n".format(craft))
+			
+			
+			# return
+			
+			# # for s in states.states:
+			# # 	print(s.icao24)
+			
+			
+			# console.insert(tk.END, "Number of Aircraft: {}".format(len(states.states)))
+			
+			
+			# craft = states.states[0]
 
 			for s in states.states:
 				print(s)
@@ -178,7 +212,8 @@ class LiveData(tk.Frame):
 				print("ERROR")
 		
 		def plotting_thread(fig_a, ax_a, fig_b, ax_b, console):
-			while (self.is_on == True):
+			#while (self.is_on == True):
+			while (self.switch_tracking.get_state() == True):
 				self.button_track.child['state'] = 'disabled'
 
 				time.sleep(1)  # ... or some busy computing
@@ -362,16 +397,189 @@ class LiveData(tk.Frame):
 
 				fig_a.canvas.draw_idle()  # use draw_idle instead of draw
 		
+		def set_api():
+			print("[LIVE][set_api] Triggered...")
+			#print(self.api._auth)
+			try:
+				self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
+				_ = self.api.get_states().states[0]
+			except AttributeError as e:
+				print(e)
+				self.button_get.child['state'] = 'disabled'
+				self.login_labelframe['text'] = "OpenSky Network Login"
+				
+				messagebox.showerror(title="Error", message="Username or password is incorrect.")
+				return
+			
+			self.login_labelframe['text'] = "OpenSky Network Login - [Currenly Logged In]"
+			self.button_get.child['state'] = 'normal'
+		
+		
+		######################
+		# 		WIDGETS		 #
+		######################
+		# Login Container
+		self.login_labelframe = sku.CustomLabelFrame(self, text="OpenSky Network Login")
+		self.login_labelframe.grid(row=0, column=0, rowspan=1, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.login_labelframe.grid_propagate(False)
+		self.login_labelframe.grid_rowconfigure(0, weight=1)
+		self.login_labelframe.grid_columnconfigure(0, weight=1)
+		self.login_labelframe.grid_columnconfigure(1, weight=1)
+		self.login_labelframe.grid_columnconfigure(2, weight=1)
+		# Username
+		self.username_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Username: ", labelanchor = "w")
+		self.username_labelframe.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.username_labelframe.grid_rowconfigure(0, weight=1)
+		self.username_labelframe.grid_columnconfigure(0, weight=1)
+		self.username_labelframe['font'] = sku.FONT_NORM
+		self.username_entry = sku.CustomEntry(self.username_labelframe, textvariable = self.username)
+		self.username_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Password
+		self.password_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Password: ", labelanchor = "w")
+		self.password_labelframe.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.password_labelframe.grid_rowconfigure(0, weight=1)
+		self.password_labelframe.grid_columnconfigure(0, weight=1)
+		self.password_labelframe['font'] = sku.FONT_NORM
+		self.password_entry = sku.CustomEntry(self.password_labelframe, text = self.password, show = "*")
+		self.password_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		# Sign In
+		self.button_signin = sku.BorderButton(self.login_labelframe, button_text = 'Sign In', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [self.username.set(self.username_entry.get()), self.password.set(self.password_entry.get()), set_api()])
+		self.button_signin.grid(row = 0, column = 2, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		
+		
+		# Get Aircraft Data
+		self.button_get = sku.BorderButton(self, button_text = 'Get Live Aircraft Data', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [get_states(self.scrolledtext_console, self.api)])
+		self.button_get.grid(row = 1, column = 0, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		self.button_get.child['state'] = 'disabled'
+		self.button_get.grid_propagate(False)
+		
+		
+		# Live Tracking
+		self.labelframe_live = sku.CustomLabelFrame(self, text="Live Tracking")
+		self.labelframe_live.grid(row=1, column=3, rowspan=1, columnspan=6, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.labelframe_live.grid_propagate(False)
+		self.labelframe_live.grid_rowconfigure(0, weight=1)
+		for col in range(4):
+			self.labelframe_live.grid_columnconfigure(col, weight=1)
+		# Start Tracking
+		self.button_track = sku.BorderButton(self.labelframe_live, button_text = 'Start Tracking', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [_thread.start_new_thread(plotting_thread, (self.fig_a, self.ax_a, self.fig_b, self.ax_b, self.scrolledtext_console))])
+		self.button_track.grid(row = 0, column = 0, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		self.button_track.child['state'] = 'disabled'
+		self.button_track.grid_propagate(False)
+		# Live Tracking Switch
+		self.switch_tracking = sku.CustomSwitch(self.labelframe_live, text="Tracking", textanchor = "n", on_image = self.switch_on, off_image=self.switch_off, init_state = True)
+		self.switch_tracking.grid(row=0, column=3, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		
+		
+		#Console
+		frame_console = sku.BorderFrame(self, background = '#505050', border_color = 'green')
+		frame_console.grid(row = 2, column = 0, rowspan = 6, columnspan = 9, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		frame_console.grid_propagate(False)
+		frame_console.nametowidget('child').grid_rowconfigure(0, weight = 1)
+		frame_console.nametowidget('child').grid_columnconfigure(0, weight = 1)
+		self.scrolledtext_console = sku.CustomScrolledText(frame_console.nametowidget('child'))
+		self.scrolledtext_console.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		# Clear Console
+		button_clear = sku.BorderButton(self, button_text = 'Clear Console', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: self.scrolledtext_console.delete(1.0, END))
+		button_clear.grid(row = 8, column = 0, rowspan = 1, columnspan = 9, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
+		
+		
+		# Plot Frame B - Dropouts
+		self.frame_b = sku.BorderFrame(self, background='#505050', border_color="green")
+		self.frame_b.grid(row=0, column=9, rowspan=5, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.frame_b.grid_propagate(False)
+		self.frame_b.nametowidget('child').grid_columnconfigure(0, weight=1)  # , minsize = 100)
+		self.frame_b.nametowidget('child').grid_rowconfigure(0, weight=1)
+		self.frame_b.nametowidget('child').grid_rowconfigure(1, weight=0, minsize=50)
+		#Setup Live Plot B
+		self.fig_b = Figure()
+		self.ax_b = self.fig_b.add_subplot(111)
+		#Place graph B
+		self.canvas_b = FigureCanvasTkAgg(self.fig_b, self.frame_b)
+		self.canvas_b.draw()
+		self.canvas_b.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW", padx=PADX_CONFIG, pady=(2, 0))
+
+		self.toolbarFrame_b = tk.Frame(self.frame_b)
+		self.toolbarFrame_b.grid(row=1,column=0, sticky = "NSEW", padx=PADX_CONFIG, pady=(0,2))
+		self.toolbarFrame_b.grid_rowconfigure(0, weight = 1)
+		self.toolbarFrame_b.grid_columnconfigure(0, weight = 1)
+	
+		self.toolbar_b = NavigationToolbar2Tk(self.canvas_b, self.toolbarFrame_b)
+		self.toolbar_b.grid(row = 0, column = 0, sticky="NSEW")	
+		
+		
+		# Plot Frame A - Map
+		self.frame_a = sku.BorderFrame(self, background='#505050', border_color="green")
+		self.frame_a.grid(row=5, column=9, rowspan=4, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
+		self.frame_a.grid_propagate(False)
+		self.frame_a.nametowidget('child').grid_columnconfigure(0, weight=1)  # , minsize = 100)
+		self.frame_a.nametowidget('child').grid_rowconfigure(0, weight=1)
+		self.frame_a.nametowidget('child').grid_rowconfigure(1, weight=0, minsize=50)
+		#Setup Live Plot A
+		self.fig_a = Figure()
+		self.ax_a = self.fig_a.add_subplot(1,1,1, projection=crs.Mercator())
+		self.ax_a.add_feature(cfeature.COASTLINE)
+		self.ax_a.add_feature(cfeature.STATES)# Zoom in on the US by setting longitude/latitude parameters
+		# ax.set_extent(
+		# 	[
+		# 		-135, # minimum latitude
+		# 		-60, # min longitude
+		# 		20, # max latitude
+		# 		55 # max longitude
+		# 	],
+		# 	crs=crs.Mercator()
+		# )
+		#Place graph A
+		self.canvas_a = FigureCanvasTkAgg(self.fig_a, self.frame_a)
+		self.canvas_a.draw()
+		self.canvas_a.get_tk_widget().grid(row = 0, column = 0, sticky = "NSEW", padx=PADX_CONFIG, pady=(2, 0))
+		self.toolbarFrame_a = tk.Frame(self.frame_a)
+		self.toolbarFrame_a.grid(row=1,column=0, sticky = "NSEW", padx=PADX_CONFIG, pady=(0,2))
+		self.toolbarFrame_a.grid_rowconfigure(0, weight = 1)
+		self.toolbarFrame_a.grid_columnconfigure(0, weight = 1)
+		self.toolbar_a = NavigationToolbar2Tk(self.canvas_a, self.toolbarFrame_a)
+		self.toolbar_a.grid(row = 0, column = 0, sticky="NSEW")	
 		
 		
 		
-		# OpenSky Network Login Management
-		self.username = tk.StringVar()
-		self.password = tk.StringVar()
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		#########
+		# SETUP #
+		#########
+		
+		# Try to log in using file
 		try:
 			import util.login.login as login
 			self.username.set(login.username)
 			self.password.set(login.password)
+			#set_api()
 			
 		except ImportError:
 			#raise ImportError("[LIVE] Login not found.")
@@ -405,63 +613,23 @@ class LiveData(tk.Frame):
 			self.username.set("N/A")
 			self.password.set("N/A")
 		
-		#self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
+		
+		
+		
+		
+	""" 	#self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
 		#self.api = OpenSkyApi(username = login.username, password = login.password)
 
 		self.df = pd.DataFrame()
 		
-		def set_api():
-			print("[LIVE][set_api] Triggered...")
-			#print(self.api._auth)
-			try:
-				self.api = OpenSkyApi(username = self.username.get(), password = self.password.get())
-				_ = self.api.get_states().states[0]
-			except AttributeError as e:
-				print(e)
-				self.button_get.child['state'] = 'disabled'
-				self.login_labelframe['text'] = "OpenSky Network Login"
-				
-				messagebox.showerror(title="Error", message="Username or password is incorrect.")
-				return
-			
-			self.login_labelframe['text'] = "OpenSky Network Login - [Currenly Logged In]"
-			self.button_get.child['state'] = 'normal'
+		
 		
 		
 		#self.after(10000, set_api())
 		
 		
 		
-		# Login Container
-		self.login_labelframe = sku.CustomLabelFrame(self, text="OpenSky Network Login")
-		self.login_labelframe.grid(row=0, column=0, rowspan=1, columnspan=9, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.login_labelframe.grid_rowconfigure(0, weight=1)
-		self.login_labelframe.grid_columnconfigure(0, weight=1)
-		self.login_labelframe.grid_columnconfigure(1, weight=1)
-		self.login_labelframe.grid_columnconfigure(2, weight=1)
 		
-		# Username
-		self.username_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Username: ", labelanchor = "w")
-		self.username_labelframe.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.username_labelframe.grid_rowconfigure(0, weight=1)
-		self.username_labelframe.grid_columnconfigure(0, weight=1)
-		self.username_labelframe['font'] = sku.FONT_NORM
-		self.username_entry = sku.CustomEntry(self.username_labelframe, textvariable = self.username)
-		self.username_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		
-		# Password
-		self.password_labelframe = sku.CustomLabelFrame(self.login_labelframe, text="Password: ", labelanchor = "w")
-		self.password_labelframe.grid(row=0, column=1, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		self.password_labelframe.grid_rowconfigure(0, weight=1)
-		self.password_labelframe.grid_columnconfigure(0, weight=1)
-		self.password_labelframe['font'] = sku.FONT_NORM
-		self.password_entry = sku.CustomEntry(self.password_labelframe, text = self.password, show = "*")
-		self.password_entry.grid(row=0, column=0, rowspan=1, columnspan=1, sticky="NSEW", padx=PADX_CONFIG, pady=PADY_CONFIG)
-		
-		# Sign In
-		self.button_signin = sku.BorderButton(self.login_labelframe, button_text = 'Sign In', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: [self.username.set(self.username_entry.get()), self.password.set(self.password_entry.get()), set_api()])
-		self.button_signin.grid(row = 0, column = 2, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 		
 		
 		
@@ -622,13 +790,4 @@ class LiveData(tk.Frame):
 		
 		# Clear Console
 		button_clear = sku.BorderButton(self, button_text = 'Clear Console', button_activebackground = sku.BUTTON_ACTIVEBACKGROUND, button_command = lambda: self.scrolledtext_console.delete(1.0, END))
-		button_clear.grid(row = 12, column = 0, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
-	
-
-'''
-if __name__ == "__main__":
-	new = tk.Tk()
-	page = Parse(new)
-	page.pack(fill="both", expand=True)
-	new.mainloop()
-	'''
+		button_clear.grid(row = 12, column = 0, rowspan = 1, columnspan = 3, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG) """

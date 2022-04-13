@@ -614,6 +614,7 @@ class Inject(tk.Frame):
 				labelframe_num_switch = sku.CustomLabelFrame(labelframe_num, text = "Rolling", labelanchor = 'n')
 				labelframe_num_switch.grid(row = 0, column = 2, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 				labelframe_num_switch.grid_anchor('center')
+				labelframe_num_switch.grid_propagate(True)
 				
 				switch_num = sku.BorderButton(labelframe_num_switch, button_image = self.off, button_command = switch, button_activebackground = '#404040')
 				switch_num.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
@@ -625,6 +626,8 @@ class Inject(tk.Frame):
 				labelframe_num_switch = sku.CustomLabelFrame(labelframe_num, text = "Rolling", labelanchor = 'n')
 				labelframe_num_switch.grid(row = 0, column = 2, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)
 				labelframe_num_switch.grid_anchor('center')
+				labelframe_num_switch.grid_propagate(True)
+				
 				
 				switch_num = sku.BorderButton(labelframe_num_switch, button_image = self.on, button_command = switch, button_activebackground = '#404040')
 				switch_num.grid(row = 0, column = 0, rowspan = 1, columnspan = 1, sticky = "NSEW", padx = PADX_CONFIG, pady = PADY_CONFIG)

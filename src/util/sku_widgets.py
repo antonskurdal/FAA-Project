@@ -346,6 +346,8 @@ class CustomLabelFrame(tk.LabelFrame):
 		self['font'] = LABELFRAME_FONT
 		#self['state'] = NORMAL
 		self['relief'] = 'flat'
+		
+		#self.grid_propagate(False)
 
 class CustomListbox(tk.Listbox):
 	def __init__(self, master, **kw):
@@ -400,7 +402,7 @@ class BorderButton(tk.Frame):
 
 		self.grid_rowconfigure(0, weight = 1)
 		self.grid_columnconfigure(0, weight = 1)
-		
+		self.grid_propagate(False)
 	
 		
 		#test = DynamicBorderButton(self, button_text = "Sup", button_activebackground = orange)
@@ -654,6 +656,8 @@ class CustomSwitch(tk.Frame):
 					i.pack_forget()
 				
 				self.switch = BorderButton(self.labelframe, button_image = self.off_image, button_activebackground = '#404040', button_command=toggle)
+				self.switch.grid_propagate(True)
+				
 				self.switch.pack()
 				self.state = False
 				#print(self.state)
@@ -664,6 +668,8 @@ class CustomSwitch(tk.Frame):
 					i.pack_forget()
 				
 				self.switch = BorderButton(self.labelframe, button_image = self.on_image, button_activebackground = '#404040', button_command=toggle)
+				self.switch.grid_propagate(True)
+				
 				self.switch.pack()
 				self.state = True
 				#print(self.state)
