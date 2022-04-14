@@ -123,6 +123,7 @@ def snr_rolling(df, axis, ddof):
 		df['snr_rolling'] = snr_list
 	else:
 		df.insert(df.shape[1], 'snr_rolling', snr_list)
+	df['snr_rolling'] = df['snr_rolling'].astype(float)
 	
 	return df
 
@@ -248,7 +249,7 @@ def score(df):
 def autotag(df):
 	
 	# Score Counts
-	print(df['score'].value_counts().sort_index())
+	#print(df['score'].value_counts().sort_index())
 	
 	# Generate tag for each row
 	tags = []
@@ -273,21 +274,13 @@ def autotag(df):
 	return df
 
 
-
 # Set up directory
 parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch/output")
 
-file = "a052b6_.parquet"
-#file = "a47dac_.parquet"
-
-data = pd.read_parquet(parent_directory / file)
-print(data.head())
-
-exit()
-
-
 # Iterate through directory and count files
-extensions = ('*.csv', '*.parquet')
+#extensions = ('*.csv', '*.parquet')
+extensions = ('*.parquet', '*.csv')
+
 file_count = 0
 for ext in extensions:
 	for file in parent_directory.rglob(ext):
@@ -329,4 +322,9 @@ for ext in extensions:
 		data = autotag(data)
 		
 		# Save file
-		data.to_csv(file)
+		if(file.suffix == '.csv'):
+			data.to_csv(file)
+		elif(file.suffix == '.parquet'):
+			data.to_parquet(file, allow_truncated_timestamps=True)#, engine = 'pyarrow')
+		else:
+			print("Invalid file extension.")

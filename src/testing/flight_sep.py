@@ -84,21 +84,10 @@ def label_flights(df, splits):
 
 
 # Set up directory
-#parent_directory = Path.cwd() / "data" / "test" / "flight_sep" / "batch"
 parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch")
 directory = parent_directory / "output/"
 directory.mkdir(parents=True, exist_ok=True)
-#file = "addf73.csv"
-#file = "a5681f.csv"
 
-
-""" file = "a052b6.parquet"
-#file = "a47dac_.parquet"
-
-data = pd.read_parquet(parent_directory / file)
-print(data.head())
-
-exit() """
 
 # Iterate through directory and count files
 extensions = ('*.csv', '*.parquet')
@@ -140,43 +129,35 @@ for ext in extensions:
 		
 		# Save split files
 		if(len(splits) == 0):
-			data.to_csv(directory / Path(str(file.stem + "_" + file.suffix)))
-			continue
+			
+			f = Path(str("{}_{}").format(file.stem, file.suffix))
+			
+			# Save file
+			if(file.suffix == '.csv'):
+				flights.get_group(group).to_csv(directory / f)
+			elif(file.suffix == '.parquet'):
+				flights.get_group(group).to_parquet(directory / f, allow_truncated_timestamps=True, engine = 'pyarrow')
+			else:
+				print("Invalid file extension.")
 		else:
 			data = label_flights(data, splits)
 			flights = data.groupby('flight_number')
-			#print(flights.groups)
-			#print(len(flights))
 			
 			subdir = directory / file.stem
 			subdir.mkdir(parents=True, exist_ok=True)
 			
 			for group in flights.groups:
-				#print(flights.get_group(group))
+				
 				f = Path(str("{}_{}{}").format(file.stem, int(group), file.suffix))
 				
 				# Save file
 				if(file.suffix == '.csv'):
 					flights.get_group(group).to_csv(subdir / f)
 				elif(file.suffix == '.parquet'):
-					flights.get_group(group).to_parquet(subdir / f, allow_truncated_timestamps=True, engine = 'pyarrow')
+					flights.get_group(group).to_parquet(subdir / f, allow_truncated_timestamps=True)#, engine = 'pyarrow')
 				else:
 					print("Invalid file extension.")
-				
-				#print(f)
-				#time.sleep(100)
-				#flights.get_group(group).to_csv(subdir / f)
-
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
+					
 		
 exit()
 
