@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 
-"""This file contains methods to calculate statistics from dataframes.
+"""Flight Stats Calculator
 
-	Description.
+	Modifies CSVs or Parquets in-place by adding a variety of statistical columns
 """
 
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib import rcParams
+import time
 
-	
 __author__ = "Anton Skurdal"
 __copyright__ = "Copyright 2020, The FAA Project"
 __credits__ = ["Anton Skurdal"]
@@ -22,34 +20,6 @@ __maintainer__ = "Anton Skurdal"
 __email__ = "antonskurdal@gmail.com"
 __status__ = "Development"
 
-
-# Make sure code runs as a module
-if(__name__ == '__main__'):
-	print("This code is meant to be run as a module.")
-	exit(0)
-	
-
-"""ADD FUNCTION TO APPLY ZSCORE, TIME SINCE LAST CONTACT, ETC TO DATAFRAME"""
-
-	
-def apply_taxonomy(df, col, bounds, type):
-	
-	# Get data lower than bounds
-	low = df[df[col] < bounds[0]]
-	
-	# Get data higher than bounds
-	high = df[df[col] > bounds[1]]
-	
-	mid = df[(df[col] > bounds[0]) & (df[col] < bounds[1])]
-	
-	mid['taxonomy'] = type
-	
-	df = pd.concat([low, mid, high])
-	print("\n[STAT_CALC]:")
-	print(df)
-	print("\n")
-	
-	return df
 
 
 def dropouts(df):
@@ -66,11 +36,10 @@ def dropouts(df):
 		df['mean'] = mean
 	else:
 		df.insert(df.shape[1], 'mean', mean)
-		
-	#print(df)
-	return
-
-
+	
+	return df
+	
+	
 def stdev_zscore(df):
 	
 	# Standard Deviation
@@ -87,9 +56,8 @@ def stdev_zscore(df):
 	else:
 		df.insert(df.shape[1], 'stdev_zscore', stdev_zscores)
 	
-	#print(df[['dropout_length', 'stdev', 'stdev_zscore']])
-	return
-	
+	return df
+
 
 def simple_moving_average(df, window):
 	"""_summary_
@@ -99,15 +67,11 @@ def simple_moving_average(df, window):
 		window (int): Size of the moving window
 	"""
 	
-	# Create column name with window value included
-	#window_colname = "window_size"
-	
 	# Window Size
 	if("sma_window_size" in df.columns):
 		df['sma_window_size'] = str(window)
 	else:
 		df.insert(df.shape[1], 'sma_window_size', str(window))
-	
 	
 	# Simple Moving Average
 	sma = df['dropout_length'].rolling(window).mean()
@@ -116,37 +80,7 @@ def simple_moving_average(df, window):
 	else:
 		df.insert(df.shape[1], 'sma', sma)
 	
-	#print(df[['dropout_length', colname]])
-	""" import matplotlib.pyplot as plt
-	df['dropout_length'].plot()
-	df[colname].plot()
-	plt.legend()
-	plt.show() """
-	return
-	if(colname in df.columns):
-		print(list(df['dropout_length'].rolling(window).mean()))
-		df[colname] = list(df['dropout_length'].rolling(window).mean())
-	else:
-		df.insert(df.shape[1], colname, list(df['dropout_length'].rolling(window).mean()))
-	
-	print("[sma{}]:\n".format(window))
-	print(list(df['dropout_length'].rolling(window).mean()))
-	#y = list(df['dropout_length'].rolling(window))
-	
-	
-	
-	#df['dropout_length'].plot()
-	
-	"""
-	import matplotlib.pyplot as plt
-	df.reset_index()
-	df['dropout_length'].plot()
-	df['dropout_length'].rolling(window).mean().plot()
-	plt.legend()
-	plt.show()
-	"""
-	
-	print(df[["dropout_length", colname]])
+	return df
 
 
 def signal_noise_ratio(df, axis, ddof):
@@ -172,29 +106,9 @@ def signal_noise_ratio(df, axis, ddof):
 	# Signal to Noise Ratio
 	snr = np.where(stdev == 0, 0, mean / stdev)
 	
-	#print(snr)
 	return snr
-	
-	a = df['dropout_length']
-	
-	a = np.asanyarray(a)
-	m = a.mean(axis)
-	sd = a.std(axis = axis, ddof = ddof)
-	
-	
-	snr = np.where(sd == 0, 0, m / sd)
-	
-	import matplotlib.pyplot as plt
-	
-	print("snr:\n{}".format(snr))
-	
-	plt.plot(snr)
-	plt.show()
-	
-	
-	return np.where(sd == 0, 0, m / sd)
-	
-	
+
+
 def snr_rolling(df, axis, ddof):
 	
 	# Initialize list
@@ -210,9 +124,8 @@ def snr_rolling(df, axis, ddof):
 	else:
 		df.insert(df.shape[1], 'snr_rolling', snr_list)
 	
-	#print(df[['dropout_length', 'snr_rolling']])
-	return
-	
+	return df
+
 
 def mode_deviation(df):
 	"""_summary_
@@ -272,14 +185,12 @@ def mode_deviation(df):
 		mode_dev_zscores.append(z)
 	
 	# Mode Deviation Z-Scores
-	#print("Mode Deviation Z-Scores: {}".format(mode_dev_zscores))
 	if("mode_dev_zscore" in df.columns):
 		df['mode_dev_zscore'] = mode_dev_zscores
 	else:
 		df.insert(df.shape[1], 'mode_dev_zscore', mode_dev_zscores)
 	
-	#print(df[['dropout_length', 'mode_dev', 'mode_dev_zscore']])
-	return
+	return df
 
 
 def score(df):
@@ -331,31 +242,8 @@ def score(df):
 	else:
 		df.insert(df.shape[1], 'score', scores)
 	
-	plt.close('all')
-	fig, axs = plt.subplots(2, 1, figsize = (10, 8))
-	axs[0].plot(df['time'], df['score'], label = "score value")
-	axs[0].set_title("Score vs Time")
-	axs[0].set_xlabel("time (s)")
-	axs[0].set_ylabel("score")
-	
-	axs[1].plot(df['time'], df['dropout_length'], label = "dropout_length")
-	axs[1].set_title("Dropout Length vs Time")
-	axs[1].set_xlabel("time (s)")
-	axs[1].set_ylabel("dropout_length (s)")
-	
-	plt.show()
-	plt.close('all')
-	
-	from matplotlib import rcParams
-	rcParams['figure.figsize'] = 10, 8
-	sns.scatterplot(data = df, x = "time", y = "score", hue = "score", palette=sns.dark_palette("#FF0000", as_cmap=True))
-	plt.title("Score vs Time")
-	plt.xlabel("time (s)")
-	plt.ylabel("score value")
-	plt.show()
-	plt.close('all')
-	
 	return df
+
 
 def autotag(df):
 	
@@ -379,93 +267,66 @@ def autotag(df):
 		if(row['dropout_length'] <= 0):
 			df.at[i, 'taxonomy'] = "erroneous"
 	
-	hue_order = ['normal', 'erroneous', 'noise', 'dropout']
-	sns.scatterplot(data = df, x = "time", y = "dropout_length", hue = "taxonomy", hue_order = hue_order)
-	plt.title("Dropout Length vs Time (Colored by Label)")
-	plt.xlabel("time (s)")
-	plt.ylabel("dropout_length (s)")
-	plt.show()
-	
 	# Taxonomy Counts
-	print(df['taxonomy'].value_counts().sort_index())
+	#print(df['taxonomy'].value_counts().sort_index())
 	
 	return df
 
 
 
+# Set up directory
+parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch/output")
+
+file = "a052b6_.parquet"
+#file = "a47dac_.parquet"
+
+data = pd.read_parquet(parent_directory / file)
+print(data.head())
+
+exit()
 
 
+# Iterate through directory and count files
+extensions = ('*.csv', '*.parquet')
+file_count = 0
+for ext in extensions:
+	for file in parent_directory.rglob(ext):
+		print(file.name)
+		file_count += 1
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def linear_regression(df):
-	
-	import numpy as np
-	import matplotlib.pyplot as plt  # To visualize
-	import pandas as pd  # To read data
-	from sklearn.linear_model import LinearRegression
-	
-	X = df['dropout_length'].values.reshape(-1, 1)  # values converts it into a numpy array
-	print("[regression] X: {}".format(list(X)))
-	
-	Y = df.iloc[:, 1].values.reshape(-1, 1)  # -1 means that calculate the dimension of rows, but have 1 column
-	print("[regression] Y: {}".format(list(Y)))
-	
-	# linear_regressor = LinearRegression()  # create object for the class
-	# linear_regressor.fit(X, Y)  # perform linear regression
-	# Y_pred = linear_regressor.predict(X)  # make predictions
-	
-	# plt.scatter(X, Y)
-	# plt.plot(X, Y_pred, color='red')
-	# plt.show()
-	
+# Loop through files and calculate flight stats
+count = 1
+for ext in extensions:
+	for file in parent_directory.rglob(ext):
+		
+		# Display count
+		print("({}/{}) Processing '{}'".format(count, file_count, file.name))
+		count += 1
+		
+		# Initialize variables
+		data = pd.DataFrame()
+		splits = []
+		threshold = 900
+		
+		# Load file
+		if(file.suffix == '.csv'):
+			data = pd.read_csv(file)
+		elif(file.suffix == '.parquet'):
+			data = pd.read_parquet(file)
+		else:
+			print("Invalid file extension.")
+		
+		# Calculate Statistics
+		data = dropouts(data)
+		data = stdev_zscore(data)
+		data = simple_moving_average(data, 10)	# Simple Moving Average (window = 10)
+		data = snr_rolling(data, 0, 0) # Signal to Noise Ratio (Rolling)
+		data = mode_deviation(data) # Mode Deviation Z-Score
+		
+		# Calculate score & autotag
+		data = score(data)
+		data = autotag(data)
+		
+		# Save file
+		data.to_csv(file)

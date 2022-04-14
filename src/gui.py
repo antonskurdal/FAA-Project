@@ -87,7 +87,7 @@ class App(tk.Tk):
 			#The frame on top will be visible
 			frame.grid(row = 0, column = 0, sticky = "NSEW")
 		
-		self.show_frame("LiveData")
+		self.show_frame("Inject")
 		
 	def show_frame(self, page_name):
 		#Show the frames for the given page name
