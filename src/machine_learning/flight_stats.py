@@ -140,8 +140,14 @@ def mode_deviation(df):
 	# Calculate 'true mode' by removing values <=0
 	df_temp = df.copy()
 	df_temp.loc[df_temp['dropout_length'] <= 0] = None
-	true_mode = df_temp['dropout_length'].mode()[0]
 	
+	try:
+		true_mode = df_temp['dropout_length'].mode()[0]
+	except KeyError as e:
+		#print(e)
+		print("\tTrue Mode not found, returning empty dataframe.")
+		return pd.DataFrame()
+		
 	# Calculate mode
 	mode = df['dropout_length'].mode()[0]
 	
@@ -284,14 +290,15 @@ extensions = ('*.parquet', '*.csv')
 file_count = 0
 for ext in extensions:
 	for file in parent_directory.rglob(ext):
-		print(file.name)
+		#print(file.name)
 		file_count += 1
+print("File Count: {}".format(file_count))
 
 
 # Loop through files and calculate flight stats
 count = 1
 for ext in extensions:
-	for file in parent_directory.rglob(ext):
+	for file in reversed(list(parent_directory.rglob(ext))):
 		
 		# Display count
 		print("({}/{}) Processing '{}'".format(count, file_count, file.name))
@@ -315,7 +322,15 @@ for ext in extensions:
 		data = stdev_zscore(data)
 		data = simple_moving_average(data, 10)	# Simple Moving Average (window = 10)
 		data = snr_rolling(data, 0, 0) # Signal to Noise Ratio (Rolling)
+		
+		
 		data = mode_deviation(data) # Mode Deviation Z-Score
+		
+		if(data.empty):
+			print("\tInvalid dataset. Deleting file.")
+			#print(file)
+			file.unlink()
+			continue
 		
 		# Calculate score & autotag
 		data = score(data)

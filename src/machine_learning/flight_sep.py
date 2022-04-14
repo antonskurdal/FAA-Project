@@ -94,9 +94,9 @@ extensions = ('*.csv', '*.parquet')
 file_count = 0
 for ext in extensions:
 	for file in parent_directory.rglob(ext):
-		print(file.name)
+		#print(file.name)
 		file_count += 1
-
+print("File Count: {}".format(file_count))
 
 # Iterate through directory
 extensions = ('*.csv', '*.parquet')

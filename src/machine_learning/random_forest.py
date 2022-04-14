@@ -9,6 +9,7 @@
 """
 # from sklearnex import patch_sklearn
 # patch_sklearn(["RandomForestClassifier"])
+from ensurepip import bootstrap
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import numpy as np
@@ -178,6 +179,7 @@ clf.fit(train[features], y) """
 start_time = time.time()
 
 clf = RandomForestClassifier(n_jobs = 10, random_state=0)
+#clf = RandomForestClassifier(n_jobs = 10, bootstrap = False, n_estimators=10000, min_samples_leaf=2)#, random_state=0, bootstrap=True)
 clf.fit(train[features], y)
 
 print("--- %s seconds ---" % (time.time() - start_time))

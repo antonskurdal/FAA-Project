@@ -42,6 +42,54 @@ np.random.seed(1)
 # LOAD DATA #
 #############
 
+
+
+
+
+
+
+
+
+
+""" 
+d = pd.DataFrame()
+d['x'] = ['normal', 'erroneous', 'noise', 'dropout']
+print(d['x'])
+
+codes, _y = pd.factorize(d['x'])
+y = pd.factorize(d['x'])[0]
+#print(y)
+print(codes)
+print("_y: {}".format(_y))
+
+d['y'] = [0, 3, 2, 1]
+
+z = _y[d['y']]
+print("Z:{}".format(z))
+exit()
+
+taxonomy_dict = dict
+{
+    'normal': 0,
+    'noise': 1,
+    'droput': 2,
+    'erroneous': 3,
+}
+
+test2 = d['x'].map(taxonomy_dict)
+print(test2)
+
+
+
+
+exit()
+ """
+
+
+
+
+
+
 # Set up directory
 parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch/output")
 #directory = Path.cwd() / "data" / "ML-datasets" / "RandomForest"
@@ -70,50 +118,44 @@ print("Dataset Columns: {}".format(list(df.columns)))
 # Drop invalid data
 #df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length'])
 df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length', 'lastcontact'])
+
+# Drop duplicates
+df = df.drop_duplicates()
 print("Number of Unique Aircraft: {}".format(len(df['icao24'].unique())))
 print("Data Points Count: {}".format(df.shape[0]))
 
-#exit()
+
+""" # Save aggregated file
+print(parent_directory)
+f = Path("#RF2_AGG.csv")
+df.to_csv(parent_directory / f) """
+
+""" #exit()
+# Drop erroneous
+df = df[df['taxonomy'] != 'erroneous']
+
+# Drop noise
+df = df[df['taxonomy'] != 'noise'] """
 
 
-
-# print(df)
-# print(df.shape[0])
-print(df['taxonomy'].value_counts())
+print("Taxonomy Counts:\n{}\n".format(df['taxonomy'].value_counts()))
 
 #time.sleep(2)
 
-fig = px.strip(df, x="taxonomy", y="dropout_length", color="taxonomy", stripmode='overlay')
+#fig = px.strip(df, x="taxonomy", y="dropout_length", color="taxonomy", stripmode='overlay')
 #fig.show()
-
-
-
-""" hue_order = ['normal', 'noise', 'erroneous', 'dropout']
-sns.set(rc={'figure.figsize':(12,6)})
-#fig, ax = plt.subplots(figsize=(10, 8))
-sns.set_theme(style="whitegrid")
-ax = sns.stripplot(data = df, x = "dropout_length", y = "taxonomy", hue_order=hue_order, jitter=0.4)
-#ax.set_xscale("log")
-
-plt.show() """
-
-
-
-
-
-
-
-
-
 
 #################################
 # CREATE TRAINING AND TEST DATA #
 #################################
 
-df['is_train'] = np.random.uniform(0, 1, len(df)) <= 0.6
-
+train_percentage = 0.6
+df['is_train'] = np.random.uniform(0, 1, len(df)) <= train_percentage
 train, test = df[df['is_train'] == True], df[df['is_train'] == False]
 
+print("\nTraining Set Size: {:.4f}% ({}/{})".format(((train.shape[0]/df.shape[0]) * 100), train.shape[0], df.shape[0]))
+print("Testing Set Size: {:.4f}% ({}/{})\n".format(((test.shape[0]/df.shape[0]) * 100), test.shape[0], df.shape[0]))
+#print("Testing Set Size: {}% ({}/{})\n".format(train.shape[0], test.shape[0]))
 
 ###################
 # PREPROCESS DATA #
@@ -133,6 +175,100 @@ y = pd.factorize(train['taxonomy'])[0]
 # print(np.unique(y))
 
 
+###############################
+# Hyperparameter Optimization #
+###############################
+
+def evaluate(model, test_features, test_labels):
+    predictions = model.predict(test_features)
+    errors = abs(predictions - test_labels)
+    mape = 100 * np.mean(errors / test_labels)
+    accuracy = 100 - mape
+    print('Model Performance')
+    print('Average Error: {:0.4f} degrees.'.format(np.mean(errors)))
+    print('Accuracy = {:0.2f}%.'.format(accuracy))
+    
+    return accuracy
+
+
+# Organize the data
+train_features = train[features]
+train_labels = train['taxonomy']
+codes_train, uniques_train = pd.factorize(train_labels)
+train_labels = codes_train
+#print("Train Features Columns: {}".format(list(train_features.columns)))
+#print("Train Labels: {}".format(list(train_labels)))
+test_features = test[features]
+test_labels = test['taxonomy']
+codes_test, uniques_test = pd.factorize(test_labels)
+test_labels = codes_test
+#print("Test Features Columns: {}".format(list(test_features.columns)))
+
+
+# Base model
+print("Base Model Starting...")
+start_time = time.time()
+base_model = RandomForestClassifier(n_jobs = 16, n_estimators = 10, random_state = 42)
+base_model.fit(train_features, train_labels)
+print("--- Elapsed Time: %s seconds ---" % (time.time() - start_time))
+#base_accuracy = evaluate(base_model, test_features, test_labels)
+base_accuracy = metrics.accuracy_score(test_labels, base_model.predict(test_features))
+
+# Evaluating the Algorithm
+from sklearn import metrics
+print("\n")
+print("Accuracy: {:.4f}".format(metrics.accuracy_score(test_labels, base_model.predict(test_features))))
+print('Mean Absolute Error:', metrics.mean_absolute_error(test_labels, base_model.predict(test_features)))
+print('Mean Squared Error:', metrics.mean_squared_error(test_labels, base_model.predict(test_features)))  
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(test_labels, base_model.predict(test_features))))
+
+
+# GridSearchCV
+from sklearn.model_selection import GridSearchCV
+# Create the parameter grid based on the results of random search 
+param_grid = {
+    'bootstrap': [True],
+    # 'max_depth': [80, 90, 100, 110],
+    'max_features': [2, 3],
+    # 'min_samples_leaf': [3, 4, 5],
+    # 'min_samples_split': [8, 10, 12],
+    #'n_estimators': [100, 200, 300, 1000]
+    'n_estimators': [10, 50, 100]
+}
+
+# Create a based model
+rf = RandomForestClassifier()# Instantiate the grid search model
+print("GridSearchCV Starting...")
+grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, cv = 3, n_jobs = 16, verbose = 2)
+
+
+
+# Fit the grid search to the data
+grid_search.fit(train_features, train_labels)
+print("--- Elapsed Time: %s seconds ---" % (time.time() - start_time))
+
+grid_search.best_params_
+{
+    'bootstrap': True,
+    'max_depth': 80,
+    'max_features': 3,
+    'min_samples_leaf': 5,
+    'min_samples_split': 12,
+    'n_estimators': 100
+}
+best_grid = grid_search.best_estimator_
+#grid_accuracy = evaluate(best_grid, test_features, test_labels)
+grid_accuracy = metrics.accuracy_score(test_labels, best_grid.predict(test_features))
+# Evaluating the Algorithm
+from sklearn import metrics
+print("\n")
+print("Accuracy: {:.4f}".format(metrics.accuracy_score(test_labels, best_grid.predict(test_features))))
+print('Mean Absolute Error:', metrics.mean_absolute_error(test_labels, best_grid.predict(test_features)))
+print('Mean Squared Error:', metrics.mean_squared_error(test_labels, best_grid.predict(test_features)))  
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(test_labels, best_grid.predict(test_features))))
+
+print('Improvement of {:0.2f}%.'.format( 100 * (grid_accuracy - base_accuracy) / base_accuracy))
+exit()
 
 ######################################
 # TRAIN THE RANDOM FOREST CLASSIFIER #
@@ -140,7 +276,9 @@ y = pd.factorize(train['taxonomy'])[0]
 
 start_time = time.time()
 
-clf = RandomForestClassifier(n_jobs = 10, random_state=0)
+#clf = RandomForestClassifier(n_jobs = 10, random_state=0)
+clf = RandomForestClassifier(n_jobs = 10, n_estimators=100)#, random_state=0, )
+
 clf.fit(train[features], y)
 
 print("--- %s seconds ---" % (time.time() - start_time))
@@ -228,7 +366,7 @@ disp.ax_.set_title("Random Forest Classifier\nAccuracy: {:.4f}%".format(accuracy
 plt.show()
 
 
-
+exit()
 
 
 
