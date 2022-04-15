@@ -34,108 +34,72 @@ __status__ = "Development"
 #################
 # Set random seed
 import time
-np.random.seed(1)
-#np.random.seed(int(time.time()))
+#np.random.seed(1)
+np.random.seed(int(time.time()))
 
 
 #############
 # LOAD DATA #
 #############
-
-
-
-
-
-
-
-
-
-
-""" 
-d = pd.DataFrame()
-d['x'] = ['normal', 'erroneous', 'noise', 'dropout']
-print(d['x'])
-
-codes, _y = pd.factorize(d['x'])
-y = pd.factorize(d['x'])[0]
-#print(y)
-print(codes)
-print("_y: {}".format(_y))
-
-d['y'] = [0, 3, 2, 1]
-
-z = _y[d['y']]
-print("Z:{}".format(z))
-exit()
-
-taxonomy_dict = dict
-{
-    'normal': 0,
-    'noise': 1,
-    'droput': 2,
-    'erroneous': 3,
-}
-
-test2 = d['x'].map(taxonomy_dict)
-print(test2)
-
-
-
-
-exit()
- """
-
-
-
-
-
-
 # Set up directory
-parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch/output")
-#directory = Path.cwd() / "data" / "ML-datasets" / "RandomForest"
+parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_0/output")
 
-# Open directory
-extensions = ('*.parquet', '*.csv')
-file_count = 0
-for ext in extensions:
-	for file in parent_directory.rglob(ext):
-		#print(file.name)
-		file_count += 1
-print("File Count: {}".format(file_count))
+agg_data = False
+if(agg_data):
+    
+    #directory = Path.cwd() / "data" / "ML-datasets" / "RandomForest"
 
-# Concatenate all files into a dataframe
-parquet_files = [f for f in parent_directory.rglob('*.parquet')]
-csv_files = [f for f in parent_directory.rglob('*.csv')]
-parquet_df = pd.concat(map(pd.read_parquet, parquet_files), ignore_index = True)
-csv_df = pd.concat(map(pd.read_csv, csv_files), ignore_index = True)
-df = pd.concat([parquet_df, csv_df])
+    # Open directory
+    extensions = ('*.parquet', '*.csv')
+    file_count = 0
+    for ext in extensions:
+        for file in parent_directory.rglob(ext):
+            #print(file.name)
+            file_count += 1
+    print("File Count: {}".format(file_count))
 
-# Remove irrelevant columns
-relevant_columns = ['time', 'taxonomy', 'icao24', 'lat', 'lon', 'geoaltitude', 'velocity', 'lastcontact', 'dropout_length']
-df = df[relevant_columns]
-print("Dataset Columns: {}".format(list(df.columns)))
+    # Concatenate all files into a dataframe
+    parquet_files = [f for f in parent_directory.rglob('*.parquet')]
+    csv_files = [f for f in parent_directory.rglob('*.csv')]
+    parquet_df = pd.concat(map(pd.read_parquet, parquet_files), ignore_index = True)
+    csv_df = pd.concat(map(pd.read_csv, csv_files), ignore_index = True)
+    df = pd.concat([parquet_df, csv_df])
 
-# Drop invalid data
-#df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length'])
-df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length', 'lastcontact'])
+    # Remove irrelevant columns
+    relevant_columns = ['time', 'taxonomy', 'icao24', 'lat', 'lon', 'geoaltitude', 'velocity', 'lastcontact', 'dropout_length']
+    df = df[relevant_columns]
+    print("Dataset Columns: {}".format(list(df.columns)))
 
-# Drop duplicates
-df = df.drop_duplicates()
-print("Number of Unique Aircraft: {}".format(len(df['icao24'].unique())))
-print("Data Points Count: {}".format(df.shape[0]))
+    # Drop invalid data
+    #df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length'])
+    df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length', 'lastcontact'])
+
+    # Drop duplicates
+    df = df.drop_duplicates()
+    print("Number of Unique Aircraft: {}".format(len(df['icao24'].unique())))
+    print("Data Points Count: {}".format(df.shape[0]))
 
 
-""" # Save aggregated file
-print(parent_directory)
-f = Path("#RF2_AGG.csv")
-df.to_csv(parent_directory / f) """
+    # Save aggregated file
+    print(parent_directory)
+    f = Path("#RF2_AGG.csv")
+    df.to_csv(parent_directory / f)
 
-""" #exit()
+    exit()
+
+else:
+    file = parent_directory / "#RF2_AGG.csv"
+    #file = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_0/output/#RF2_AGG.csv")
+    df = pd.read_csv(file)
+
+
+
 # Drop erroneous
-df = df[df['taxonomy'] != 'erroneous']
+#df = df[df['taxonomy'] != 'erroneous']
 
-# Drop noise
-df = df[df['taxonomy'] != 'noise'] """
+# # Drop noise
+# df = df[df['taxonomy'] != 'noise']
+
 
 
 print("Taxonomy Counts:\n{}\n".format(df['taxonomy'].value_counts()))
@@ -149,14 +113,96 @@ print("Taxonomy Counts:\n{}\n".format(df['taxonomy'].value_counts()))
 # CREATE TRAINING AND TEST DATA #
 #################################
 
-train_percentage = 0.6
+train_percentage = 0.7
 df['is_train'] = np.random.uniform(0, 1, len(df)) <= train_percentage
 train, test = df[df['is_train'] == True], df[df['is_train'] == False]
 
 print("\nTraining Set Size: {:.4f}% ({}/{})".format(((train.shape[0]/df.shape[0]) * 100), train.shape[0], df.shape[0]))
-print("Testing Set Size: {:.4f}% ({}/{})\n".format(((test.shape[0]/df.shape[0]) * 100), test.shape[0], df.shape[0]))
+print("Training Taxonomy Counts:\n{}\n".format(train['taxonomy'].value_counts()))
+
+print("Testing Set Size: {:.4f}% ({}/{})".format(((test.shape[0]/df.shape[0]) * 100), test.shape[0], df.shape[0]))
+print("Testing Taxonomy Counts:\n{}\n".format(test['taxonomy'].value_counts()))
+
 #print("Testing Set Size: {}% ({}/{})\n".format(train.shape[0], test.shape[0]))
 
+
+# Define base dataset and features
+features = ['lat', 'lon', 'geoaltitude', 'velocity', 'lastcontact']#, 'dropout_length', 'lastcontact']
+X = df[features]
+y = df['taxonomy']
+
+# Train/Test Split
+# X_train -> training features
+# y_train -> training labels
+# X_test -> testing features
+# y_test -> testing labels
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+print("\n")
+_df = X_train
+print("X_train Set Size: {:.4f}% ({}/{})".format(((_df.shape[0]/df.shape[0]) * 100), _df.shape[0], _df.shape[0]))
+_df = y_train
+print("y_train Taxonomy Counts:\n{}\n".format(_df.value_counts()))
+_df = X_test
+print("X_test Set Size: {:.4f}% ({}/{})".format(((_df.shape[0]/df.shape[0]) * 100), _df.shape[0], _df.shape[0]))
+_df = y_test
+print("y_test Taxonomy Counts:\n{}\n".format(_df.value_counts()))
+
+# Base model
+print("Base Model Starting...")
+start_time = time.time()
+rf = RandomForestClassifier(n_jobs = 16, n_estimators = 20, random_state = 42)
+rf.fit(X_train, y_train)
+print("--- Elapsed Time: %s seconds ---\n" % (time.time() - start_time))
+
+
+# Predict test set
+y_pred = rf.predict(X_test)
+y_true = y_test
+
+# Show classification report
+from sklearn.metrics import classification_report
+report = classification_report(y_true, y_pred, labels = rf.classes_)
+print("Classification Report:\n{}".format(report))
+
+# Show accuracy
+from sklearn.metrics import accuracy_score
+accuracy = accuracy_score(y_true, y_pred)
+print("Accuracy: {}\n".format(accuracy))
+
+# Plot confusion matrix
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+#cm = confusion_matrix(y_true, y_pred)#, labels = base_model.classes_)
+disp = ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
+#disp.plot()
+disp.ax_.set_title("Random Forest Classifier\nAccuracy: {:.4f}%".format(accuracy*100))
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exit()
 ###################
 # PREPROCESS DATA #
 ###################
@@ -214,14 +260,37 @@ print("--- Elapsed Time: %s seconds ---" % (time.time() - start_time))
 #base_accuracy = evaluate(base_model, test_features, test_labels)
 base_accuracy = metrics.accuracy_score(test_labels, base_model.predict(test_features))
 
+from sklearn.metrics import classification_report
+print("Classification Report:\n{}".format(classification_report(test_labels, base_model.predict(test_features))))
+
+
 # Evaluating the Algorithm
 from sklearn import metrics
 print("\n")
-print("Accuracy: {:.4f}".format(metrics.accuracy_score(test_labels, base_model.predict(test_features))))
+print("Accuracy: {:.4f}%".format((metrics.accuracy_score(test_labels, base_model.predict(test_features))*100)))
 print('Mean Absolute Error:', metrics.mean_absolute_error(test_labels, base_model.predict(test_features)))
 print('Mean Squared Error:', metrics.mean_squared_error(test_labels, base_model.predict(test_features)))  
 print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(test_labels, base_model.predict(test_features))))
 
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+cm = confusion_matrix(test_labels, base_model.predict(test_features), labels = base_model.classes_)
+disp = ConfusionMatrixDisplay(confusion_matrix = cm, display_labels = uniques_test[base_model.classes_])
+disp.plot()
+disp.ax_.set_title("Random Forest Classifier\nAccuracy: {:.4f}%".format(base_accuracy*100))
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+exit()
 
 # GridSearchCV
 from sklearn.model_selection import GridSearchCV
@@ -269,6 +338,48 @@ print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(test_labels
 
 print('Improvement of {:0.2f}%.'.format( 100 * (grid_accuracy - base_accuracy) / base_accuracy))
 exit()
+"""
+Training Set Size: 60.0080% (1942929/3237783)
+Testing Set Size: 39.9920% (1294854/3237783)
+
+Features: ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length', 'lastcontact']
+Base Model Starting...
+--- Elapsed Time: 4.925688028335571 seconds ---
+
+
+Accuracy: 0.3906
+Mean Absolute Error: 1.2160799595939003
+Mean Squared Error: 2.4294924369851736
+Root Mean Squared Error: 1.558682917396984
+GridSearchCV Starting...
+Fitting 3 folds for each of 6 candidates, totalling 18 fits
+[CV] END ....bootstrap=True, max_features=2, n_estimators=10; total time=  38.0s
+[CV] END ....bootstrap=True, max_features=3, n_estimators=10; total time=  49.2s
+[CV] END ....bootstrap=True, max_features=3, n_estimators=10; total time=  51.8s
+[CV] END ....bootstrap=True, max_features=3, n_estimators=10; total time=  52.1s
+[CV] END ....bootstrap=True, max_features=2, n_estimators=50; total time= 2.6min
+[CV] END ....bootstrap=True, max_features=2, n_estimators=50; total time= 2.6min
+[CV] END ....bootstrap=True, max_features=2, n_estimators=50; total time= 2.7min
+[CV] END ....bootstrap=True, max_features=3, n_estimators=50; total time= 3.4min
+[CV] END ....bootstrap=True, max_features=3, n_estimators=50; total time= 3.5min
+[CV] END ....bootstrap=True, max_features=3, n_estimators=50; total time= 3.5min
+--- Elapsed Time: 539.2939231395721 seconds ---
+
+
+Accuracy: 0.3921
+Mean Absolute Error: 1.2143137373016573
+Mean Squared Error: 2.427068225452445
+Root Mean Squared Error: 1.5579050758799282
+Improvement of 0.37%.
+[CV] END ...bootstrap=True, max_features=2, n_estimators=100; total time= 4.4min
+[CV] END ...bootstrap=True, max_features=2, n_estimators=100; total time= 4.4min
+[CV] END ...bootstrap=True, max_features=2, n_estimators=100; total time= 4.5min
+[CV] END ...bootstrap=True, max_features=3, n_estimators=100; total time= 5.6min
+[CV] END ....bootstrap=True, max_features=2, n_estimators=10; total time=  36.1s
+[CV] END ...bootstrap=True, max_features=3, n_estimators=100; total time= 5.2min
+[CV] END ....bootstrap=True, max_features=2, n_estimators=10; total time=  37.9s
+[CV] END ...bootstrap=True, max_features=3, n_estimators=100; total time= 5.3min """
+
 
 ######################################
 # TRAIN THE RANDOM FOREST CLASSIFIER #
