@@ -7,9 +7,10 @@
     
     description
 """
-# from sklearnex import patch_sklearn
-# patch_sklearn(["RandomForestClassifier"])
+from sklearnex import patch_sklearn
+patch_sklearn()
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
 import pandas as pd
 import numpy as np
 import time
@@ -42,65 +43,15 @@ np.random.seed(int(time.time()))
 # LOAD DATA #
 #############
 # Set up directory
-parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_0/output")
+parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_1/output")
+file = parent_directory / "#AGG.csv"
+df = pd.read_csv(file)
 
-agg_data = False
-if(agg_data):
-    
-    #directory = Path.cwd() / "data" / "ML-datasets" / "RandomForest"
+""" # Drop erroneous
+df = df[df['taxonomy'] != 'erroneous'] """
 
-    # Open directory
-    extensions = ('*.parquet', '*.csv')
-    file_count = 0
-    for ext in extensions:
-        for file in parent_directory.rglob(ext):
-            #print(file.name)
-            file_count += 1
-    print("File Count: {}".format(file_count))
-
-    # Concatenate all files into a dataframe
-    parquet_files = [f for f in parent_directory.rglob('*.parquet')]
-    csv_files = [f for f in parent_directory.rglob('*.csv')]
-    parquet_df = pd.concat(map(pd.read_parquet, parquet_files), ignore_index = True)
-    csv_df = pd.concat(map(pd.read_csv, csv_files), ignore_index = True)
-    df = pd.concat([parquet_df, csv_df])
-
-    # Remove irrelevant columns
-    relevant_columns = ['time', 'taxonomy', 'icao24', 'lat', 'lon', 'geoaltitude', 'velocity', 'lastcontact', 'dropout_length']
-    df = df[relevant_columns]
-    print("Dataset Columns: {}".format(list(df.columns)))
-
-    # Drop invalid data
-    #df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length'])
-    df = df.dropna(axis = 0, how = 'any', subset = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length', 'lastcontact'])
-
-    # Drop duplicates
-    df = df.drop_duplicates()
-    print("Number of Unique Aircraft: {}".format(len(df['icao24'].unique())))
-    print("Data Points Count: {}".format(df.shape[0]))
-
-
-    # Save aggregated file
-    print(parent_directory)
-    f = Path("#RF2_AGG.csv")
-    df.to_csv(parent_directory / f)
-
-    exit()
-
-else:
-    file = parent_directory / "#RF2_AGG.csv"
-    #file = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_0/output/#RF2_AGG.csv")
-    df = pd.read_csv(file)
-
-
-
-# Drop erroneous
-#df = df[df['taxonomy'] != 'erroneous']
-
-# # Drop noise
-# df = df[df['taxonomy'] != 'noise']
-
-
+""" # Drop noise
+df = df[df['taxonomy'] != 'noise'] """
 
 print("Taxonomy Counts:\n{}\n".format(df['taxonomy'].value_counts()))
 
@@ -113,7 +64,7 @@ print("Taxonomy Counts:\n{}\n".format(df['taxonomy'].value_counts()))
 # CREATE TRAINING AND TEST DATA #
 #################################
 
-train_percentage = 0.7
+""" train_percentage = 0.7
 df['is_train'] = np.random.uniform(0, 1, len(df)) <= train_percentage
 train, test = df[df['is_train'] == True], df[df['is_train'] == False]
 
@@ -122,12 +73,9 @@ print("Training Taxonomy Counts:\n{}\n".format(train['taxonomy'].value_counts())
 
 print("Testing Set Size: {:.4f}% ({}/{})".format(((test.shape[0]/df.shape[0]) * 100), test.shape[0], df.shape[0]))
 print("Testing Taxonomy Counts:\n{}\n".format(test['taxonomy'].value_counts()))
-
-#print("Testing Set Size: {}% ({}/{})\n".format(train.shape[0], test.shape[0]))
-
-
+ """
 # Define base dataset and features
-features = ['lat', 'lon', 'geoaltitude', 'velocity', 'lastcontact']#, 'dropout_length', 'lastcontact']
+features = ['lat', 'lon', 'geoaltitude', 'velocity', 'dropout_length']
 X = df[features]
 y = df['taxonomy']
 
@@ -137,7 +85,7 @@ y = df['taxonomy']
 # X_test -> testing features
 # y_test -> testing labels
 from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 print("\n")
 _df = X_train
 print("X_train Set Size: {:.4f}% ({}/{})".format(((_df.shape[0]/df.shape[0]) * 100), _df.shape[0], _df.shape[0]))
@@ -148,21 +96,60 @@ print("X_test Set Size: {:.4f}% ({}/{})".format(((_df.shape[0]/df.shape[0]) * 10
 _df = y_test
 print("y_test Taxonomy Counts:\n{}\n".format(_df.value_counts()))
 
-# Base model
-print("Base Model Starting...")
-start_time = time.time()
-rf = RandomForestClassifier(n_jobs = 16, n_estimators = 20, random_state = 42)
-rf.fit(X_train, y_train)
-print("--- Elapsed Time: %s seconds ---\n" % (time.time() - start_time))
+from sklearn.preprocessing import MinMaxScaler
+scaling = MinMaxScaler(feature_range=(-1,1)).fit(X_train)
+X_train = scaling.transform(X_train)
+X_test = scaling.transform(X_test)
 
+################
+# GridSearchCV #
+################
+# Random Forest
+start_time = time.time()
+print("Base Model Starting...")
+print("Time: {}".format(time.ctime()))
+rfc = RandomForestClassifier(n_jobs = 16, n_estimators = 20, random_state = 42)
+#rfc.fit(X_train, y_train)
+# {'bootstrap': True, 'max_depth': 80, 'max_features': 'auto', 'min_samples_leaf': 3, 'min_samples_split': 8, 'n_estimators': 100}
+
+param_grid = {
+    'bootstrap': [True],
+    #'n_estimators': [10, 25, 50],
+    'max_depth': [80, 90, 100, 110],
+    'n_estimators': [50, 100],
+    'max_features': ['auto', 'sqrt', 'log2'],
+    #'max_features': ['auto'],
+    'min_samples_leaf': [3, 4, 5],
+    'min_samples_split': [8, 10, 12],
+}
+
+""" GridSearchCV Best Parameters:
+{'bootstrap': True, 'max_depth': 80, 'max_features': 'auto', 'min_samples_leaf': 5, 'min_samples_split': 8, 'n_estimators': 100} """
+
+""" 'bootstrap': [True],
+    
+    'max_features': [2, 3],
+    # 'min_samples_leaf': [3, 4, 5],
+    # 'min_samples_split': [8, 10, 12],
+    #'n_estimators': [100, 200, 300, 1000]
+    'n_estimators': [10, 50, 100] """
+
+CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5, n_jobs=16, verbose=1)
+CV_rfc.fit(X_train, y_train)
+print("--- Elapsed Time: %s seconds ---\n" % (time.time() - start_time))
+best_params = CV_rfc.best_params_
+print("GridSearchCV Best Parameters:\n{}\n".format(best_params))
+best_grid = CV_rfc.best_estimator_
+
+rfc = best_grid
 
 # Predict test set
-y_pred = rf.predict(X_test)
+y_pred = rfc.predict(X_test)
 y_true = y_test
 
 # Show classification report
 from sklearn.metrics import classification_report
-report = classification_report(y_true, y_pred, labels = rf.classes_)
+report = classification_report(y_true, y_pred, labels = rfc.classes_)
 print("Classification Report:\n{}".format(report))
 
 # Show accuracy
@@ -177,6 +164,25 @@ disp = ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
 #disp.plot()
 disp.ax_.set_title("Random Forest Classifier\nAccuracy: {:.4f}%".format(accuracy*100))
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
