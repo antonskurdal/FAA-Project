@@ -73,7 +73,7 @@ preds = df['isolation_forest'].value_counts()
 print("\nPrediction Counts:\n{}".format(preds))
 print("\nAnomaly Percentage: {:4f}%".format((preds[1] / preds[0]) * 100))
 
-exit(0)
+
 ##################
 # PLOT THE MODEL #
 ##################

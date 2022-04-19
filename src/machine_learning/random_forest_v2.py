@@ -108,8 +108,16 @@ X_test = scaling.transform(X_test)
 start_time = time.time()
 print("Base Model Starting...")
 print("Time: {}".format(time.ctime()))
-rfc = RandomForestClassifier(n_jobs = 16, n_estimators = 20, random_state = 42)
-#rfc.fit(X_train, y_train)
+rfc = RandomForestClassifier(
+    n_jobs = 16, 
+    bootstrap = True, 
+    max_depth = 80, 
+    max_features = 'auto', 
+    min_samples_leaf = 5, 
+    min_samples_split = 8, 
+    n_estimators = 100, 
+    random_state = 42)
+rfc.fit(X_train, y_train)
 # {'bootstrap': True, 'max_depth': 80, 'max_features': 'auto', 'min_samples_leaf': 3, 'min_samples_split': 8, 'n_estimators': 100}
 
 param_grid = {
@@ -126,22 +134,22 @@ param_grid = {
 """ GridSearchCV Best Parameters:
 {'bootstrap': True, 'max_depth': 80, 'max_features': 'auto', 'min_samples_leaf': 5, 'min_samples_split': 8, 'n_estimators': 100} """
 
-""" 'bootstrap': [True],
+# 'bootstrap': [True],
     
-    'max_features': [2, 3],
-    # 'min_samples_leaf': [3, 4, 5],
-    # 'min_samples_split': [8, 10, 12],
-    #'n_estimators': [100, 200, 300, 1000]
-    'n_estimators': [10, 50, 100] """
+#     'max_features': [2, 3],
+#     # 'min_samples_leaf': [3, 4, 5],
+#     # 'min_samples_split': [8, 10, 12],
+#     #'n_estimators': [100, 200, 300, 1000]
+#     'n_estimators': [10, 50, 100]
 
-CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5, n_jobs=16, verbose=1)
+""" CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5, n_jobs=16, verbose=1)
 CV_rfc.fit(X_train, y_train)
 print("--- Elapsed Time: %s seconds ---\n" % (time.time() - start_time))
 best_params = CV_rfc.best_params_
 print("GridSearchCV Best Parameters:\n{}\n".format(best_params))
 best_grid = CV_rfc.best_estimator_
 
-rfc = best_grid
+rfc = best_grid """
 
 # Predict test set
 y_pred = rfc.predict(X_test)

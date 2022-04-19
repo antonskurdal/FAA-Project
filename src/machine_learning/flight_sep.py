@@ -189,8 +189,8 @@ exit()
 
 
 directory = Path.cwd() / "data" / "test" / "flight_sep"
-file = "addf73.csv"
-#file = "a5681f.csv"
+#file = "addf73.csv"
+file = "a5681f.csv"
 
 
 df = pd.read_csv(directory / file)
@@ -198,14 +198,14 @@ df = pd.read_csv(directory / file)
 print(df.head())
 print(df['icao24'].unique())
 
-df = df.drop_duplicates(subset = ["time", "lat", "lon", "geoaltitude"], keep = "last")
+#df = df.drop_duplicates(subset = ["time", "lat", "lon", "geoaltitude"], keep = "last")
 
 df = df.reset_index(drop = True)
 print(df.index)
 #time.sleep(10)
 
 #df = df[:6517]
-#df['time'] = pd.to_datetime(df['time'],unit='s')
+df['time'] = pd.to_datetime(df['time'],unit='s')
 
 fig = px.scatter(df, x = df.index, y = "time", title = "[icao24: {}] Time by Index".format(df['icao24'].unique()[0]), hover_data={'index':(':.d', df.index), "time":':.d'})
 fig.show()
@@ -265,7 +265,7 @@ df.insert(df.shape[1], 'flight_number', None)
 
 
 
-
+exit()
 
 
 # Label splits as separate flights/trips

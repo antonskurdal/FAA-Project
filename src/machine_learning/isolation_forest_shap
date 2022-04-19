@@ -1,0 +1,160 @@
+
+
+#!/usr/bin/env python
+
+"""Isolation Forest Interpretation
+	
+	Original Code Source:
+	https://pub.towardsai.net/interpretation-of-isolation-forest-with-shap-d1b6af93ae71
+	
+	description
+"""
+
+import numpy as np 
+import pandas as pd
+import shap
+from sklearn.datasets import load_boston
+from sklearn.ensemble import IsolationForest
+
+
+
+__author__ = "Anton Skurdal"
+__copyright__ = "Copyright 2022, The FAA Project"
+__credits__ = ["Anton Skurdal"]
+__license__ = "GPL"
+__version__ = "1.5"
+__maintainer__ = "Anton Skurdal"
+__email__ = "antonskurdal@gmail.com"
+__status__ = "Development"
+
+
+
+
+
+
+
+
+boston = load_boston()
+df = pd.DataFrame(data=boston.data,columns=boston.feature_names)
+df['target']=boston.target
+print(df.head())
+X = df.drop('target', axis=1)
+y = df['target']
+
+
+
+iforest = IsolationForest(n_estimators=100, max_samples='auto', contamination='auto', max_features=13, bootstrap=False, n_jobs=-1, random_state=42)
+
+iforest.fit(X)
+
+y_pred = iforest.predict(X)
+df['anomaly_label']=y_pred
+print(df[df.anomaly_label==-1].head())
+
+
+
+explainer = shap.Explainer(iforest.predict, X)
+shap_values = explainer(X)
+
+
+
+shap.initjs()
+
+
+
+shap.plots.force(shap_values[142])
+
+
+print(df.loc[142])
+
+
+shap.plots.force(shap_values[0])
+
+
+
+shap.plots.waterfall(shap_values[142])
+
+
+
+
+shap.plots.scatter(shap_values[:,'NOX'], color=shap_values)
+
+
+
+
+shap.summary_plot(shap_values, X)
+
+
+
+
+shap.plots.bar(shap_values,max_display=14)
+
+
+
+
+import pickle
+
+filename_expl = 'explainer.sav'
+pickle.dump(explainer, open(filename_expl, 'wb'))
+load_explainer = pickle.load(open(filename_expl, 'rb'))
+#print(load_explainer)
+
+filename = 'shapvalues.sav'
+pickle.dump(shap_values, open(filename, 'wb'))
+load_shap_values = pickle.load(open(filename, 'rb'))
+#print(load_shap_values)
+
+
+
+
+
+
+
+
+
+
+from sklearn.utils import shuffle
+
+dfo = df[df['anomaly_label']==-1]
+dfi = df[df['anomaly_label']==1].sample(frac=0.4,random_state=42)
+df_sample = pd.concat([dfi, dfo])
+
+df_sample = shuffle(df_sample,random_state=42)
+
+df_sample.reset_index(inplace=True)
+print(df_sample.head())
+
+
+
+
+
+
+
+
+
+
+features = ['CRIM','ZN','INDUS','CHAS','NOX','RM','AGE','DIS','RAD','TAX','PTRATIO','B','LSTAT']
+explainer = shap.Explainer(iforest.predict, df_sample[features])
+shap_values = explainer(df_sample[features])
+
+
+
+
+
+shap.summary_plot(shap_values, df_sample.iloc[features])
+
+
+
+
+
+
+
+df_sample[df_sample['index']==142].index[0]
+#returns 102
+shap.plots.waterfall(shap_values[102])
+
+
+
+
+
+
