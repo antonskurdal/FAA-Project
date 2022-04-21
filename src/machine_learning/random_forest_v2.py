@@ -54,8 +54,9 @@ df = df[df['taxonomy'] != 'erroneous'] """
 df = df[df['taxonomy'] != 'noise'] """
 
 print("Taxonomy Counts:\n{}\n".format(df['taxonomy'].value_counts()))
+print("Total Points: {}".format(df.shape[0]))
+print("Unique Aircraft: {}".format(df['icao24'].unique().size))
 
-#time.sleep(2)
 
 #fig = px.strip(df, x="taxonomy", y="dropout_length", color="taxonomy", stripmode='overlay')
 #fig.show()
