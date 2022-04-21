@@ -281,7 +281,7 @@ def autotag(df):
 
 
 # Set up directory
-parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch/output")
+parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_3/output")
 
 # Iterate through directory and count files
 #extensions = ('*.csv', '*.parquet')

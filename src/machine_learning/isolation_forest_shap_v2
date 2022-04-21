@@ -48,6 +48,11 @@ parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/ba
 file = parent_directory / "#AGG.csv"
 file = parent_directory / "a79c14_.csv"
 
+
+parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_1/output")
+file = parent_directory / ""
+
+
 df = pd.read_csv(file)
 
 

@@ -84,7 +84,7 @@ def label_flights(df, splits):
 
 
 # Set up directory
-parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch")
+parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_3")
 directory = parent_directory / "output/"
 directory.mkdir(parents=True, exist_ok=True)
 
