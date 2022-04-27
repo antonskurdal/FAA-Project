@@ -84,7 +84,8 @@ def label_flights(df, splits):
 
 
 # Set up directory
-parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_3")
+#parent_directory = Path("D:/#FAA UAS Project/OpenSky WEEK/Individual Aircraft/batch_3")
+parent_directory = Path(Path.cwd() / "data" / "test" / "flight_sep" / "problems")
 directory = parent_directory / "output/"
 directory.mkdir(parents=True, exist_ok=True)
 
@@ -122,6 +123,9 @@ for ext in extensions:
 			data = pd.read_parquet(file)
 		else:
 			print("Invalid file extension.")
+		
+		# Convert 'time' column to strings
+		data['time'] = pd.to_numeric(data['time'].values)
 		
 		# Find separate flights
 		data = clean_data(data)
